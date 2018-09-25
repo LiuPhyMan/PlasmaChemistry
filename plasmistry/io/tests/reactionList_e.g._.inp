@@ -1,0 +1,53 @@
+2A + 3B + 3.0_eV => C + D       ! 3.0*Tgas
+2B=>3C+A                    ! 4.0
+ 2.1_eV   => 2D + 4A            ! 2.0e-1*Tgas**2*exp(-10/Tgas)
+ =>3D + 5.0_eV                  ! 1.0*Te*Tgas
+    2A=>2.0_eV                  ! -2.0
+A   =>  2C + D + 3.0e3_eV       ! BOLsig+ 3.4+max(a,b)
+A + B^++c + d(fd) => 2C+CO2(v32) +  2d2_eV
+C =>                            ! output_C
+3.0e3_eV => D                   ! input_D
+
+CO2 + 3@B => @C + O + @A_eV ! bol @B+
+    @A =  1.0  2.0  3.0  4.2
+    @B =  CO2 H2O N2 O2
+    @C =  2C   3H   2N  1O
+
+E + H2(V@A@) => E + H2O(V@B@) ! cs_key @A@+ -> E
+    @A@ = a b c
+    @B@ = 1 2 3
+
+
+CO + CO2 => CO2(V1) + CO(C3)
+C + CO + CO(V1) => CO + C
+
+
+#   test jacobian
+A + A + C => B + C          ! 1
+A + B => A + A + B          ! 2
+B + C => B + D              ! 3
+C => D                      ! 4
+A + B + D => C              ! 5
+
+#   test pathways
+O3 => O + O2
+O2 => O + O
+O + O2 => O3
+O + O3 => O2 + O2
+
+A +     B => C
+A + B =>    D
+
+#   test read_reaction line
+$ QvibO2 = exp(-11605/Tgas)
+$ kVT10_N2N2 = 4.50d-15 * Tgas
+$ kVT01_N2N2 = kVT10_N2N2 * QvibO2
+$ kVT01_N2N2 = kVT01_N2N2 * max(Tgas,3000)
+e + N2 => e+N2(v1) + 0.10d0_eV                      !   BOLSIG N2 -> N2(v1res)
+e + N2 => e+N2(v1) + 0.10d0_eV                      !   BOLSIG N2 -> N2(v1)
+e + N2 => e+N2(v2) + 0.30d0_eV                      !   BOLSIG N2 -> N2(v2)
+N2(v7) + N2             => N2(v6)+N2 + 0.2e3_eV     !   kVT10_N2N2 * 7.0d0
+N2(v8) + N2 + -0.2d3_eV => N2(v7) + N2              !   kVT10_N2N2 * 8.0d0
+N2     + N2 +  0.2e3_eV => N2(v1) + N2              !   kVT01_N2N2
+N2(v1) + N2             => N2(v2) + N2 + 0.2e3_eV   !   kVT01_N2N2 * 2.0d0
+N2(v2) + N2             => N2(v3) + N2 + 0.2e3_eV   !   kVT01_N2N2 * 3.0d0

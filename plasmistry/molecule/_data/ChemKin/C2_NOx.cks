@@ -1,0 +1,7 @@
+#C2_NOx mechanism
+#Thu Sept 11 19:29:06 GMT 2008
+IN_CHEM_INPUT=@DATA@\\C2_NOx.inp
+Chemistry\ Set\ Description=Reaction Design C2_NOx mechanism 2008
+Chemistry\ Set\ Name=C2_NOx
+FIT_TRANSPORT_PROPERTIES=1
+SYSTEM_FLAG=TRUE

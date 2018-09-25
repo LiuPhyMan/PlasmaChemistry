@@ -1,0 +1,15 @@
+ Hello... This is is a test of your editor 
+ If you see this message, the editor is working properly. 
+ You can close down the editor and return to the Preferences. 
+ 
+ Notepad and Write (runs Wordpad) are popular choices for PC users 
+ 
+ On Unix, the syntax varies by platform and may include opening an 
+ X-window and then running the editor command as part of that window
+ initialization (the -e vi command at the end runs the vi editor):
+     Linux, SGI, IBM, Alpha, HP: /usr/bin/X11/xterm -e vi
+     Sun:  /usr/openwin/bin/xterm -e vi
+Some platforms also have simple alternative editors:
+     HP, Sun:   /usr/dt/bin/dtpad
+     SGI:  /usr/sbin/jot
+     Linux:  /usr/X11R6/bin/xedit

@@ -1,0 +1,10 @@
+#GRI 3.0 Mechanism
+#Tue Apr 20 19:29:06 GMT 2004
+IN_CHEM_INPUT=@DATA@\\grimech30_chem.inp
+IN_TRAN_INPUT=
+IN_SURF_INPUT=
+Chemistry\ Set\ Description=GRI 3.0 Mechanism
+Chemistry\ Set\ Name=grimech30
+IN_THERM_DB=@DATA@\\grimech30_thermo.dat
+IN_TRANS_DB=@DATA@\\grimech30_transport.dat
+SYSTEM_FLAG=TRUE
