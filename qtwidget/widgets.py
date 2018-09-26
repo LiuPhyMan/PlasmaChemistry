@@ -55,11 +55,11 @@ class PlotCanvas(FigureCanvas):
 
 
 class QPlot(QW.QWidget):
-    def __init__(self, parent=None, figsize=(5,4), dpi=100):
+    def __init__(self, parent=None, figsize=(5, 4), dpi=100):
         super().__init__(parent)
         self.figure = Figure(figsize=figsize, dpi=dpi)
         self.canvas = PlotCanvas(parent, self.figure)
-        self.canvas.setFixedSize(500,400)
+        self.canvas.setFixedSize(500, 400)
         layout = QW.QHBoxLayout(parent)
         toolbar = NavigationToolbar(self.canvas, parent=parent, coordinates=False)
         toolbar.setIconSize(QSize(16, 16))
