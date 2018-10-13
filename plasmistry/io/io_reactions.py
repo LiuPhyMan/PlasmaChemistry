@@ -132,12 +132,32 @@ def __read_reactionlist_block(line, replc_input):
     if re.findall(r"@[A-Z]@", line):
         # --------------------------------------------------------------------------------------- #
         #   Replace @[A-Z]@ to generate reaction lines
+        #   Examples
+        #   --------
+        #       replc_input = ['@M@ = 1 2 3',
+        #                      '@N@ = a b c']
         # --------------------------------------------------------------------------------------- #
-        assert len(set(re.findall(r"@[A-Z]@", line))) == len(replc_input) == 2
-        substi_list = [_.split() for _ in replc_input]
-        reaction_lines = [line.replace(substi_list[0][0], x).replace(substi_list[1][0], y)
-                          for y in substi_list[1][2:]
-                          for x in substi_list[0][2:]]
+        assert len(set(re.findall(r"@[A-Z]@", line))) == 2
+        assert len(replc_input) >= 2
+        substi_list_0 = replc_input[0].split()[2:]
+        substi_sign_0 = replc_input[0].split()[0]
+        substi_list_1 = replc_input[1].split()[2:]
+        substi_sign_1 = replc_input[1].split()[0]
+        has_condition = False
+        if replc_input[-1].startswith("@CONDITION"):
+            has_condition = True
+            _temp = re.split(r"\s+:\s+", replc_input[-1])[1].strip()
+            _condition = _temp.replace(substi_sign_0, '_sign_0').replace(substi_sign_1, '_sign_1')
+        reaction_lines = []
+        for _sign_0 in substi_list_0:
+            for _sign_1 in substi_list_1:
+                if has_condition:
+                    if not eval(_condition):
+                        continue
+                reaction_lines.append(line.replace(substi_sign_0,
+                                                   _sign_0).replace(substi_sign_1, _sign_1))
+        return reaction_lines
+
     elif re.findall('@[A-Z]', line):
         # --------------------------------------------------------------------------------------- #
         #   Replace @[A-Z] to generate reaction lines
