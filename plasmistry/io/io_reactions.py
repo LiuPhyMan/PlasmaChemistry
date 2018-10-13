@@ -156,7 +156,6 @@ def __read_reactionlist_block(line, replc_input):
                         continue
                 reaction_lines.append(line.replace(substi_sign_0,
                                                    _sign_0).replace(substi_sign_1, _sign_1))
-        return reaction_lines
 
     elif re.findall('@[A-Z]', line):
         # --------------------------------------------------------------------------------------- #
