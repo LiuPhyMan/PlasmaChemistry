@@ -146,7 +146,7 @@ def __read_reactionlist_block(line, replc_input):
         has_condition = False
         if replc_input[-1].startswith("@CONDITION"):
             has_condition = True
-            _temp = re.split(r"\s+:\s+", replc_input[-1])[1].strip()
+            _temp = re.split(r":", replc_input[-1])[1].strip()
             _condition = _temp.replace(substi_sign_0, '_sign_0').replace(substi_sign_1, '_sign_1')
         reaction_lines = []
         for _sign_0 in substi_list_0:
@@ -222,6 +222,14 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
     # ------------------------------------------------------------------------------------------- #
     rcntM, prdtM, dHM, k_strM = pd.Series(), pd.Series(), pd.Series(), pd.Series()
     pre_exec_list = []
+    envir_vars = dict()
+
+    def replace_envir_vars(_str):
+        init_str = _str
+        for _key in envir_vars:
+            init_str = init_str.replace(_key, envir_vars[_key])
+        return init_str
+
     with open(file_path) as f:
         i_line = 1
         for line in f:
@@ -234,6 +242,15 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                 # ------------------------------------------------------------------------------- #
                 #   Comment
                 # ------------------------------------------------------------------------------- #
+                i_line += 1
+                continue
+            if line.startswith('%'):
+                # ------------------------------------------------------------------------------- #
+                #   Path
+                # ------------------------------------------------------------------------------- #
+                _key = line.split(sep='=')[0].strip()
+                _path = line.split(sep='=')[1].strip()
+                envir_vars[_key] = _path
                 i_line += 1
                 continue
             if (not line.strip().startswith('$')) and ('=>' not in line):
@@ -257,7 +274,7 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                     # --------------------------------------------------------------------------- #
                     #   read line
                     # --------------------------------------------------------------------------- #
-                    rcnt, prdt, dH, k_str = __read_rcnt_prdt_dH_kStr(line)
+                    rcnt, prdt, dH, k_str = __read_rcnt_prdt_dH_kStr(replace_envir_vars(line))
                     rcntM, prdtM, dHM, k_strM = (lamb_series_append(x, xM) for x, xM in
                                                  zip([rcnt, prdt, dH, k_str],
                                                      [rcntM, prdtM, dHM, k_strM]))
@@ -272,13 +289,16 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                         _line = f.readline().strip()
                         assert _line.startswith('@')
                         replc_input.append(_line)
+                    _line = f.readline().strip()
+                    if _line.startswith('@CONDITION'):
+                        replc_input.append(_line)
                     sub_rcntM, sub_prdtM, sub_dHM, sub_k_strM = \
-                        __read_reactionlist_block(line, replc_input)
+                        __read_reactionlist_block(replace_envir_vars(line), replc_input)
                     rcntM, prdtM, dHM, k_strM = (lamb_series_append(x, xM)
                                                  for x, xM in
                                                  zip([sub_rcntM, sub_prdtM, sub_dHM, sub_k_strM],
                                                      [rcntM, prdtM, dHM, k_strM]))
-                    i_line += len(replc_strM) + 1
+                    i_line += len(replc_input) + 1
     if len(rcntM) == 0:
         raise IoReactionsError('None reactions found in ' + file_path)
     else:
