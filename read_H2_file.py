@@ -8,8 +8,24 @@ Created on 10:36 2018/10/13
 @project:   PlasmaChemistry
 @IDE:       PyCharm
 """
-
+import re
 from plasmistry.io import read_reactionFile
 
 output = read_reactionFile('_rctn_list/H2.inp')
 a = output['reaction_info']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -230,75 +230,84 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
             init_str = init_str.replace(_key, envir_vars[_key])
         return init_str
 
+    # read rctn_list in the range.
+    rctn_list = []
     with open(file_path) as f:
-        i_line = 1
-        for line in f:
-            if i_line < start_line:
-                i_line += 1
+        for _i, line in enumerate(f):
+            if _i < start_line - 1:
                 continue
-            if i_line > end_line:
+            if _i > end_line - 1:
                 break
-            if line.startswith('#'):
-                # ------------------------------------------------------------------------------- #
-                #   Comment
-                # ------------------------------------------------------------------------------- #
-                i_line += 1
-                continue
-            if line.startswith('%'):
-                # ------------------------------------------------------------------------------- #
-                #   Path
-                # ------------------------------------------------------------------------------- #
-                _key = line.split(sep='=')[0].strip()
-                _path = line.split(sep='=')[1].strip()
-                envir_vars[_key] = _path
-                i_line += 1
-                continue
-            if (not line.strip().startswith('$')) and ('=>' not in line):
-                i_line += 1
-                continue
-            if line.strip().startswith('$'):
-                # ------------------------------------------------------------------------------- #
-                #   Pre-execution statement
-                # ------------------------------------------------------------------------------- #
-                subline = line.strip()[1:].strip()
-                pre_exec_list.append(subline)
-                i_line += 1
-                continue
-            if '=>' in line:
-                # ------------------------------------------------------------------------------- #
-                #   read reactions
-                # ------------------------------------------------------------------------------- #
-                lamb_series_append = lambda x, _series: \
-                    _series.append(pd.Series(x), ignore_index=True)
-                if '@' not in line:
-                    # --------------------------------------------------------------------------- #
-                    #   read line
-                    # --------------------------------------------------------------------------- #
-                    rcnt, prdt, dH, k_str = __read_rcnt_prdt_dH_kStr(replace_envir_vars(line))
-                    rcntM, prdtM, dHM, k_strM = (lamb_series_append(x, xM) for x, xM in
-                                                 zip([rcnt, prdt, dH, k_str],
-                                                     [rcntM, prdtM, dHM, k_strM]))
+            rctn_list.append(line.strip())
+    # remove all comment.
+    rctn_list = [_.strip() for _ in rctn_list if not _.startswith('#')]
+    ##
+    i_line = 0
+    while i_line < len(rctn_list):
+        line = rctn_list[i_line]
+        # --------------------------------------------------------------------------------------- #
+        #   Abbreviation
+        # --------------------------------------------------------------------------------------- #
+        if re.match("%\S+%\s+=\s+", line):
+            abbr_str = line
+            if ('{' in abbr_str) and ('}' not in abbr_str):
+                while '}' not in rctn_list[i_line]:
+                    abbr_str = abbr_str + ' ' + rctn_list[i_line + 1]
                     i_line += 1
-                else:
-                    # --------------------------------------------------------------------------- #
-                    #   read block
-                    # --------------------------------------------------------------------------- #
-                    replc_strM = set(re.findall(r'@[A-Z]@?', line))
-                    replc_input = []
-                    for _ in replc_strM:
-                        _line = f.readline().strip()
-                        assert _line.startswith('@')
-                        replc_input.append(_line)
+                i_line -= 1
+            temp = re.match(r"%(?P<key>\S+)%\s+=\s+{(?P<abbr>[^}]+)}\s*", abbr_str)
+            key = temp.groupdict()['key']
+            abbr = temp.groupdict()['abbr']
+            assert key not in envir_vars
+            envir_vars[key] = abbr.strip()
+
+        # --------------------------------------------------------------------------------------- #
+        #   Pre-execution statement
+        # --------------------------------------------------------------------------------------- #
+        if line.startswith('$'):
+            subline = line[1:].strip()
+            pre_exec_list.append(subline)
+
+        # --------------------------------------------------------------------------------------- #
+        #   Read reactions
+        # --------------------------------------------------------------------------------------- #
+        if '=>' in line:
+            lamb_series_append = lambda x, _sers: _sers.append(pd.Series(x), ignore_index=True)
+            if '@' not in line:
+                # ------------------------------------------------------------------------------- #
+                #   read line
+                # ------------------------------------------------------------------------------- #
+                rcnt, prdt, dH, k_str = __read_rcnt_prdt_dH_kStr(replace_envir_vars(line))
+                rcntM, prdtM, dHM, k_strM = (lamb_series_append(x, xM) for x, xM in
+                                             zip([rcnt, prdt, dH, k_str],
+                                                 [rcntM, prdtM, dHM, k_strM]))
+            else:
+                # --------------------------------------------------------------------------- #
+                #   read block
+                # --------------------------------------------------------------------------- #
+                replc_strM = set(re.findall(r'@[A-Z]@?', line))
+                replc_input = []
+
+                while rctn_list[i_line+1].startswith('@'):
+                    replc_input.append(rctn_list[i_line+1])
+                    i_line += 1
+                #TODO
+                for _ in replc_strM:
                     _line = f.readline().strip()
-                    if _line.startswith('@CONDITION'):
-                        replc_input.append(_line)
-                    sub_rcntM, sub_prdtM, sub_dHM, sub_k_strM = \
-                        __read_reactionlist_block(replace_envir_vars(line), replc_input)
-                    rcntM, prdtM, dHM, k_strM = (lamb_series_append(x, xM)
-                                                 for x, xM in
-                                                 zip([sub_rcntM, sub_prdtM, sub_dHM, sub_k_strM],
-                                                     [rcntM, prdtM, dHM, k_strM]))
-                    i_line += len(replc_input) + 1
+                    assert _line.startswith('@')
+                    replc_input.append(_line)
+                _line = f.readline().strip()
+                if _line.startswith('@CONDITION'):
+                    replc_input.append(_line)
+                sub_rcntM, sub_prdtM, sub_dHM, sub_k_strM = \
+                    __read_reactionlist_block(replace_envir_vars(line), replc_input)
+                rcntM, prdtM, dHM, k_strM = (lamb_series_append(x, xM)
+                                             for x, xM in
+                                             zip([sub_rcntM, sub_prdtM, sub_dHM, sub_k_strM],
+                                                 [rcntM, prdtM, dHM, k_strM]))
+                i_line += len(replc_input)
+        i_line += 1
+
     if len(rcntM) == 0:
         raise IoReactionsError('None reactions found in ' + file_path)
     else:
