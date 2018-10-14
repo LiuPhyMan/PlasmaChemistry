@@ -57,10 +57,10 @@ def __read_rcnt_prdt_dH_kStr(reaction_str):
     assert reaction_str.count('_eV') <= 1
     # ------------------------------------------------------------------------------------------- #
     rctn_regexp = re.compile(
-            r"\s*{rcnt}{sep}{prdt}\s*(?:[!]\s*{k_str})?\s*".format(rcnt=r"(?P<reactant>.*?)",
-                                                                   sep=r"\s*\<?\=\>\s*",
-                                                                   prdt=r"(?P<product>.*?)",
-                                                                   k_str=r"(?P<k_str>.*?)"))
+        r"\s*{rcnt}{sep}{prdt}\s*(?:[!]\s*{k_str})?\s*".format(rcnt=r"(?P<reactant>.*?)",
+                                                               sep=r"\s*\<?\=\>\s*",
+                                                               prdt=r"(?P<product>.*?)",
+                                                               k_str=r"(?P<k_str>.*?)"))
     rcnt_str, prdt_str, k_str = [rctn_regexp.fullmatch(reaction_str).groupdict()[_]
                                  for _ in ('reactant', 'product', 'k_str')]
 
@@ -255,7 +255,7 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                     abbr_str = abbr_str + ' ' + rctn_list[i_line + 1]
                     i_line += 1
                 i_line -= 1
-            temp = re.match(r"%(?P<key>\S+)%\s+=\s+{(?P<abbr>[^}]+)}\s*", abbr_str)
+            temp = re.match(r"(?P<key>%\S+%)\s+=\s+{(?P<abbr>[^}]+)}\s*", abbr_str)
             key = temp.groupdict()['key']
             abbr = temp.groupdict()['abbr']
             assert key not in envir_vars
@@ -287,18 +287,11 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                 # --------------------------------------------------------------------------- #
                 replc_strM = set(re.findall(r'@[A-Z]@?', line))
                 replc_input = []
-
-                while rctn_list[i_line+1].startswith('@'):
-                    replc_input.append(rctn_list[i_line+1])
+                while re.match(r"@([A-Z]@|CONDITION).*", rctn_list[i_line + 1]):
+                    replc_input.append(replace_envir_vars(rctn_list[i_line + 1]))
                     i_line += 1
-                #TODO
-                for _ in replc_strM:
-                    _line = f.readline().strip()
-                    assert _line.startswith('@')
-                    replc_input.append(_line)
-                _line = f.readline().strip()
-                if _line.startswith('@CONDITION'):
-                    replc_input.append(_line)
+                i_line -= 1
+                assert len(replc_input) >= len(replc_strM)
                 sub_rcntM, sub_prdtM, sub_dHM, sub_k_strM = \
                     __read_reactionlist_block(replace_envir_vars(line), replc_input)
                 rcntM, prdtM, dHM, k_strM = (lamb_series_append(x, xM)

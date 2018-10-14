@@ -18,7 +18,7 @@ END
 # ----------------------------------------------------------------------------------------------- #
 #   Set path
 # ----------------------------------------------------------------------------------------------- #
-%CS_PATH% = { D:/Coding/Python_code/cs_data }
+%CS_PATH% = { E:/Coding/Python_code/cs_data }
 
 # ----------------------------------------------------------------------------------------------- #
 #   Set abbreviation.
@@ -26,9 +26,9 @@ END
 %H2_vib% = {    H2      H2(v1)  H2(v2)  H2(v3)  H2(v4)  H2(v5) H2(v6) H2(v7) H2(v8) H2(v9) 
                 H2(v10) H2(v11) H2(v12) H2(v13) H2(v14)
             }
-%CO2_vib% = { CO2      CO2(v1)  CO2(v2)  CO2(v3)  CO2(v4)  CO2(v5)  CO2(v6)  CO2(v7)  CO2(v8)  CO2(v9) 
-              CO2(v10) CO2(v11) CO2(v12) CO2(v13) CO2(v14) CO2(v15) CO2(v16) CO2(v17) CO2(v18) CO2(v19) 
-              CO2(v20) CO2(v21)
+%CO2_vib% = { CO2      CO2(v1)  CO2(v2)  CO2(v3)  CO2(v4)  CO2(v5)  CO2(v6)  CO2(v7)  CO2(v8) 
+              CO2(v9)  CO2(v10) CO2(v11) CO2(v12) CO2(v13) CO2(v14) CO2(v15) CO2(v16) CO2(v17) 
+              CO2(v18) CO2(v19) CO2(v20) CO2(v21)
             }
 %CO_vib% = { CO      CO(v1)  CO(v2)  CO(v3)  CO(v4)  CO(v5)  CO(v6)  CO(v7)  CO(v8)  CO(v9) 
              CO(v10) CO(v11) CO(v12) CO(v13) CO(v14) CO(v15) CO(v16) CO(v17) CO(v18) CO(v19) 
@@ -41,7 +41,7 @@ END
 # ----------------------------------------------------------------------------------------------- #
 #   Electronic excitation (nondissociative excitation)
 # ----------------------------------------------------------------------------------------------- #
-E + @A@ => E + @B@          !   cs_path %CS_PATH% / H2(X)_to_@B@_to_exc / @A@_to_@B@_exc.csv
+E + @A@ => E + @B@          !   cs_path     %CS_PATH%/H2(X)_to_@B@_exc/@A@_to_@B@_exc.csv
     @A@ = %H2_vib%
     @B@ = H2(B) H2(C) H2(B1) H2(D) H2(B2) H2(D1)
 
@@ -49,9 +49,9 @@ E + @A@ => E + @B@          !   cs_path %CS_PATH% / H2(X)_to_@B@_to_exc / @A@_to
 #   Dissociative excitation
 #       Through the continuum part of the bound electronic state.
 # ----------------------------------------------------------------------------------------------- #
-E + @A@ => E + H + H        !   cs_path %CS_PATH% / H2(X)_to_@B@_to_2H / @A@_to_@B@_to_2H.csv
-    @A@ = %H2_vib%
-    @B@ = H2(B) H2(C) H2(B1) H2(D) H2(B2) H2(D1)
+# E + @A@ => E + H + H        !   cs_path     %CS_PATH%/H2(X)_to_@B@_to_2H/@A@_to_@B@_to_2H.csv
+#     @A@ = %H2_vib%
+#     @B@ = H2(B) H2(C) H2(B1) H2(D) H2(B2) H2(D1)
 
 # ----------------------------------------------------------------------------------------------- #
 #   Dissociative excitation 
@@ -59,24 +59,24 @@ E + @A@ => E + H + H        !   cs_path %CS_PATH% / H2(X)_to_@B@_to_2H / @A@_to_
 #       singlet-triplet (optically forbidden) transition X-b is the main dissociative channel 
 #       for the H2.
 # ----------------------------------------------------------------------------------------------- #
-E + @A@ => E + H + H        !   cs_path %CS_PATH% / H2(X)_to_H2(_b)_to_2H / @A@_to_H2(b)_to_2H.csv
-    @A@ = %H2_vib%
-    @B@ = H2(b)
+# E + @A@ => E + H + H        !   cs_path     %CS_PATH%/H2(X)_to_H2(_b)_to_2H/@A@_to_H2(b)_to_2H.csv
+#     @A@ = %H2_vib%
+#     @B@ = H2(b)
 
 # ----------------------------------------------------------------------------------------------- #
 #   Vibrational excitation
 # ----------------------------------------------------------------------------------------------- #
-E + @A@ => E + @B@          !   cs_path %CS_PATH% / @A@_to_@B@.csv
-    @A@ = %H2_vib%
-    @B@ = %H2_vib%
-    @CONDITION : @A@!=@B@ 
+# E + @A@ => E + @B@          !   cs_path     %CS_PATH%/@A@_to_@B@.csv
+#     @A@ = %H2_vib%
+#     @B@ = %H2_vib%
+#     @CONDITION : @A@!=@B@ 
 
 # ----------------------------------------------------------------------------------------------- #
 #   Dissociative electron attachment
 # ----------------------------------------------------------------------------------------------- #
-E + @A => H + H^-           !   cs_path %CS_PATH% / H2(X)_to_H2-_to_H+H- / @A_to_H2-_to_H+H-.csv
-    @A = H2 H2(v1) H2(v2) H2(v3) H2(v4) H2(v5)
+# E + @A => H + H^-           !   cs_path     %CS_PATH% / H2(X)_to_H2-_to_H+H- / @A_to_H2-_to_H+H-.csv
+#     @A = H2 H2(v1) H2(v2) H2(v3) H2(v4) H2(v5)
 
 #
-E + @A = E + H2^+
-    @A = %H2_vib%
+# E + @A = E + H2^+
+#     @A = %H2_vib%
