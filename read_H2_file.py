@@ -9,11 +9,15 @@ Created on 10:36 2018/10/13
 @IDE:       PyCharm
 """
 import numpy as np
+import pandas as pd
 import re
 from plasmistry.io import read_reactionFile
 
 output = read_reactionFile('_rctn_list/H2.inp')
 a = output['reaction_info']
+a = a.astype(object)
+
+b = pd.DataFrame(columns=['reactant', 'product', 'k_str', 'cs'])
 
 
 def read_cs_from_k_str(k_str):
@@ -22,5 +26,6 @@ def read_cs_from_k_str(k_str):
     return cs
 
 
-for _i in a.index:
-    a.loc[_i, 'cs'] = read_cs_from_k_str(a.loc[_i, 'k_str'])
+b[['reactant', 'product', 'k_str']] = a[['reactant', 'product', 'k_str']]
+for _index in a.index:
+    b.loc[_index, 'cs'] = read_cs_from_k_str(a.loc[_index, 'k_str'])

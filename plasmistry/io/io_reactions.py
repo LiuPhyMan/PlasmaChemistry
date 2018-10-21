@@ -146,12 +146,14 @@ def __read_reactionlist_block(line, replc_input):
         has_condition = False
         if replc_input[-1].startswith("@CONDITION"):
             has_condition = True
-            _temp = re.split(r":", replc_input[-1])[1].strip()
+            _temp = re.split(r":", replc_input[-1], maxsplit=1)[1].strip()
             _condition = _temp.replace(substi_sign_0, '_sign_0').replace(substi_sign_1, '_sign_1')
         reaction_lines = []
         for _sign_0 in substi_list_0:
             for _sign_1 in substi_list_1:
                 if has_condition:
+                    print(_sign_0, end=' ')
+                    print(_sign_1)
                     if not eval(_condition):
                         continue
                 reaction_lines.append(line.replace(substi_sign_0,
