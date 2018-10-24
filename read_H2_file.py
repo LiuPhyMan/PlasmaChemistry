@@ -32,4 +32,3 @@ for _index in a.index:
 
 if __name__ == "__main__":
     print('The name is Main')
-    print('help')
