@@ -250,14 +250,15 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
         # --------------------------------------------------------------------------------------- #
         #   Abbreviation
         # --------------------------------------------------------------------------------------- #
-        if re.match("%\S+%\s+=\s+", line):
+        if re.match(r"(?P<abbr>%\S+%)\s+=\s+\\?", line):
             abbr_str = line
-            if ('{' in abbr_str) and ('}' not in abbr_str):
+            if '}' not in abbr_str:
                 while '}' not in rctn_list[i_line]:
                     abbr_str = abbr_str + ' ' + rctn_list[i_line + 1]
                     i_line += 1
                 i_line -= 1
-            temp = re.match(r"(?P<key>%\S+%)\s+=\s+{(?P<abbr>[^}]+)}\s*", abbr_str)
+            temp = re.match(r"(?P<key>%\S+%)\s+=\s+(\\\s+)?{(?P<abbr>[^}]+)}\s*", abbr_str)
+            assert temp, abbr_str
             key = temp.groupdict()['key']
             abbr = temp.groupdict()['abbr']
             assert key not in envir_vars
@@ -289,11 +290,11 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                 # --------------------------------------------------------------------------- #
                 replc_strM = set(re.findall(r'@[A-Z]@?', line))
                 replc_input = []
-                while re.match(r"@([A-Z]@|CONDITION).*", rctn_list[i_line + 1]):
+                while re.match(r"@([A-Z]@?|CONDITION).*", rctn_list[i_line + 1]):
                     replc_input.append(replace_envir_vars(rctn_list[i_line + 1]))
                     i_line += 1
                 i_line -= 1
-                assert len(replc_input) >= len(replc_strM)
+                assert len(replc_input) >= len(replc_strM), replc_input
                 sub_rcntM, sub_prdtM, sub_dHM, sub_k_strM = \
                     __read_reactionlist_block(replace_envir_vars(line), replc_input)
                 rcntM, prdtM, dHM, k_strM = (lamb_series_append(x, xM)
