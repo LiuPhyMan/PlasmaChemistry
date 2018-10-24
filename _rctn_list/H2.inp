@@ -17,8 +17,13 @@ END
 
 # ----------------------------------------------------------------------------------------------- #
 #   Set path
+#       path 0 is for windows system
+#       path 1 is for Linux system
 # ----------------------------------------------------------------------------------------------- #
-%CS_PATH% = { D:\Coding\Python_code\cs_data }
+%CS_PATH% = \
+    { D:/Coding/Python_code/cs_data 
+      /home/liujinbao/Documents/CODE/PlasmaChemistry/CrossSectionFile/H2    
+    }
 
 # ----------------------------------------------------------------------------------------------- #
 #   Set abbreviation.

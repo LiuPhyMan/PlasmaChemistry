@@ -4,6 +4,7 @@ Created on Mon Nov 28 14:29:46 2016
 
 @author: ljb
 """
+import platform
 import math
 import re
 
@@ -261,6 +262,17 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
             assert temp, abbr_str
             key = temp.groupdict()['key']
             abbr = temp.groupdict()['abbr']
+            # ----------------------------------------------------------------------------------- #
+            #   cs_path is different for windows and linux
+            # ----------------------------------------------------------------------------------- #
+            if key == '%CS_PATH%':
+                if platform.platform().startswith('Windows'):
+                    abbr = abbr.strip().split()[0]
+                elif platform.platform().startswith("Linux"):
+                    abbr = abbr.strip().split()[1]
+                else:
+                    raise Exception("The {s} is not supported.".format(s=platform.platform()))
+
             assert key not in envir_vars
             envir_vars[key] = abbr.strip()
 
