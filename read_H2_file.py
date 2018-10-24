@@ -29,3 +29,6 @@ def read_cs_from_k_str(k_str):
 b[['reactant', 'product', 'k_str']] = a[['reactant', 'product', 'k_str']]
 for _index in a.index:
     b.loc[_index, 'cs'] = read_cs_from_k_str(a.loc[_index, 'k_str'])
+
+if __name__ == "__main__":
+    print('The name is Main')
