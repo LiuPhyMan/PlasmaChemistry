@@ -97,6 +97,18 @@ E + @A@ => E + @B@          !   cs_path     %CS_PATH%/H2(X)_to_@B@_exc/@A@_to_@B
     @A@ = %H2_vib%
     @B@ = %H2_EleState%
 
+
+# ----------------------------------------------------------------------------------------------- #
+#   Electron impact hydrogen atom processes
+# ----------------------------------------------------------------------------------------------- #
+E + H => E + @A             !   cs_path     %CS_PATH%/H(n)_to_H(m)/H(1)_to_@A.csv
+    @A = H2(2) H2(3) H2(4)
+    
+E + H(2) => E + @A          !   cs_path     %CS_PATH%/H(n)_to_H(m)/H(2)_to_@A.csv
+    @A = H2(3) H2(4)
+
+E + H(3) => E + @A          !   cs_path     %CS_PATH%/H(n)_to_H(m)/H(3)_to_@A.csv
+    @A = H2(4)
 #
 # E + @A = E + H2^+
-#     @A = %H2_vib%
+#     @A = %H2_vib
