@@ -288,7 +288,7 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
         # --------------------------------------------------------------------------------------- #
         if '=>' in line:
             lamb_series_append = lambda x, _sers: _sers.append(pd.Series(x), ignore_index=True)
-            if '@' not in line:
+            if not rctn_list[i_line+1].startswith("@"):
                 # ------------------------------------------------------------------------------- #
                 #   read line
                 # ------------------------------------------------------------------------------- #
@@ -296,12 +296,17 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                 rcntM, prdtM, dHM, k_strM = (lamb_series_append(x, xM) for x, xM in
                                              zip([rcnt, prdt, dH, k_str],
                                                  [rcntM, prdtM, dHM, k_strM]))
-            else:
+            else:   # startswith("@")
                 # --------------------------------------------------------------------------- #
                 #   read block
                 # --------------------------------------------------------------------------- #
                 replc_strM = set(re.findall(r'@[A-Z]@?', line))
+
                 replc_input = []
+                if rctn_list[i_line+1].startswith("@WHERE"):
+
+                elif rctn_list[i_line+1].startswith("@LAMBDA"):
+
                 while re.match(r"@([A-Z]@?|CONDITION).*", rctn_list[i_line + 1]):
                     replc_input.append(replace_envir_vars(rctn_list[i_line + 1]))
                     i_line += 1
