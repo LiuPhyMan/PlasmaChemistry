@@ -9,21 +9,11 @@ Created on 20:09 2018/10/25
 @IDE:       PyCharm
 """
 import re
-
-treat_cmds = []
-with open('_rctn_list\H2.inp') as f:
-    for i, _line in enumerate(f):
-        if i+1 == 117:
-            origin_line = _line.strip()
-        if 118 <= i + 1 <= 124:
-            treat_cmds.append(_line)
-
-treat_cmds = [_.strip() for _ in treat_cmds]
-_total_str = '\n'.join(treat_cmds)
-treat_cmds = re.findall(r"(?P<cmds>@(?:WHERE|LAMBDA)\s*:\s*[^@]+)", _total_str)
+from plasmistry.io import read_reactionFile
+from plasmistry import constants as const
 
 
-def treat_line(origin_line, treat_cmd):
+def treat_where_or_lambda_cmds(origin_line, treat_cmd):
     _line = origin_line
     if treat_cmd.startswith("@WHERE"):
         _args = re.fullmatch(r"@WHERE\s*:\s*(?P<cmds>(?:[^\n]+\n)+)", treat_cmd)
@@ -43,8 +33,24 @@ def treat_line(origin_line, treat_cmd):
         return treat_func(origin_line)
 
 
-_line = origin_line
-for _cmd in treat_cmds:
-    _line = treat_line(_line, _cmd)
-# _treated_line = treat_line(origin_line, temp[0])
-# _treated_line = treat_line(_treated_line, temp[1])
+def treat_multi_cmds(origin_line, _cmds):
+    treat_cmds = [_.strip() for _ in _cmds]
+    treat_cmds = re.findall(r"(?P<cmds>@(?:WHERE|LAMBDA)\s*:\s*[^@]+)", '\n'.join(treat_cmds))
+    _line = origin_line
+    for _cmd in treat_cmds:
+        _line = treat_where_or_lambda_cmds(_line, _cmd)
+    return _line
+
+
+
+if __name__ == "__main__":
+    # temp = read_reactionFile('_rctn_list\H2.inp',start_line=133, end_line=139)
+    # a = temp['reaction_info']
+    # b = temp['pre_exec_list']
+    # with open("_rctn_list/CO2_chemistry.gum") as f:
+    #     lines = ''.join(f.readlines())
+    #
+    # a = re.findall(r"Reaction\s*{[^{}]+{[^{}]+}[^{}]+}", lines)
+    # for _ in a:
+    #     print(re.findall(r"Format[^\n]+\n", _))
+

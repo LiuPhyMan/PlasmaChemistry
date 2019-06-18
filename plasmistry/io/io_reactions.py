@@ -21,6 +21,35 @@ def fortran2python(_expr):
     return re.sub(r"(?<=[\d\.])d(?=[\+\-\d])", "e", _expr)
 
 
+def __treat_where_or_lambda_cmd(origin_line, treat_cmd):
+    _line = origin_line
+    if treat_cmd.startswith("@WHERE"):
+        _args = re.fullmatch(r"@WHERE\s*:\s*(?P<cmds>(?:[^\n]+\n)+)", treat_cmd)
+        _cmds = _args.groupdict()['cmds'].strip().split(sep='\n')
+        _cmds.reverse()
+        for _ in _cmds:
+            _var = _.split(sep='=')[0].strip()
+            _str = _.split(sep='=')[1].strip()
+            assert _var in _line, _var
+            _line = _line.replace(_var, '( ' + _str.replace(' ', '') + ' )')
+        return _line
+    elif treat_cmd.startswith("@LAMBDA"):
+        _args = re.fullmatch(r"@LAMBDA\s*:\s*(?P<cmds>[\s\S]*)", treat_cmd)
+        assert _args, _args
+        lambda_cmd = _args.groupdict()['cmds'].strip()
+        treat_func = eval(lambda_cmd)
+        return treat_func(origin_line)
+
+
+def __treat_multi_cmds(origin_line, _cmds):
+    treat_cmds = [_.strip() for _ in _cmds]
+    treat_cmds = re.findall(r"(?P<cmds>@(?:WHERE|LAMBDA)\s*:\s*[^@]+)", '\n'.join(treat_cmds))
+    _line = origin_line
+    for _cmd in treat_cmds:
+        _line = __treat_where_or_lambda_cmd(_line, _cmd)
+    return _line
+
+
 def __get_delete_dH(_str):
     dH_str = re.findall(r"(?P<dH>\S*)_eV", _str)[0]
     dH = float(fortran2python(dH_str))
@@ -127,7 +156,7 @@ def __read_reactionlist_block(line, replc_input):
     """
     assert isinstance(line, str)
     assert isinstance(replc_input, list)
-    assert '@' in line
+    # assert '@' in line
 
     # ------------------------------------------------------------------------------------------- #
     if re.findall(r"@[A-Z]@", line):
@@ -179,6 +208,8 @@ def __read_reactionlist_block(line, replc_input):
                           zip(replc_arr[:, 0], replc_arr[:, i_lines])}
             new_line = re.sub(r"@(?P<label>[A-Z])", '{\g<label>}', line)
             reaction_lines.append(new_line.format(**replc_dict))
+    elif re.match(r"@(WHERE|LAMBDA)", replc_input[0]):
+        reaction_lines = __treat_multi_cmds(line, replc_input)
     else:
         raise IoReactionsError("The {} block is error".format(line))
     # Read rcnt prdt dH k_str of lines
@@ -233,6 +264,7 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
             init_str = init_str.replace(_key, envir_vars[_key])
         return init_str
 
+    # ------------------------------------------------------------------------------------------- #
     # read rctn_list in the range.
     rctn_list = []
     with open(file_path) as f:
@@ -244,12 +276,22 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
             rctn_list.append(line.strip())
     # remove all comment.
     rctn_list = [_.strip() for _ in rctn_list if not _.startswith('#')]
+    # ------------------------------------------------------------------------------------------- #
     ##
     i_line = 0
     while i_line < len(rctn_list):
         line = rctn_list[i_line]
         # --------------------------------------------------------------------------------------- #
         #   Abbreviation
+        #   e.g.
+        #       %CS_PATH% = \
+        #           { D:/Coding/Python_code/cs_data
+        #             /home/liujinbao/Documents/CODE/PlasmaChemistry/CrossSectionFile/H2
+        #           }
+        #       %H2_vib% = \
+        #           {   H2      H2(v1)  H2(v2)  H2(v3)  H2(v4)  H2(v5) H2(v6) H2(v7) H2(v8) H2(v9)
+        #               H2(v10) H2(v11) H2(v12) H2(v13) H2(v14)
+        #           }
         # --------------------------------------------------------------------------------------- #
         if re.match(r"(?P<abbr>%\S+%)\s+=\s+\\?", line):
             abbr_str = line
@@ -280,15 +322,14 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
         #   Pre-execution statement
         # --------------------------------------------------------------------------------------- #
         if line.startswith('$'):
-            subline = line[1:].strip()
-            pre_exec_list.append(subline)
+            pre_exec_list.append(line[1:].strip())
 
         # --------------------------------------------------------------------------------------- #
         #   Read reactions
         # --------------------------------------------------------------------------------------- #
-        if '=>' in line:
+        if '=>' in line:  # start reading reactions
             lamb_series_append = lambda x, _sers: _sers.append(pd.Series(x), ignore_index=True)
-            if not rctn_list[i_line+1].startswith("@"):
+            if not rctn_list[i_line + 1].startswith("@"):  # read a simple one.
                 # ------------------------------------------------------------------------------- #
                 #   read line
                 # ------------------------------------------------------------------------------- #
@@ -296,21 +337,23 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                 rcntM, prdtM, dHM, k_strM = (lamb_series_append(x, xM) for x, xM in
                                              zip([rcnt, prdt, dH, k_str],
                                                  [rcntM, prdtM, dHM, k_strM]))
-            else:   # startswith("@")
-                # --------------------------------------------------------------------------- #
+            else:  # startswith("@")
+                # ------------------------------------------------------------------------------- #
                 #   read block
-                # --------------------------------------------------------------------------- #
+                # ------------------------------------------------------------------------------- #
                 replc_strM = set(re.findall(r'@[A-Z]@?', line))
 
                 replc_input = []
-                if rctn_list[i_line+1].startswith("@WHERE"):
-
-                elif rctn_list[i_line+1].startswith("@LAMBDA"):
-
-                while re.match(r"@([A-Z]@?|CONDITION).*", rctn_list[i_line + 1]):
-                    replc_input.append(replace_envir_vars(rctn_list[i_line + 1]))
-                    i_line += 1
-                i_line -= 1
+                if re.match(r"@(WHERE|LAMBDA)", rctn_list[i_line + 1]):
+                    while not rctn_list[i_line + 1].startswith("@END"):
+                        replc_input.append(replace_envir_vars(rctn_list[i_line + 1]))
+                        i_line += 1
+                    i_line -= 1
+                elif re.match(r"@([A-Z]@?|CONDITION)", rctn_list[i_line + 1]):
+                    while re.match(r"@([A-Z]@?|CONDITION).*", rctn_list[i_line + 1]):
+                        replc_input.append(replace_envir_vars(rctn_list[i_line + 1]))
+                        i_line += 1
+                    i_line -= 1
                 assert len(replc_input) >= len(replc_strM), replc_input
                 sub_rcntM, sub_prdtM, sub_dHM, sub_k_strM = \
                     __read_reactionlist_block(replace_envir_vars(line), replc_input)
