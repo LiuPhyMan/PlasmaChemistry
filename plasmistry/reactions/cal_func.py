@@ -77,10 +77,11 @@ def get_reverse_crostn(cs_series, stcs_wght_ratio_dict):
 def arrhenius_rate_const(*, T, A, n, Ea_J_mol):
     return A * T ** n * np.exp(-Ea_J_mol / const.R / T)
 
+
 def pressure_reaction_const(*, T, third_body_density, low_coefs, high_coefs):
     k_0 = arrhenius_rate_const(T=T, A=low_coefs[0], n=low_coefs[1], Ea_J_mol=low_coefs[2])
     k_oo = arrhenius_rate_const(T=T, A=high_coefs[0], n=high_coefs[1], Ea_J_mol=high_coefs[2])
-    Pr = k_0*third_body_density/k_oo
+    Pr = k_0 * third_body_density / k_oo
 
 
 def get_reversed_arrhenius_const(*, reaction_str, A, n, Ea_J_mol):

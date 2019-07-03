@@ -102,7 +102,7 @@ class Reactions(object):
                  '__sij',
                  '__rcnt_index',
                  '__rcnt_expnt']
-    
+
     # ------------------------------------------------------------------------------------------- #
     #   __init__
     # ------------------------------------------------------------------------------------------- #
@@ -126,7 +126,7 @@ class Reactions(object):
         assert isinstance(k_str, Series_type) or (k_str is None)
         assert isinstance(dH_g, Series_type) or (dH_g is None)
         assert isinstance(dH_e, Series_type) or (dH_e is None)
-        
+
         # --------------------------------------------------------------------------------------- #
         #   reactant product species
         # --------------------------------------------------------------------------------------- #
@@ -138,25 +138,25 @@ class Reactions(object):
         assert self._regexp_check(self.species, self.specie_regexp)
         assert self._regexp_check(self.reactant, self.cmpnds_regexp)
         assert self._regexp_check(self.product, self.cmpnds_regexp)
-        
+
         # --------------------------------------------------------------------------------------- #
         #   number of species and that of reactions.
         # --------------------------------------------------------------------------------------- #
         self.n_species = self.species.size
         self.n_reactions = self.reactant.size
         assert self.reactant.size == self.product.size
-        
+
         # --------------------------------------------------------------------------------------- #
         #   k_str
         # --------------------------------------------------------------------------------------- #
         self.k_str = k_str.str.strip().str.replace(r"\s+", '') if k_str is not None else None
-        
+
         # --------------------------------------------------------------------------------------- #
         #   rate constant, rate
         # --------------------------------------------------------------------------------------- #
         self.rate_const = None
         self.rate = None
-        
+
         # --------------------------------------------------------------------------------------- #
         #   __rcntsij, __prdtsij, __sij, __rcnt_index and __rcnt_expnt
         # --------------------------------------------------------------------------------------- #
@@ -167,7 +167,7 @@ class Reactions(object):
         self.__sij = (-self.__rcntsij + self.__prdtsij).tocsr(copy=True)
         self.__rcnt_index, self.__rcnt_expnt = self._get_rcnt_index_expnt(self.reactant,
                                                                           self.__rcntsij)
-        
+
         # --------------------------------------------------------------------------------------- #
         #   dH_g, dH_e
         # --------------------------------------------------------------------------------------- #
@@ -175,7 +175,7 @@ class Reactions(object):
         self.dH_g = init_dH if dH_g is None else dH_g
         self.dH_e = init_dH if dH_e is None else dH_e
         del init_dH
-    
+
     # ------------------------------------------------------------------------------------------- #
     #   __setattr__
     # ------------------------------------------------------------------------------------------- #
@@ -189,7 +189,7 @@ class Reactions(object):
             assert value is None or \
                    (isinstance(value, Series_type) and value.size == self.n_reactions)
         object.__setattr__(self, key, value)
-    
+
     # ------------------------------------------------------------------------------------------- #
     #   Static_methods
     #       - fortran2python
@@ -220,7 +220,7 @@ class Reactions(object):
         """
         assert isinstance(_expr, str)
         return re.sub(r"(?<=[\d\.])d(?=[\+\-\d])", "e", _expr)
-    
+
     @staticmethod
     def format_cmpnds(_series_str):
         r"""
@@ -242,7 +242,7 @@ class Reactions(object):
         assert isinstance(_series_str, Series_type)
         return _series_str.str.replace(r"(?<![\^\s])[+](?!\s)",
                                        " + ").str.replace(r"\s+[+]\s+", " + ").str.strip()
-    
+
     @staticmethod
     def _regexp_check(_series, _regexp):
         r"""
@@ -264,7 +264,7 @@ class Reactions(object):
         regexp_check = re.compile(_regexp)
         lamb_regexp_check = lambda _str: True if regexp_check.fullmatch(_str) else False
         return _series.apply(lamb_regexp_check).all()
-    
+
     @staticmethod
     def _get_sparse_paras(species, cmpnds):
         r"""
@@ -314,7 +314,7 @@ class Reactions(object):
         indices = pd.Series(range(len(species)), index=species, dtype=np.int64)[spcs_all].values
         indptr = np.insert(cmpnds.apply(lamb_n_cmpnds).cumsum().values, 0, [0])
         return data, indices, indptr
-    
+
     @staticmethod
     def _get_rcnt_index_expnt(rcnt, rcntsij):
         """
@@ -374,7 +374,7 @@ class Reactions(object):
         rcnt_index = np.array((sji_lil.rows + index_adjsmnt).tolist(), dtype=np.int64)
         rcnt_expnt = np.array((sji_lil.data + expnt_adjsmnt).tolist(), dtype=np.int64)
         return rcnt_index, rcnt_expnt
-    
+
     # ------------------------------------------------------------------------------------------- #
     #   rate, dn, dH_e, dH_g
     # ------------------------------------------------------------------------------------------- #
@@ -394,7 +394,7 @@ class Reactions(object):
         # assert np.all(self.rate_const >= 0.0)
         self.rate = self.rate_const * np.prod(density[self.__rcnt_index] ** self.__rcnt_expnt,
                                               axis=1)
-    
+
     def get_dn(self):
         r"""
         Calculate the derivations of densities.
@@ -408,7 +408,7 @@ class Reactions(object):
         """
         # assert np.all(self.rate>=0.0)
         return self.__sij.dot(self.rate)
-    
+
     def get_dH_e(self):
         r"""
         Calculate the total enthalpy in electron.
@@ -419,7 +419,7 @@ class Reactions(object):
 
         """
         return self.dH_e.dot(self.rate)
-    
+
     def get_dH_g(self):
         r"""
         Calculate the total enthalpy in molecule and atom.
@@ -430,7 +430,7 @@ class Reactions(object):
 
         """
         return self.dH_g.dot(self.rate)
-    
+
     # ------------------------------------------------------------------------------------------- #
     def get_initial_density(self, *, density_dict, min_density=0.0):
         r"""
@@ -449,14 +449,14 @@ class Reactions(object):
         """
         assert isinstance(density_dict, dict)
         assert isinstance(min_density, float)
-        
+
         density_0 = pd.Series(min_density, index=self.species, dtype=np.float64)
         for key in density_dict:
             assert key in self.species.values, "{} not in species.".format(key)
-            assert isinstance(density_dict[key], float)
+            assert isinstance(density_dict[key], float) or isinstance(density_dict[key], int)
             density_0[key] = density_dict[key]
         return density_0.values
-    
+
     def __str__(self):
         r"""
         Print the info of reactions.
@@ -491,8 +491,7 @@ class Reactions(object):
                    n_spcs=self.n_species,
                    n_rctns=self.n_reactions)
         return output
-    
-    @property
+
     def view(self):
         output = pd.DataFrame({
             'formula': self.reactant + ' => ' + self.product,
@@ -528,7 +527,7 @@ class CoefReactions(Reactions):
                                        'pre_exec_list_compiled',
                                        'k_str_compiled',
                                        'mid_variables']
-    
+
     # ------------------------------------------------------------------------------------------- #
     def __init__(self, *, reactant, product, k_str=None, dH_g=None, dH_e=None):
         Reactions.__init__(self, reactant=reactant, product=product,
@@ -539,7 +538,7 @@ class CoefReactions(Reactions):
         self.pre_exec_list_compiled = None
         self.mid_variables = None
         self.k_str_compiled = None
-    
+
     # ------------------------------------------------------------------------------------------- #
     def __str__(self):
         output = """
@@ -553,7 +552,7 @@ class CoefReactions(Reactions):
                 mid_variables=pd.Series(self.mid_variables),
                 k_str_compiled=self.k_str_compiled)
         return Reactions.__str__(self) + output
-    
+
     # ------------------------------------------------------------------------------------------- #
     def set_pre_exec_list(self, exec_list):
         r"""
@@ -568,7 +567,7 @@ class CoefReactions(Reactions):
         assert isinstance(exec_list, list)
         self.pre_exec_list = [self.fortran2python(_.strip()) for _ in exec_list]
         self.pre_exec_list_compiled = [compile(_, '<string>', 'exec') for _ in self.pre_exec_list]
-    
+
     # ------------------------------------------------------------------------------------------- #
     def compile_k_str(self):
         r"""
@@ -579,13 +578,13 @@ class CoefReactions(Reactions):
         assert "" not in self.k_str.values
         k_str_formated = self.k_str.apply(self.fortran2python)
         self.k_str_compiled = compile('({})'.format(', '.join(k_str_formated)), '<string>', 'eval')
-    
+
     # ------------------------------------------------------------------------------------------- #
     def set_rate_const_instance(self, rate_const_instance):
         self.rate_const_instance = rate_const_instance
-    
+
     # ------------------------------------------------------------------------------------------- #
-    def set_rate_const(self, *, density, Tgas_K, Te_eV, EN_Td):
+    def set_rate_const(self, *, Tgas_K, Te_eV, EN_Td):
         r"""
         Calculate rate constants basing on k_str expressions.
             set self.mid_variables
@@ -608,21 +607,21 @@ class CoefReactions(Reactions):
             Electric field.
 
         """
-        # assert isinstance(Tgas_K, float)
-        # assert isinstance(Te_eV, float)
-        # assert isinstance(EN_Td, float)
+        assert isinstance(Tgas_K, float) or isinstance(Tgas_K, int)
+        assert isinstance(Te_eV, float) or isinstance(Te_eV, int)
+        assert isinstance(EN_Td, float) or isinstance(EN_Td, int)
         #
-        # self.mid_variables = {'EN': EN_Td, 'Tgas': Tgas_K, 'Te': Te_eV}
-        # if self.pre_exec_list is not None:
-        #     for line_compiled in self.pre_exec_list_compiled:
-        #         exec(line_compiled, {'exp': math.exp}, self.mid_variables)
-        # self.rate_const = np.array(eval(self.k_str_compiled,
-        #                                 {'exp': math.exp, 'log': math.log},
-        #                                 self.mid_variables), dtype=np.float64)
+        self.mid_variables = {'EN': EN_Td, 'Tgas': Tgas_K, 'Te': Te_eV}
+        if self.pre_exec_list is not None:
+            for line_compiled in self.pre_exec_list_compiled:
+                exec(line_compiled, {'exp': math.exp}, self.mid_variables)
+        self.rate_const = np.array(eval(self.k_str_compiled,
+                                        {'exp': math.exp, 'log': math.log},
+                                        self.mid_variables), dtype=np.float64)
         # --------------------------------------------------------------------------------------- #
-        self.rate_const_instance.set_density(density)
+        # self.rate_const_instance.set_density(density)
         # print(self.rate_const_instance.rate_const(Tgas_K))
-        self.rate_const = self.rate_const_instance.rate_const(Tgas_K)
+        # self.rate_const = self.rate_const_instance.rate_const(Tgas_K)
 
 
 # ----------------------------------------------------------------------------------------------- #
@@ -643,15 +642,15 @@ class CrosReactions(Reactions):
     """
     __slots__ = Reactions.__slots__ + ['rate_const_matrix',
                                        'crostn_dataframe']
-    
+
     # ------------------------------------------------------------------------------------------- #
     def __init__(self, *, reactant, product, k_str, dH_g=None, dH_e=None):
         Reactions.__init__(self, reactant=reactant, product=product,
                            k_str=k_str, dH_g=dH_g, dH_e=dH_e)
         self.reaction_type = 'cross_sections related'
-    
+
     # def __init__(self, *, reaction_dataframe):
-    
+
     # ------------------------------------------------------------------------------------------- #
     def set_rate_const_matrix(self, *, crostn_dataframe, electron_energy_grid):
         r"""
@@ -692,7 +691,7 @@ class CrosReactions(Reactions):
                              crostn_eV_m2=_cs_series['cross_section'])
                 _rate_const_matrix[i_rctn] = EEDF.get_rate_const_matrix_molecule(**_args)
         self.rate_const_matrix = _rate_const_matrix
-    
+
     # ------------------------------------------------------------------------------------------- #
     def set_rate_const(self, *, eedf_normalized):
         r"""
@@ -712,33 +711,33 @@ class CrosReactions(Reactions):
 # ----------------------------------------------------------------------------------------------- #
 class MixReactions(Reactions):
     __slots__ = Reactions.__slots__ + ['cros_reactions', 'coef_reactions']
-    
+
     # ------------------------------------------------------------------------------------------- #
     def __init__(self, *, cros_instance, coef_instance):
         assert isinstance(cros_instance, CrosReactions)
         assert isinstance(coef_instance, CoefReactions)
-        
+
         def mix_series(a, b):
             assert isinstance(a, Series_type)
             assert isinstance(b, Series_type)
             return a.append(b, ignore_index=True)
-        
+
         mix_reactant = mix_series(cros_instance.reactant, coef_instance.reactant)
         mix_product = mix_series(cros_instance.product, coef_instance.product)
         mix_dH_g = mix_series(cros_instance.dH_g, coef_instance.dH_g)
         mix_dH_e = mix_series(cros_instance.dH_e, coef_instance.dH_e)
         mix_k_str = mix_series(cros_instance.k_str, coef_instance.k_str)
-        
+
         Reactions.__init__(self, reactant=mix_reactant,
                            product=mix_product,
                            k_str=mix_k_str,
                            dH_g=mix_dH_g,
                            dH_e=mix_dH_e)
-        
+
         self.cros_reactions = copy.deepcopy(cros_instance)
         self.coef_reactions = copy.deepcopy(coef_instance)
         self.reaction_type = 'mixed reactions'
-    
+
     def set_rate_const(self, *, eedf_normalized, Tgas_K, Te_eV, EN_Td):
         self.cros_reactions.set_rate_const(eedf_normalized=eedf_normalized)
         self.coef_reactions.set_rate_const(Tgas_K=Tgas_K, Te_eV=Te_eV, EN_Td=EN_Td)

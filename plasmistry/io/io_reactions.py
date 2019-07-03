@@ -11,17 +11,31 @@ import re
 import numpy as np
 import pandas as pd
 
-
+number_regexp = r"[+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?"
 # ----------------------------------------------------------------------------------------------- #
 class IoReactionsError(Exception):
     pass
 
 
 def fortran2python(_expr):
-    return re.sub(r"(?<=[\d\.])d(?=[\+\-\d])", "e", _expr)
+    r"""
+    Convert 2.d-2 to 2.e-2
+    """
+    return re.sub(r"(?<=[\d.])[dD](?=[\d+-])", "e", _expr)
 
 
 def __treat_where_or_lambda_cmd(origin_line, treat_cmd):
+    r"""
+
+    Parameters
+    ----------
+    origin_line
+    treat_cmd
+
+    Returns
+    -------
+
+    """
     _line = origin_line
     if treat_cmd.startswith("@WHERE"):
         _args = re.fullmatch(r"@WHERE\s*:\s*(?P<cmds>(?:[^\n]+\n)+)", treat_cmd)

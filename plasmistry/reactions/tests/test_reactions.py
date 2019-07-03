@@ -15,7 +15,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from scipy.integrate import odeint
+from scipy.integrate import ode as sp_ode
 from numpy.testing import (assert_allclose,
                            run_module_suite,
                            TestCase)
@@ -28,11 +28,10 @@ from plasmistry.reactions import (Reactions,
                                   CoefReactions,
                                   MixReactions,
                                   get_reverse_crostn)
-from plasmistry.io import (read_cross_section_to_frame,
-                           instance_reactionList)
+from plasmistry.io import (read_cross_section_to_frame)
 
 
-# %%--------------------------------------------------------------------------------------------- #
+# ----------------------------------------------------------------------------------------------- #
 def test_Reactions_basic():
     r"""
     Check :
@@ -47,7 +46,7 @@ def test_Reactions_basic():
     cases.append(([Reactions.fortran2python(_) for _ in ('1d2', '1.0d-2', '-3.d+2')],
                   ['1e2', '1.0e-2', '-3.e+2']))
     cases.append((Reactions.format_cmpnds(
-            pd.Series(['A^+ + b+a  ', '2A()+3C', 'OH  +  OH', '3A^+D+D'])).tolist(),
+        pd.Series(['A^+ + b+a  ', '2A()+3C', 'OH  +  OH', '3A^+D+D'])).tolist(),
                   ['A^+ + b + a', '2A() + 3C', 'OH + OH', '3A^+D + D']))
     for actual, desired in cases:
         assert actual == desired
@@ -57,7 +56,7 @@ def test_Reactions_basic():
                                    Reactions.cmpnds_regexp)
 
 
-# %%--------------------------------------------------------------------------------------------- #
+# ----------------------------------------------------------------------------------------------- #
 class test_Reactions(TestCase):
     def setUp(self):
         reactions = ['2A + 3B =>C+D',
@@ -74,7 +73,7 @@ class test_Reactions(TestCase):
                                                  'EN',
                                                  '2.0d2',
                                                  '2.0']))
-        # %%------------------------------------------------------------------------------------- #
+        # --------------------------------------------------------------------------------------- #
         replc_A = ['N2^+', 'O2^+', 'O4^+', 'NO^+', 'NO2^+', 'O2^+N2']
         replc_B = ['N+N', 'O+O', 'O2+O2', 'N+O', 'N+O2', 'O2+N2']
         reactions = ["O^- + {A} => O + {B}".format(A=A, B=B) for A, B in zip(replc_A, replc_B)]
@@ -88,7 +87,7 @@ class test_Reactions(TestCase):
                                                  '2.0d-7 * (300.0d0/Te)**0.5',
                                                  '2.7d-10 * (Tef0d0)**0.5 * exp(-5590.0d0/TeffN2)',
                                                  'max( 220.0d0/Tgas) , 1.0d-33 * (Tgas)**0.41 )']))
-        # %%------------------------------------------------------------------------------------- #
+        # --------------------------------------------------------------------------------------- #
         reactions = ['E + CO => E + CO(V{i})'.format(i=_) for _ in range(1, 5)]
         reactant = pd.Series([_.split(sep='=>')[0] for _ in reactions])
         product = pd.Series([_.split(sep='=>')[1] for _ in reactions])
@@ -96,7 +95,7 @@ class test_Reactions(TestCase):
                                 product=product,
                                 k_str=pd.Series(['4', '3', '2', '1']))
 
-    # %%----------------------------------------------------------------------------------------- #
+    # ------------------------------------------------------------------------------------------- #
     def test_case_0(self):
         r"""
         Check :
@@ -133,11 +132,11 @@ class test_Reactions(TestCase):
                                                                     [0, 0],
                                                                     [1, 0],
                                                                     [1, 0]]))
-        # %%------------------------------------------------------------------------------------- #
+        # --------------------------------------------------------------------------------------- #
         for actual, desired in cases:
             assert actual == desired
 
-    # %%----------------------------------------------------------------------------------------- #
+    # ------------------------------------------------------------------------------------------- #
     def test_case_1(self):
         cases = []
         cases.append((self.case_1.species.tolist(), ['N', 'N2', 'N2^+', 'NO2^+', 'NO^+', 'O',
@@ -191,7 +190,7 @@ class test_Reactions(TestCase):
         for actual, desired in cases:
             assert actual == desired
 
-    # %%----------------------------------------------------------------------------------------- #
+    # ------------------------------------------------------------------------------------------- #
     def test_case_2(self):
         r"""
         Check :
@@ -200,7 +199,6 @@ class test_Reactions(TestCase):
             get_dH_e
             get_dH_g
             get_initial_density
-            time_evolution
 
         """
         a = self.case_2
@@ -208,19 +206,24 @@ class test_Reactions(TestCase):
         a.rate_const = np.array([4, 3, 2, 1])
         a.set_rate(density=density_0)
 
-        # %%------------------------------------------------------------------------------------- #
+        # --------------------------------------------------------------------------------------- #
         def deriv_func(t, y, rctn_instance):
             rctn_instance.set_rate(density=y)
             return rctn_instance.get_dn()
 
-        output = a.time_evolution(deriv_func=deriv_func,
-                                  y_0=density_0,
-                                  time_span=(0.0, 10.0),
-                                  rtol=1e-6,
-                                  atol=1e-6,
-                                  output_index=a.species,
-                                  solver_args=(a,))
-        time_seq = output.index.tolist()
+        solver = sp_ode(deriv_func)
+        solver.set_integrator(name="vode", method="bdf", with_jacobian=True, atol=1e-6, rtol=1e-6)
+        solver.set_f_params(a)
+        solver.set_initial_value(density_0)
+        time_seq = [0.0, ]
+        output = pd.DataFrame(density_0, index=a.species, columns=[0.0])
+        time_end = 10.0
+        while solver.successful() and solver.t < time_end:
+            time_step = time_end
+            solver.integrate(time_step, step=True)
+            time_seq.append(solver.t)
+            output[solver.t] = solver.y
+
         exact_values_dict = {'CO': 4 * np.exp(-10 * np.array(time_seq)),
                              'CO(V1)': -1.6 * np.exp(-10 * np.array(time_seq)) + 1.6,
                              'CO(V2)': -1.2 * np.exp(-10 * np.array(time_seq)) + 1.2,
@@ -228,10 +231,12 @@ class test_Reactions(TestCase):
                              'CO(V4)': -0.4 * np.exp(-10 * np.array(time_seq)) + 0.4,
                              'E': np.ones_like(time_seq)}
         for _ in a.species:
-            assert_allclose(output[_].values + 1, exact_values_dict[_] + 1, atol=1e-6, rtol=1e-4)
+            assert_allclose(output.loc[_].values + 1, exact_values_dict[_] + 1, atol=1e-6,
+                            rtol=1e-4)
 
 
-# %%--------------------------------------------------------------------------------------------- #
+# ----------------------------------------------------------------------------------------------- #
+r"""
 class test_CrosReactions(TestCase):
     def setUp(self):
         reactions = ['E + CO => E + CO(V{v}) + {E}_eV! BOLSIG CO -> CO(V{v})'.format(v=_, E=_E)
@@ -303,14 +308,12 @@ class test_CrosReactions(TestCase):
                                   3 / 2 * (10 ** 2 - 4 ** 2)]), rtol=1e-2)
 
     def test_case_1(self):
-        r"""
-        Check :
-            __init__
-            compile_k_str
-            set_pre_exec_list
-            set_rate_const
+        # Check :
+        #     __init__
+        #     compile_k_str
+        #     set_pre_exec_list
+        #     set_rate_const
 
-        """
         a = self.case_1
         density_0 = a.get_initial_density(density_dict={'CO': 10.0, 'E': 1.0})
 
@@ -417,3 +420,5 @@ class Test_get_reverse_crostn(TestCase):
         k_backward = get_k(b['energy'], b['crostn'], eedf_backward)
 
         assert_allclose(-math.log(k_forward / k_backward) * Te_eV, 0.083, rtol=1e-1, atol=0)
+
+"""

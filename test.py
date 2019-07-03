@@ -42,9 +42,15 @@ def treat_multi_cmds(origin_line, _cmds):
     return _line
 
 
-
 if __name__ == "__main__":
-    # temp = read_reactionFile('_rctn_list\H2.inp',start_line=133, end_line=139)
+    with open("_rctn_list\H2.inp") as f:
+        lines = ''.join(f.readlines())
+        lines = re.sub('\\\\\s*\n\s*', ' ', lines)  # merge the lines end with \
+        lines = re.sub('\s*\n\s*', '\n', lines)     # trip the lines
+        lines = lines.split('\n')
+
+    # temp = read_reactionFile('_rctn_list\H2.inp', start_line=123, end_line=131)
+
     # a = temp['reaction_info']
     # b = temp['pre_exec_list']
     # with open("_rctn_list/CO2_chemistry.gum") as f:
@@ -53,4 +59,3 @@ if __name__ == "__main__":
     # a = re.findall(r"Reaction\s*{[^{}]+{[^{}]+}[^{}]+}", lines)
     # for _ in a:
     #     print(re.findall(r"Format[^\n]+\n", _))
-
