@@ -253,26 +253,3 @@ CO2(v1) + O = > CO + O2     !   A*Tgas**n*exp(-E_f/Tgas) * factor
 #
 # E + @A = E + H2^+
 #     @A = %H2_vib
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
