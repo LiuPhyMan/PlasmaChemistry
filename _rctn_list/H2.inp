@@ -66,6 +66,7 @@ E + @A@ => E + @B@          !   cs_path     %CS_PATH%/H2(X)_to_H2(X)_vibexc/@A@_
     @A@ = %H2_vib%
     @B@ = %H2_vib%
     @CONDITION : @A@!=@B@
+@END
 
 # ----------------------------------------------------------------------------------------------- #
 #   Dissociative excitation
@@ -74,6 +75,7 @@ E + @A@ => E + @B@          !   cs_path     %CS_PATH%/H2(X)_to_H2(X)_vibexc/@A@_
 E + @A@ => E + H + H        !   cs_path     %CS_PATH%/H2(X)_to_@B@_to_2H/@A@_to_@B@_to_2H.csv
     @A@ = %H2_vib%
     @B@ = %H2_EleState%
+@END
 
 # ----------------------------------------------------------------------------------------------- #
 #   Dissociative excitation
@@ -84,12 +86,14 @@ E + @A@ => E + H + H        !   cs_path     %CS_PATH%/H2(X)_to_@B@_to_2H/@A@_to_
 E + @A@ => E + H + H        !   cs_path     %CS_PATH%/H2(X)_to_H2(_b)_to_2H/@A@_to_@B@_to_2H.csv
     @A@ = %H2_vib(0-13)%
     @B@ = H2(b)
+@END
 
 # ----------------------------------------------------------------------------------------------- #
 #   Dissociative electron attachment
 # ----------------------------------------------------------------------------------------------- #
 E + @A => H + H^-           !   cs_path     %CS_PATH%/H2(X)_to_H2-_to_H+H-/@A_to_H2-_to_H+H-.csv
     @A = H2 H2(v1) H2(v2) H2(v3) H2(v4) H2(v5)
+@END
 
 # ----------------------------------------------------------------------------------------------- #
 #   Electronic excitation (nondissociative excitation)
@@ -97,6 +101,7 @@ E + @A => H + H^-           !   cs_path     %CS_PATH%/H2(X)_to_H2-_to_H+H-/@A_to
 E + @A@ => E + @B@          !   cs_path     %CS_PATH%/H2(X)_to_@B@_exc/@A@_to_@B@_exc.csv
     @A@ = %H2_vib%
     @B@ = %H2_EleState%
+@END
 
 
 # ----------------------------------------------------------------------------------------------- #
@@ -104,12 +109,15 @@ E + @A@ => E + @B@          !   cs_path     %CS_PATH%/H2(X)_to_@B@_exc/@A@_to_@B
 # ----------------------------------------------------------------------------------------------- #
 E + H => E + @A             !   cs_path     %CS_PATH%/H(n)_to_H(m)/H(1)_to_@A.csv
     @A = H(2) H(3) H(4)
+@END
 
 E + H(2) => E + @A          !   cs_path     %CS_PATH%/H(n)_to_H(m)/H(2)_to_@A.csv
     @A = H(3) H(4)
+@END
 
 E + H(3) => E + @A          !   cs_path     %CS_PATH%/H(n)_to_H(m)/H(3)_to_@A.csv
     @A = H(4)
+@END
 
 
 # ----------------------------------------------------------------------------------------------- #
@@ -225,6 +233,8 @@ CO2(v{i}) + @M => CO2(v{j}) + @M        !   k10 * F
 CO(v{i}) + @M => CO(v{j}) + @M          !   k10 * F
     @M = %CO_vib%
     @WHERE:
+@END
+
 CO2(v1) + @M => CO2 + @M        !   k10 * F
     @M = H2O
     @WHERE: k10_0   = 4.25e-1*exp(-407*Tgas**(-1/3)+824*Tgas**(-2/3))
