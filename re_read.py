@@ -9,6 +9,7 @@ Created on  10:43 2019/7/8
 @IDE:       PyCharm
 """
 import re
+from plasmistry.io import treat_lines
 
 
 # str_to_match = r"""
@@ -51,55 +52,10 @@ import re
 # """
 
 # ----------------------------------------------------------------------------------------------- #
-def _trim_lines(lines):
+def _find_all_rctn_block(lines):
     r"""
-    Examples
-    --------
-    '  ab'
-    ' bc '
-    '  ca'
-    TO
-    'ab'
-    'bc'
-    'ca'
     """
     assert isinstance(lines, str)
-    trim_regexp = re.compile(r"""
-    ^[ ]+ |
-    [ ]+$
-    """, re.VERBOSE | re.MULTILINE)
-    return trim_regexp.sub("", lines)
-
-
-def _remove_comments(lines):
-    r"""
-    Remove the comments.
-    """
-    comment_regexp = re.compile(r"""
-    [#].* $   # a line with '#' inside.
-    """, re.VERBOSE | re.MULTILINE)
-    return comment_regexp.sub("", lines)
-
-
-def _remove_blank_line(lines):
-    r"""
-    Remove the blank lines.
-    """
-    blank_line_regexp = re.compile(r"""
-    \n{2,}
-    """, re.VERBOSE | re.MULTILINE)
-    return blank_line_regexp.sub("\n", lines)
-
-
-def _merge_lines_end_in_backslash(lines):
-    continuous_regexp = re.compile(r"""
-    [ ]* \\ $\n     # the line end with '\'
-    ^[ ]*           # the following line
-    """, re.VERBOSE | re.MULTILINE)
-    return continuous_regexp.sub(' ', lines)
-
-
-def _find_all_rctn_block(lines):
     rctn_block_regexp = re.compile(r"""
     (?P<rctn>  ^.+!.*$) \n      # the reaction line
     (?P<block>              
@@ -108,25 +64,6 @@ def _find_all_rctn_block(lines):
     (?P<end>^@END$)             # end of the block
     """, re.VERBOSE | re.MULTILINE)
     return rctn_block_regexp.findall(lines)
-
-
-def treat_lines(lines):
-    r"""
-    Steps:
-    1. remove comments.
-    2. trim each line.
-    3. remove blank line.
-    4. merge line end in '\'.
-    5. find all reaction block.
-    """
-    _lines = lines
-    _lines = _remove_comments(_lines)
-    _lines = _trim_lines(_lines)
-    _lines = _remove_blank_line(_lines)
-    _lines = _merge_lines_end_in_backslash(_lines)
-    # _rctn_block_list = _find_all_rctn_block(_lines)
-    # return _rctn_block_list
-    return _lines
 
 
 # ----------------------------------------------------------------------------------------------- #
@@ -176,24 +113,33 @@ def replace_abbr(abbr_list, lines):
 
 class Reaction_block(object):
     cross_func_regexp = re.compile(r"""
-    ^ @CROSS:\s*
-    (?: @[A-Z]@ 
-        \s*=\s* \S.* \n
-    ){2}
+    ^ @CROSS:\s*    # start
+    (?P<cross_expr> 
+        (?: @[A-Z]@ # abbr
+        \s* =  \s*  # equals
+        \S .*  \n   # expr_list
+        ){2}        # repeat twice
+    )
     """, re.VERBOSE | re.MULTILINE)
     # ------------------------------------------------------------------------------------------- #
     zip_func_regexp = re.compile(r"""
-    ^ @ZIP:\s*
-    (?: @[A-Z] 
-        \s*=\s* \S.* \n
-    ){1,}
+    ^ @ZIP:\s*      # start
+    (?P<zip_expr>
+        (?: @[A-Z]  # abbr
+        \s* =  \s*  # equals
+        \S .*  \n   # expr_list
+        ){1,}       # at least one line
+    )                  
     """, re.VERBOSE | re.MULTILINE)
     # ------------------------------------------------------------------------------------------- #
     where_func_regexp = re.compile(r"""
-    ^ @WHERE:\s* 
-    (?P<eqtns> \S+
-        \s*=\s* \S.* \n
-    ){1,} 
+    ^ @WHERE:\s*    # start
+    (?P<eqtns> 
+        (?: \S+
+        \s* =  \s*  # equals
+        \S .*  \n   # expr_list
+        ){1,}       # at least one line
+    )
     """, re.VERBOSE | re.MULTILINE)
     # ------------------------------------------------------------------------------------------- #
     lambda_func_regexp = re.compile(r"""
@@ -208,16 +154,19 @@ class Reaction_block(object):
         assert isinstance(func_str, str)
         self.rctn_list = rctn_list
         self.func_str = func_str
+        self.type = None
 
     def _apply_cross_func(self):
-        temp = re.findall(r"(?P<key>@[A-Z]@)\s*=\s*(?P<expr>.+?)$",
-                          self.func_str, flags=re.MULTILINE)
+        temp = re.findall(r"""
+        (?P<key> @[A-Z]@)
+            \s* = \s*
+        (?P<expr> \S.*) $
+        """, self.func_str, flags=re.VERBOSE | re.MULTILINE)
         assert temp
         key_0 = temp[0][0]
         key_1 = temp[1][0]
         expr_list_0 = re.split(r"\s+", temp[0][1])
         expr_list_1 = re.split(r"\s+", temp[1][1])
-
         _cross_func = lambda x: [x.replace(key_0, _expr_0).replace(key_1, _expr_1)
                                  for _expr_0 in expr_list_0
                                  for _expr_1 in expr_list_1]
@@ -227,20 +176,53 @@ class Reaction_block(object):
         return output_list
 
     def _apply_zip_func(self):
-        temp = re.findall(r"(?P<key>@[A-Z])\s*=\s*(?P<expr>.+?)$",
-                          self.func_str, flags=re.MULTILINE)
-        assert temp, temp
-        key_0 = temp[0][0]
-        key_1 = temp[1][0]
-        expr_list_0 = re.split(r"\s+", temp[0][1])
-        expr_list_1 = re.split(r"\s+", temp[1][1])
+        temp = re.findall(r"""
+        (?P<key> @[A-Z])
+            \s* = \s*
+        (?P<expr> \S.*) $
+        """, self.func_str, flags=re.VERBOSE | re.MULTILINE)
+        assert temp
+        abbr_list = [_[0] for _ in temp]
+        expr_list = [re.split(r"\s+", _[1]) for _ in temp]
 
-        _zip_func = lambda x: [x.replace(key_0, _expr_0).replace(key_1, _expr_1)
-                               for _expr_0, _expr_1 in zip(expr_list_0, expr_list_1)]
+        # expr_list_0 = re.split(r"\s+", temp[0][1])
+        # expr_list_1 = re.split(r"\s+", temp[1][1])
+
+        def replace_ith_expr(i_index, line):
+            _line = line
+            ith_expr = [_[i_index] for _ in expr_list]
+            for _abbr, _expr in zip(abbr_list, ith_expr):
+                assert _abbr in _line
+                _line = _line.replace(_abbr, _expr)
+            return _line
+
         output_list = []
-        for _ in rctn_list:
-            output_list = output_list + _zip_func(_)
+        for _ in self.rctn_list:
+            for i_index in range(len(expr_list[0])):
+                output_list.append(replace_ith_expr(i_index, _))
         return output_list
+
+    def _apply_where_func(self):
+        temp = re.findall(r"""
+        (?P<var> \S+ )
+            \s* = \s*
+        (?P<expr> \S.*) $
+        """, self.func_str, flags=re.VERBOSE | re.MULTILINE)
+        assert temp
+        vari_list = [_[0] for _ in temp]
+        expr_list = [_[1] for _ in temp]
+        vari_list.reverse()
+        expr_list.reverse()
+        output_list = []
+        for _ in self.rctn_list:
+            _line = _
+            for _var, _expr in zip(vari_list, expr_list):
+                _line = _line.replace(_var, f"({_expr})")
+            output_list.append(_line)
+        return output_list
+
+    def _apply_lambda_func(self):
+        pass
 
     def apply_func(self):
         if self.cross_func_regexp.fullmatch(self.func_str):
@@ -276,6 +258,14 @@ if __name__ == "__main__":
 
     rctn_list = ["E + @A@ => E + H + @B@", "@A@ => @B@"]
     func_str = "@CROSS: @A@ = A B C\n@B@ = X Y Z\n"
-    zip_func_str = "@ZIP: @A = A B C\n@B = X Y Z\n"
-    rctn_block = Reaction_block(rctn_list=rctn_list,
-                                func_str=zip_func_str)
+    cross_rctn_block = Reaction_block(rctn_list=rctn_list,
+                                      func_str=func_str)
+
+    rctn_list = ["E + @A => E + H + @B ! @C", "@A => @B + @C"]
+    zip_func_str = "@ZIP: @A = A B C\n@B = X Y Z\n@C = D E F"
+    zip_rctn_block = Reaction_block(rctn_list=rctn_list,
+                                    func_str=zip_func_str)
+    rctn_list = ["a => b", "a*b = c"]
+    where_func_str = "@WHERE: a = 1\n b = 2 \n c=(a+b)"
+    where_rctn_block = Reaction_block(rctn_list=rctn_list,
+                                      func_str=where_func_str)

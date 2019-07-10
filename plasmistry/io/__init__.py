@@ -13,6 +13,7 @@ import copy
 from pandas.core.frame import DataFrame as DataFrame_type
 from .io_cross_section import *
 from .io_reactions import *
+from .pre_treat import treat_lines
 
 
 # %%--------------------------------------------------------------------------------------------- #

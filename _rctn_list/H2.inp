@@ -45,6 +45,10 @@ END
         CO2(v10) CO2(v11) CO2(v12) CO2(v13) CO2(v14) CO2(v15) CO2(v16) CO2(v17) CO2(v18) CO2(v19)
         CO2(v20) CO2(v21)
     }
+%CO2_vib_energy% = \
+    {
+
+    }
 
 %CO_vib% = \
     {   CO      CO(v1)  CO(v2)  CO(v3)  CO(v4)  CO(v5)  CO(v6)  CO(v7)  CO(v8)  CO(v9)
@@ -68,6 +72,13 @@ E + @A@ => E + @B@          !   cs_path     %CS_PATH%/H2(X)_to_H2(X)_vibexc/@A@_
     @CONDITION : @A@!=@B@
 @END
 
+# ----------------------------------------------------------------------------------------------- #
+E + H2(v{i}) => E + H2(v{j})
+    @LAMBDA:lambda x: [x.format(A=i, B=j).replace('H2(v0)', 'H2') \
+                       for i in range(14) \
+                       for j in range(14) \
+                       if i!=j]
+@END
 # ----------------------------------------------------------------------------------------------- #
 #   Dissociative excitation
 #       Through the continuum part of the bound electronic state.
@@ -152,7 +163,8 @@ H2(v{v}) + H2(v{w}) => H2(v{v1}) + H2(v{w})    !  \
             delta_vt_w = 0.287*sqrt(300/Tgas)
             exp_part = exp(delta_vt_v*({v}-1)+delta_vt_w*{w})
     @LAMBDA: lambda x: [x.format(v=v, w=w, v1=v-1).replace('H2(v0)', 'H2') \
-                        for v in range(1, 15) for w in range(15)]
+                        for v in range(1, 15) \
+                        for w in range(15)]
 @END
 
 # ----------------------------------------------------------------------------------------------- #

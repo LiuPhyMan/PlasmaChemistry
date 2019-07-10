@@ -1,0 +1,94 @@
+---
+H2_vib : &H2_vib
+    H2      H2(v1)  H2(v2)  H2(v3)  H2(v4)
+    H2(v5)  H2(v6)  H2(v7)  H2(v8)  H2(v9)
+    H2(v10) H2(v11) H2(v12) H2(v13) H2(v14)
+
+H2_vib(0-13) :
+    H2      H2(v1)  H2(v2)  H2(v3)  H2(v4)
+    H2(v5)  H2(v6)  H2(v7)  H2(v8)  H2(v9)
+    H2(v10) H2(v11) H2(v12) H2(v13)
+
+test:
+- *H2_vib
+
+# H2_EleState :
+#     H2(B)   H2(C) H2(B') H2(D) H2(B'') H2(D')
+
+# CO2_vib :
+#     CO2      CO2(v1)  CO2(v2)  CO2(v3)  CO2(v4)
+#     CO2(v5)  CO2(v6)  CO2(v7)  CO2(v8)  CO2(v9)
+#     CO2(v10) CO2(v11) CO2(v12) CO2(v13) CO2(v14)
+#     CO2(v15) CO2(v16) CO2(v17) CO2(v18) CO2(v19)
+#     CO2(v20) CO2(v21)
+
+# CO_vib :
+#     CO      CO(v1)  CO(v2)  CO(v3)  CO(v4)
+#     CO(v5)  CO(v6)  CO(v7)  CO(v8)  CO(v9)
+#     CO(v10) CO(v11) CO(v12) CO(v13) CO(v14)
+#     CO(v15) CO(v16) CO(v17) CO(v18) CO(v19)
+#     CO(v20) CO(v21) CO(v22) CO(v23) CO(v24)
+#     CO(v25) CO(v26) CO(v27) CO(v28) CO(v29)
+#     CO(v30) CO(v31) CO(v32) CO(v33) CO(v34)
+#     CO(v35) CO(v36) CO(v37) CO(v38) CO(v39)
+#     CO(v40) CO(v41) CO(v42) CO(v43) CO(v44)
+#     CO(v45) CO(v46) CO(v47) CO(v48) CO(v49)
+#     CO(v50) CO(v51) CO(v52) CO(v53) CO(v54)
+#     CO(v55) CO(v56) CO(v57) CO(v58) CO(v59)
+#     CO(v60) CO(v61) CO(v62) CO(v63)
+---
+name: ljb
+description: >
+    the first line
+    the second line
+
+none: null
+bool: true
+int: 42
+float: 3.1
+list: [a, b, none]
+
+---
+- Ada
+- APL
+- ASP
+
+- Assembly
+- Awk
+---
+- Basic
+---
+- C
+- C#    # Note that comments are denoted with ' #' (space then #).
+- C++
+- Cold Fusion
+
+---
+# sequencer protocols for Laser eye surgery
+---
+- step:  &id001                  # defines anchor label &id001
+    instrument:      Lasik 2000
+    pulseEnergy:     5.4
+    pulseDuration:   12
+    repetition:      1000
+    spotSize:        1mm
+
+- step: &id002
+    instrument:      Lasik 2000
+    pulseEnergy:     5.0
+    pulseDuration:   10
+    repetition:      500
+    spotSize:        2mm
+
+- step: *id001                   # refers to the first step (with anchor &id001)
+- step: *id002                   # refers to the second step
+- step: *id001
+- step: *id002
+---
+Defaults: &defaults
+  Company: foo
+  Item: 123
+
+Computer:
+  <<: *defaults
+  Price: 3000
