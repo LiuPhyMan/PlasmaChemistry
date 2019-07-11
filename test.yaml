@@ -12,6 +12,53 @@ H2_vib(0-13) :
 test:
 - *H2_vib
 
+---
+# Employee records
+include_newlines: |
+
+            exactly as you see
+            will appear these three
+            lines of poetry
+
+fold_newlines: >
+            this is really a
+            single line of text
+            despite appearances
+---
+---
+hr: # 1998 hr ranking
+  - Mark McGwire
+  - Sammy Sosa
+rbi:
+  # 1998 rbi ranking
+  - Sammy Sosa
+  - Ken Griffey
+---
+hr:
+  - Mark McGwire
+  # Following node labeled SS
+  - &SS Sammy Sosa
+rbi:
+  - *SS # Subsequent occurrence
+  - Ken Griffey
+---
+---
+# products purchased
+- item    : Super Hoop
+  quantity: 1
+- item    : Basketball
+  quantity: 4
+- item    : Big Shoes
+  quantity: 1
+---
+>
+ Sammy Sosa completed another
+ fine season with great stats.
+
+   63 Home Runs
+   0.288 Batting Average
+
+ What a year!
 # H2_EleState :
 #     H2(B)   H2(C) H2(B') H2(D) H2(B'') H2(D')
 
@@ -92,3 +139,59 @@ Defaults: &defaults
 Computer:
   <<: *defaults
   Price: 3000
+---
+user_dir: &user_home /home/user
+user_pics: *user_home
+
+---
+- Reaction: E + @A@ => E + @B@
+  CS_path:
+    - folder: CS_PATH
+    - file: H(n)_to_H(m)/H(1)_to_@A.csv
+  Abbr: ["@A@", "@B@"]
+  ZIP :
+    "@A@": [H       H(1) H(2)]
+    "@B@": [H(1)    H(2) H(3)]
+  LAMBDA: >
+    x.format(A=i, B=j)
+    for i in range(14)
+    for j in range(14)
+
+- Reaction: CO2(v) + O => CO + O2
+  kstr: A*Tgas**n*exp(-E_f/Tgas) * factor
+  where:
+    A: 1000
+    n: 2
+    E: 59000
+    E_f: E
+    E_r: 0
+    a: E_f / (E_f + E_r)
+# -------------------------------------------------- #
+
+- Reaction:
+    formula:
+        OH(v1) + @M => OH + @M
+    kstr: 
+        A*T**n*exp(-E/T)
+    zip: 
+        abbr:   [H2, H2O, CO2]
+        factor: [1,  2,   3]
+    where: 
+        A: 1
+        B: 2
+        C: 3
+
+- reaction_block:
+    type: 
+    reference:
+
+    formula:
+        E + @A@ => E + @B@
+    cross:
+        "@A@": H2_vib
+        "@B@"
+
+       
+
+
+---
