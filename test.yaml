@@ -145,10 +145,10 @@ user_pics: *user_home
 
 ---
 - Reaction: E + @A@ => E + @B@
+  type:
   CS_path:
     - folder: CS_PATH
     - file: H(n)_to_H(m)/H(1)_to_@A.csv
-  Abbr: ["@A@", "@B@"]
   ZIP :
     "@A@": [H       H(1) H(2)]
     "@B@": [H(1)    H(2) H(3)]
@@ -166,20 +166,40 @@ user_pics: *user_home
     E_f: E
     E_r: 0
     a: E_f / (E_f + E_r)
+
 # -------------------------------------------------- #
 
 - Reaction:
     formula:
         OH(v1) + @M => OH + @M
     kstr: 
-        A*T**n*exp(-E/T)
+        A*T**n*exp(-E/T) * factor
     zip: 
-        abbr:   [H2, H2O, CO2]
+        "@M":   [H2, H2O, CO2]
         factor: [1,  2,   3]
     where: 
         A: 1
-        B: 2
-        C: 3
+        n: 2
+        E: 3
+# -------------------------------------------------- #
+- Reaction:
+    formula:
+        OH(v1) + @M => OH + @M
+    kstr: 
+        A*T**n*exp(-E/T) * factor /reverse_factor
+    zip: 
+        "@M":   [H2, H2O, CO2]
+        factor: [1,  2,   3]
+        
+
+    where: 
+        A: 1
+        n: 2
+        E: 3
+        /reverse_factor: 
+
+    
+    
 
 - reaction_block:
     type: 

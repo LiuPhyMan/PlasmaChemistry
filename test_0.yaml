@@ -1,1 +1,31 @@
-!!python/list 
+# 
+---
+- !!python/name:__main__.Component ''
+- !!python/object:__main__.TEST {index: 3}
+# - !!python/object/new:__main__.TEST [3 ]
+
+# exp: !!python/name:math.exp
+# array: !!python/name:numpy.array
+---
+- Reaction:
+    CO2({v}) => CO2({w})
+  kstr: k1 / exp( energy_1 - energy_0 )
+  zip:
+    v: !eval "[_ for _ in range(10)]"
+    w: !eval "CO2[2]"
+    energy_0: 
+    energy_1: 
+  where:
+    energy_1 
+  test: CO2[3]
+
+
+--- # global variable
+eval: !eval "list(range(10))"
+
+...
+---
+- Reaction:
+    formula:
+      CO2
+    species: CO2
