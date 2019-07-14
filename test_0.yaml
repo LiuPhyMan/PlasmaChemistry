@@ -9,14 +9,22 @@
 ---
 - Reaction:
     CO2({v}) => CO2({w})
-  kstr: k1 / exp( energy_1 - energy_0 )
+  kstr: k1 / exp( energy_1 - energy_0 ) / factor
   zip:
-    v: !eval "[_ for _ in range(10)]"
-    w: !eval "CO2[2]"
-    energy_0: 
+    v: !eval 
+        "[_ for _ in range(10)]"
+    w: !eval 
+        "CO2[2]"
+    energy_0: !eval 
+        "[CO2[i] for i in range(10)]"
     energy_1: 
+    factor: !eval 
+        "np.array([ CO2[v]-CO2[w] 
+            for v in range(10) 
+            for w in range(10)])"
   where:
     energy_1 
+    factor
   test: CO2[3]
 
 
@@ -27,5 +35,12 @@ eval: !eval "list(range(10))"
 ---
 - Reaction:
     formula:
-      CO2
+      CO2({v}) => CO2({})
     species: CO2
+
+- Reaction:
+    formula:
+        E + A@ => E + B@
+    lambda: !eval "lambda x: [x.replace('A@', str(A)).replace('B@', str(B)) 
+                              for A in range(10)
+                              for B in range(4) if A!=B]"

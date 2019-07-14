@@ -11,7 +11,7 @@ Created on  15:17 2019/7/10
 
 import yaml
 from math import exp
-import numpy
+import numpy as np
 
 a = 2
 
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 # import re
 # pattern = re.compile(r"^CO2\[\d+\]")
 # yaml.add_implicit_resolver(u"!CO2", pattern)
-CO2 = [0.1, 0.2, 0.3]
+CO2 = [i for i in range(100)]
 with open("test_0.yaml") as f:
     a = yaml.load_all(f)
     a = [_ for _ in a]
