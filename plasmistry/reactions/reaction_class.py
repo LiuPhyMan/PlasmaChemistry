@@ -649,8 +649,6 @@ class CrosReactions(Reactions):
                            k_str=k_str, dH_g=dH_g, dH_e=dH_e)
         self.reaction_type = 'cross_sections related'
 
-    # def __init__(self, *, reaction_dataframe):
-
     # ------------------------------------------------------------------------------------------- #
     def set_rate_const_matrix(self, *, crostn_dataframe, electron_energy_grid):
         r"""
