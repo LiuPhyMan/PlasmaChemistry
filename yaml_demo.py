@@ -96,10 +96,24 @@ def eval_constructor(loader, node):
     return eval(_str)
 
 
+def LT_constructor(loader, node):
+    _list = loader.construct_sequence(node)
+    A, B, C = _list
+    return f"({A})*exp(({B})*Tgas**(-1/3)+({C})*Tgas**(-2/3))"
+
+
+def Arr_constructor(loader, node):
+    _list = loader.construct_sequence(node)
+    A, b, E = _list
+    return f"({A})*Tgas**({b})*exp(-({E})/Tgas)"
+
+
 CO2_energy = np.arange(20) * 0.2
 if __name__ == "__main__":
     # yaml.add_constructor(u"!CO2", CO2_energy_constructor)
     yaml.add_constructor(u"!eval", eval_constructor)
+    yaml.add_constructor(u"!LT", LT_constructor)
+    yaml.add_constructor(u"!Arr", Arr_constructor)
     with open("test_0.yaml") as f:
         temp = yaml.load(f)
 
@@ -111,7 +125,6 @@ if __name__ == "__main__":
     rctn = CrosReactions(reactant=reactant,
                          product=product,
                          k_str=pd.Series(rctn_block._kstr_list))
-
 
 # with open("test_0.yaml") as f:
 #     a = yaml.load_all(f)

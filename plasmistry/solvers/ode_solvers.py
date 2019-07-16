@@ -14,7 +14,7 @@ from scipy.integrate import ode
 from .. import constants as const
 
 
-def ode_ivp(*, deriv_func, func_args, jac_func, jac_args,
+def ode_ivp(*, deriv_func, func_args, jac_func=None, jac_args=None,
             time_span, y_0, rtol=1e-3, atol=1e-6, show_time=True):
     r"""
 
@@ -42,7 +42,8 @@ def ode_ivp(*, deriv_func, func_args, jac_func, jac_args,
     assert isinstance(func_args, tuple)
     assert isinstance(time_span, tuple) and len(time_span) == 2
     time_start, time_end = time_span
-    solver = ode(deriv_func, jac_func)
+    # solver = ode(deriv_func, jac_func)
+    solver = ode(deriv_func)
     solver.set_integrator(name='vode', method='bdf', with_jacobian=True, atol=atol, rtol=rtol)
     # solver.set_integrator(name='vode', method='Radau', with_jacobian=True, atol=atol, rtol=rtol)
 
@@ -52,7 +53,7 @@ def ode_ivp(*, deriv_func, func_args, jac_func, jac_args,
     # Te_0 = _eedf.electron_temperature * const.K2eV
 
     solver.set_f_params(*func_args)
-    solver.set_jac_params(*jac_args)
+    # solver.set_jac_params(*jac_args)
     solver.set_initial_value(y=y_0, t=time_start)
 
     time_seq = [time_span[0]]

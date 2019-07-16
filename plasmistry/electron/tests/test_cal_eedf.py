@@ -30,40 +30,42 @@ class test_CAL_EEDF(TestCase):
         # case 0
         case_0 = EEDF(max_energy_J=10 * const.eV2J, grid_number=100)
         case_0.density_in_J = get_maxwell_eedf(case_0.energy_point, Te_eV=1.0)
-        case_0.pre_set_flux_ee_colli()
-        case_0.set_flux_ee_colli()
+        case_0._pre_set_flux_ee_colli()
+        case_0._set_flux_ee_colli()
         self.case_0 = case_0
         # case 1
         case_1 = EEDF(max_energy_J=10 * const.eV2J, grid_number=100)
         case_1.density_in_J = get_maxwell_eedf(case_1.energy_point, Te_eV=1.0)
         species = ['CO2', 'CO2(v0)', 'CO2(v1)', 'CO', 'O2']
-        case_1.set_crostn_elastic(bg_molecule_elas=['CO2', 'CO', 'O2'])
-        case_1.set_index_bg_molecule_elas(_species=species)
+        case_1._set_crostn_elastic(total_species=species)
         _inelas_dataframe = pd.read_pickle(sys.path[0] + r'\e.g._inelas_colli_dataframe.pkl')
-        case_1.set_crostn_inelastic(inelas_reaction_dataframe=_inelas_dataframe)
-        case_1.set_index_bg_molecule_inelas(_species=species)
+        case_1._set_crostn_inelastic(inelas_reaction_dataframe=_inelas_dataframe)
+        case_1._set_index_bg_molecule(total_species=species)
         self.case_1 = case_1
         # case 2
         case_2 = EEDF(max_energy_J=10 * const.eV2J, grid_number=100)
         case_2.density_in_J = get_maxwell_eedf(case_1.energy_point, Te_eV=1.0)
         species = ['CO2', 'CO2(v0)', 'CO2(v1)', 'CO2(vc)', 'CO', 'O2']
-        case_2.set_crostn_elastic(bg_molecule_elas=['CO2', 'CO', 'O2'])
-        case_2.set_index_bg_molecule_elas(_species=species)
+        case_2._set_crostn_elastic(total_species=species)
         case_3 = deepcopy(case_2)
         case_4 = deepcopy(case_2)
         case_5 = deepcopy(case_2)
-        case_2.set_crostn_inelastic(inelas_reaction_dataframe=pd.read_pickle(
-                sys.path[0] + r'\e.g._cs_CO2(v0)_vibexc_CO2(v1)_0.291.pkl'))
-        case_2.set_index_bg_molecule_inelas(_species=species)
-        case_3.set_crostn_inelastic(inelas_reaction_dataframe=pd.read_pickle(
-                sys.path[0] + r'\e.g._cs_CO2(vc)_vibexc_CO2(v1)_0.0459.pkl'))
-        case_3.set_index_bg_molecule_inelas(_species=species)
-        case_4.set_crostn_inelastic(inelas_reaction_dataframe=pd.read_pickle(
-                sys.path[0] + r'\e.g._cs_CO2(v1)_vibexc_CO2(v0)_-0.291.pkl'))
-        case_4.set_index_bg_molecule_inelas(_species=species)
-        case_5.set_crostn_inelastic(inelas_reaction_dataframe=pd.read_pickle(
-                sys.path[0] + r'\e.g._cs_CO2(v1)_vibexc_CO2(vc)_-0.0459.pkl'))
-        case_5.set_index_bg_molecule_inelas(_species=species)
+
+        case_2._set_crostn_inelastic(inelas_reaction_dataframe=pd.read_pickle(
+            sys.path[0] + r'\e.g._cs_CO2(v0)_vibexc_CO2(v1)_0.291.pkl'))
+        case_2._set_index_bg_molecule(total_species=species)
+
+        case_3._set_crostn_inelastic(inelas_reaction_dataframe=pd.read_pickle(
+            sys.path[0] + r'\e.g._cs_CO2(vc)_vibexc_CO2(v1)_0.0459.pkl'))
+        case_3._set_index_bg_molecule(total_species=species)
+
+        case_4._set_crostn_inelastic(inelas_reaction_dataframe=pd.read_pickle(
+            sys.path[0] + r'\e.g._cs_CO2(v1)_vibexc_CO2(v0)_-0.291.pkl'))
+        case_4._set_index_bg_molecule(total_species=species)
+
+        case_5._set_crostn_inelastic(inelas_reaction_dataframe=pd.read_pickle(
+            sys.path[0] + r'\e.g._cs_CO2(v1)_vibexc_CO2(vc)_-0.0459.pkl'))
+        case_5._set_index_bg_molecule(total_species=species)
         self.case_2 = case_2
         self.case_3 = case_3
         self.case_4 = case_4
@@ -177,7 +179,7 @@ class test_CAL_EEDF(TestCase):
     def test_set_flux_electric_field(self):
         eedf = self.case_1
         eedf.set_parameters(E=1e2, Tgas=1e3, N=1e25)
-        eedf.set_flux_electric_field(_density=np.array([1, 2, 3, 4, 5]))
+        eedf._set_flux_electric_field(_density=np.array([1, 2, 3, 4, 5]))
 
         def dndt(t, y, _eedf):
             _eedf.density_in_J = y
@@ -203,7 +205,7 @@ class test_CAL_EEDF(TestCase):
     def test_set_flux_elastic_colli(self):
         eedf = self.case_1
         eedf.set_parameters(E=1e2, Tgas=1.5 * const.eV2K, N=1e25)
-        eedf.set_flux_elastic_colli(_density=np.array([1, 2, 3, 4, 5]))
+        eedf._set_flux_elastic_colli(_density=np.array([1, 2, 3, 4, 5]))
 
         # species conservation
         def dndt(t, y, _eedf):
@@ -232,7 +234,7 @@ class test_CAL_EEDF(TestCase):
 
         def dndt(t, y, _eedf):
             _eedf.density_in_J = y
-            _eedf.set_flux_ee_colli()
+            _eedf._set_flux_ee_colli()
             return -(_eedf.J_flux_ee[1:] - _eedf.J_flux_ee[:-1]) / _eedf.energy_intvl
 
         y_0 = np.zeros_like(eedf.energy_point)
@@ -241,7 +243,7 @@ class test_CAL_EEDF(TestCase):
         eedf.density_in_J = y_0
         density_0 = eedf.electron_density
         Te_0 = eedf.electron_temperature
-        _, a = ode_ivp(deriv_func=dndt,
+        sol = ode_ivp(deriv_func=dndt,
                        func_args=(eedf,),
                        time_span=(0, 1e5),
                        y_0=y_0,
@@ -249,7 +251,9 @@ class test_CAL_EEDF(TestCase):
                        atol=1e-12,
                        show_time=False)
         # plt.plot(eedf.energy_point, a.transpose())
-        eedf.density_in_J = a[-1]
+
+        # eedf.density_in_J = a[-1]
+        eedf.density_in_J = sol.y
         density_1 = eedf.electron_density
         Te_1 = eedf.electron_temperature
         # species conservation and energy conservation
@@ -262,8 +266,8 @@ class test_CAL_EEDF(TestCase):
                            (2, 0.91),
                            (0, 0.4594))
         for i_case, eedf in enumerate([self.case_2, self.case_3, self.case_4, self.case_5]):
-            eedf.set_rate_const_matrix_e_inelas_electron()
-            eedf.set_rate_const_matrix_e_inelas_molecule()
+            eedf._set_rate_const_matrix_e_inelas_electron()
+            eedf._set_rate_const_matrix_e_inelas_molecule()
             crostn_eV_m2 = eedf.inelas_reaction_dataframe['cross_section'][0]
             _energy = np.hstack((0.0, crostn_eV_m2[0], np.inf))
             _crostn = np.hstack((0.0, crostn_eV_m2[1], 0.0))
