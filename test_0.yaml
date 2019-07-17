@@ -20,6 +20,8 @@
 #   H2 kinectic
 # ----------------------------------------------------------------------------------------------- #
 - Rctn_block: &H2_ele_vib_rctn
+    type:
+        EXCITATION
     formula:
         E + A@ => E + B@
     kstr:

@@ -70,7 +70,7 @@ class EEDF(object):
         '_op_Q', '_op_P1', '_op_P2', '_op_P',
         'ee_alpha', 'ee_op_a', 'ee_op_b',
         'J_flux_ee',
-        ]
+    ]
 
     # ------------------------------------------------------------------------------------------- #
     def __init__(self, *, max_energy_J: float,
@@ -119,6 +119,8 @@ class EEDF(object):
     #     return object.__getattribute__(self, item)
 
     # ------------------------------------------------------------------------------------------- #
+    #   properties
+    # ------------------------------------------------------------------------------------------- #
     @property
     def density_in_eV(self):
         return self.density_in_J / const.J2eV
@@ -135,6 +137,7 @@ class EEDF(object):
 
     @property
     def reduced_electric_field(self):
+        r"""Calculate reduced electric field in Td."""
         return self.electric_field / self.total_bg_molecule_density * 1e21
 
     @property
@@ -159,6 +162,9 @@ class EEDF(object):
         r"""Electron energy probability function in eV^{-3/2}."""
         return self.eepf_J * const.J2eV ** (-3 / 2)
 
+    # ------------------------------------------------------------------------------------------- #
+    #   public functions
+    # ------------------------------------------------------------------------------------------- #
     def initialize(self, *, rctn_with_crostn_df, total_species):
         r"""
         Set elastic/inelastic cross section for species.
@@ -191,6 +197,9 @@ class EEDF(object):
         else:
             return dndt + self._get_electron_rate_e_inelas(density=total_species_density)
 
+    # ------------------------------------------------------------------------------------------- #
+    #   private functions
+    # ------------------------------------------------------------------------------------------- #
     def _set_crostn_elastic(self, *, total_species: list):
         r"""
         Set elastic collision cross sections at energy_nodes.
@@ -217,7 +226,7 @@ class EEDF(object):
         crostn_elas = []
         for molecule in self.bg_molecule_elas:
             assert molecule in elastic_crostn['cs_key'].tolist(), '{} is not found.'.format(
-                    molecule)
+                molecule)
             _crostn = elastic_crostn.loc[elastic_crostn['cs_key'] == molecule,
                                          'cross_section'].tolist()[0]
             energy = np.hstack((0.0, _crostn[0], np.inf))
@@ -244,6 +253,8 @@ class EEDF(object):
         Set :
             self.inelas_reaction_dataframe
                 .bg_molecule_inelas
+                ._set_rate_const_matrix_e_inelas_electron()
+                ._set_rate_const_matrix_e_inelas_molecule()
 
         Notes
         -----
@@ -255,7 +266,12 @@ class EEDF(object):
         assert isinstance(_dataframe, DataFrame_type)
         _dataframe['bg_molecule'] = ''
         _dataframe['low_threshold'] = None
-        _get_bg_molecule = re.compile(r"[eE]\s+\+\s+(?P<bg_molecule>[A-Z]\S*)\s+=>.*")
+        # _get_bg_molecule = re.compile(r"[eE]\s+\+\s+(?P<bg_molecule>[A-Z]\S*)\s+=>.*")
+        _get_bg_molecule = re.compile(r"""
+        [eE]
+        \s+\+\s+
+        (?P<bg_molecule>[A-Z]\S*)
+        \s+=>.*""", re.VERBOSE | re.MULTILINE)
         #   Set low_threshold bg_molecule
         for i_rctn in _dataframe.index:
             # set background molecule
@@ -575,7 +591,7 @@ class EEDF(object):
         """
         _density_bg_molecule = self._index_bg_molecule_inelas.dot(density)
         dNdt = _density_bg_molecule.dot(
-                self.rate_const_matrix_e_inelas_molecule.dot(self.density_in_J))
+            self.rate_const_matrix_e_inelas_molecule.dot(self.density_in_J))
         return dNdt
 
     def _get_deriv_ef(self):

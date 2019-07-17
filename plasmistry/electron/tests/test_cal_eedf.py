@@ -29,7 +29,8 @@ class test_CAL_EEDF(TestCase):
     def setUp(self):
         # case 0
         case_0 = EEDF(max_energy_J=10 * const.eV2J, grid_number=100)
-        case_0.density_in_J = get_maxwell_eedf(case_0.energy_point, Te_eV=1.0)
+        case_0.set_parameters(E=)
+        case_0.set_density_in_J(get_maxwell_eedf(case_0.energy_point, Te_eV=1.0))
         case_0._pre_set_flux_ee_colli()
         case_0._set_flux_ee_colli()
         self.case_0 = case_0
