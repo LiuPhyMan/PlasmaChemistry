@@ -165,7 +165,7 @@ class EEDF(object):
     # ------------------------------------------------------------------------------------------- #
     #   public functions
     # ------------------------------------------------------------------------------------------- #
-    def initialize(self, *, rctn_with_crostn_df, total_species):
+    def initialize(self, *, rctn_with_crostn_df: DataFrame_type, total_species: np.ndarray):
         r"""
         Set elastic/inelastic cross section for species.
         index of background molecule
@@ -217,8 +217,10 @@ class EEDF(object):
 
         """
         assert isinstance(total_species, list)
-        total_elas_molecule = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'H', 'N2', 'He'}
-        self.bg_molecule_elas = list(set(total_species) & total_elas_molecule)
+        total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'H', 'N2', 'He'}
+        #   bg_molecules are the total species in total_elas_moleucles
+        # self.bg_molecule_elas = list(set(total_species) & total_elas_molecules)
+        self.bg_molecule_elas = [_ for _ in total_species if _ in total_elas_molecules]
         self.bg_molecule_mass_elas = np.array([species_thermal_data.loc[_, 'absolute_mass']
                                                for _ in self.bg_molecule_elas])
         crostn_path = os.path.dirname(__file__) + r"\elastic_cross_section.txt"
@@ -272,7 +274,7 @@ class EEDF(object):
         \s+\+\s+
         (?P<bg_molecule>[A-Z]\S*)
         \s+=>.*""", re.VERBOSE | re.MULTILINE)
-        #   Set low_threshold bg_molecule
+        #   Set low_threshold, bg_molecule
         for i_rctn in _dataframe.index:
             # set background molecule
             _temp = _get_bg_molecule.fullmatch(_dataframe.at[i_rctn, 'reaction'])
@@ -464,13 +466,17 @@ class EEDF(object):
 
     def _set_index_bg_molecule(self, *, total_species: list):
         r"""
-        Set _index_bg_molecule_inelas.
-            _index[mxn] * density_species[n*1] = density_bg_molecule[m*1]
-                      A * n                    = m
+        Set _index_bg_molecule_elas.
+            _index_bg_molecule_inelas.
 
         Parameters
         ----------
         total_species : list
+
+        Notes
+        -----
+            _index[mxn] * density_species[n*1] = density_bg_molecule[m*1]
+                      A * n                    = m
 
         """
         assert isinstance(total_species, list)
@@ -744,7 +750,7 @@ class EEDF(object):
                 _op = sprs.spdiags(-1 * np.ones(_shape), [0], _shape, _shape).toarray()
                 _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
             else:
-                raise EEDFerror('The reaction_type {} is error.'.format(reaction_type))
+                raise EEDFerror(f"The reaction_type {reaction_type} is error.")
         return _op
 
     @staticmethod
@@ -872,4 +878,7 @@ class EEDF(object):
                    inelas_reaction_info=_temp)
         return _text
 
+
 # ----------------------------------------------------------------------------------------------- #
+if __name__ == "__main__":
+    pass

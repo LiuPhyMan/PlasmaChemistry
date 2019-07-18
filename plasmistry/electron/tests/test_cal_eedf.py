@@ -29,23 +29,25 @@ class test_CAL_EEDF(TestCase):
     def setUp(self):
         # case 0
         case_0 = EEDF(max_energy_J=10 * const.eV2J, grid_number=100)
-        case_0.set_parameters(E=)
         case_0.set_density_in_J(get_maxwell_eedf(case_0.energy_point, Te_eV=1.0))
         case_0._pre_set_flux_ee_colli()
         case_0._set_flux_ee_colli()
         self.case_0 = case_0
         # case 1
         case_1 = EEDF(max_energy_J=10 * const.eV2J, grid_number=100)
-        case_1.density_in_J = get_maxwell_eedf(case_1.energy_point, Te_eV=1.0)
+        case_1.set_density_in_J(get_maxwell_eedf(case_1.energy_point, Te_eV=1.0))
         species = ['CO2', 'CO2(v0)', 'CO2(v1)', 'CO', 'O2']
-        case_1._set_crostn_elastic(total_species=species)
+        # case_1._set_crostn_elastic(total_species=species)
         _inelas_dataframe = pd.read_pickle(sys.path[0] + r'\e.g._inelas_colli_dataframe.pkl')
-        case_1._set_crostn_inelastic(inelas_reaction_dataframe=_inelas_dataframe)
-        case_1._set_index_bg_molecule(total_species=species)
+        print(_inelas_dataframe)
+        case_1.initialize(rctn_with_crostn_df=_inelas_dataframe,
+                          total_species=species)
+        # case_1._set_crostn_inelastic(inelas_reaction_dataframe=_inelas_dataframe)
+        # case_1._set_index_bg_molecule(total_species=species)
         self.case_1 = case_1
         # case 2
         case_2 = EEDF(max_energy_J=10 * const.eV2J, grid_number=100)
-        case_2.density_in_J = get_maxwell_eedf(case_1.energy_point, Te_eV=1.0)
+        case_2.set_density_in_J(get_maxwell_eedf(case_1.energy_point, Te_eV=1.0))
         species = ['CO2', 'CO2(v0)', 'CO2(v1)', 'CO2(vc)', 'CO', 'O2']
         case_2._set_crostn_elastic(total_species=species)
         case_3 = deepcopy(case_2)
@@ -203,6 +205,7 @@ class test_CAL_EEDF(TestCase):
         assert_allclose(steady_state_evalued[1:9], steady_state_desired[1:9], rtol=2e-2)
         assert_allclose(steady_state_evalued[9:], steady_state_desired[9:], rtol=2e-3)
 
+    '''
     def test_set_flux_elastic_colli(self):
         eedf = self.case_1
         eedf.set_parameters(E=1e2, Tgas=1.5 * const.eV2K, N=1e25)
@@ -359,7 +362,6 @@ class test_CAL_EEDF(TestCase):
             else:
                 pass
 
-    '''
         def dndt(t, y, eedf, density):
             eedf.density_in_J = y
             return eedf.get_electron_rate_e_inelas(density=density)
