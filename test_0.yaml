@@ -24,14 +24,19 @@
         EXCITATION
     formula:
         E + A@ => E + B@
+    threshold:
+        !eval "[H2_vib_energy[a]-H2_vib_energy[b] 
+                for a in range(10) 
+                for b in range(10) if a!=b]"
     kstr:
-        "%CS_PATH%/H2(X)_to_H2(X)_vibexc/A@_to_B@.csv"
-    lambda: !eval "lambda x: [x.replace('A@', f'H2(v{a})').replace('B@', f'H2(v{b})').replace('H2(v0)', 'H2')
-                              for a in range(4)
-                              for b in range(4) if a!=b]"
+        "cs_path/H2(X)_to_H2(X)_vibexc/A@_to_B@.csv"
+    lambda: !eval "lambda x: 
+            [x.replace('A@', f'H2(v{a})').replace('B@', f'H2(v{b})').replace('H2(v0)', 'H2')
+                for a in range(10)
+                for b in range(10) if a!=b]"
     where:
         abbr:
-            - "%CS_PATH%": *path
+            - cs_path: *path
 
 # ----------------------------------------------------------------------------------------------- #
 
@@ -98,4 +103,5 @@
 # ----------------------------------------------------------------------------------------------- #
 - The reaction considered:
     # - *CO2_VT_with_CO
+    electron reaction:
     - *H2_ele_vib_rctn

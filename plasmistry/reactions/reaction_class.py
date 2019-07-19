@@ -469,27 +469,23 @@ class Reactions(object):
             'rate_const_str': self.k_str,
             'rate_const': self.rate_const,
             'rate': self.rate
-            }, columns=['reactions',
-                        'dH_g[eV]',
-                        'dH_e[eV]',
-                        'rate_const_str',
-                        'rate_const',
-                        'rate'])
-        output = """
+        }, columns=['reactions',
+                    'dH_g[eV]',
+                    'dH_e[eV]',
+                    'rate_const_str',
+                    'rate_const',
+                    'rate'])
+        output = f"""
         \n====SPECIES====
-        \n{species}
+        \n{self.species}
         \n====REACTIONS====
+        \n columns: reactions dH_g[eV] dH_e[eV] rate_const_str rate_const rate
         \n{table}
         \n====
-        \nCLASS : {class_name}.
-        \nType : {type}.
-        \n__{n_spcs}__ species. __{n_rctns}__ reactions.
-        """.format(species=self.species,
-                   table=table,
-                   class_name=self.__class__,
-                   type=self.reaction_type,
-                   n_spcs=self.n_species,
-                   n_rctns=self.n_reactions)
+        \nCLASS : {self.__class__}.
+        \nType : {self.reaction_type}.
+        \n__{self.n_species}__ species. __{self.n_reactions}__ reactions.
+        """
         return output
 
     def view(self):
@@ -500,8 +496,8 @@ class Reactions(object):
             'dH_g': self.dH_g,
             'rate_const': self.rate_const,
             'rate': self.rate
-            },
-                columns=['formula', 'dH_e', 'dH_g', 'k_str', 'rate_const', 'rate'])
+        },
+            columns=['formula', 'dH_e', 'dH_g', 'k_str', 'rate_const', 'rate'])
         return output
 
 
@@ -548,9 +544,9 @@ class CoefReactions(Reactions):
         \n{k_str_compiled}
         \n====MID_VARIABLES====
         \n{mid_variables}""".format(
-                pre_exec_list=r'\n'.join(self.pre_exec_list) if self.pre_exec_list else [],
-                mid_variables=pd.Series(self.mid_variables),
-                k_str_compiled=self.k_str_compiled)
+            pre_exec_list=r'\n'.join(self.pre_exec_list) if self.pre_exec_list else [],
+            mid_variables=pd.Series(self.mid_variables),
+            k_str_compiled=self.k_str_compiled)
         return Reactions.__str__(self) + output
 
     # ------------------------------------------------------------------------------------------- #
@@ -741,6 +737,5 @@ class MixReactions(Reactions):
         self.coef_reactions.set_rate_const(Tgas_K=Tgas_K, Te_eV=Te_eV, EN_Td=EN_Td)
         self.rate_const = np.hstack((self.cros_reactions.rate_const,
                                      self.coef_reactions.rate_const))
-
 
 # ----------------------------------------------------------------------------------------------- #
