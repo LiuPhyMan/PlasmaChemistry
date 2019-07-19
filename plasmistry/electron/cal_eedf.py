@@ -288,7 +288,8 @@ class EEDF(object):
             else:
                 _dataframe.at[i_rctn, 'low_threshold'] = False
         self.inelas_reaction_dataframe = _dataframe
-        self.bg_molecule_inelas = list(set(_dataframe['bg_molecule'].tolist()))
+        # self.bg_molecule_inelas = list(set(_dataframe['bg_molecule'].tolist()))
+        self.bg_molecule_inelas = np.unique(_dataframe["bg_molecule"]).tolist()
         self._set_rate_const_matrix_e_inelas_electron()
         self._set_rate_const_matrix_e_inelas_molecule()
 
@@ -482,7 +483,7 @@ class EEDF(object):
         assert isinstance(total_species, list)
 
         def set_index(_bg_molecule, total_species):
-            assert set(_bg_molecule) <= set(total_species), '{}'.format(self.bg_molecule_inelas)
+            assert set(_bg_molecule) <= set(total_species), f"{self.bg_molecule_inelas}"
             _series = pd.Series(data=range(len(total_species)), index=total_species)
             _index = np.zeros((len(_bg_molecule), len(total_species)))
             for i_molecule in range(len(_bg_molecule)):
