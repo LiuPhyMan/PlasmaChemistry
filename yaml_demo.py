@@ -15,6 +15,7 @@ import pandas as pd
 from math import exp
 import numpy as np
 from plasmistry.reactions import CrosReactions
+from plasmistry import constants as const
 
 
 class TEST(yaml.YAMLObject):
@@ -43,6 +44,10 @@ class Reaction_block(object):
     @property
     def _product_str_list(self):
         return [re.split(r"\s*<?=>\s*", _)[1] for _ in self._formula_list]
+
+    @property
+    def _threshold_list(self):
+        return self.rctn_dict["threshold"]
 
     def _treat_rctn_dict(self):
         self._formula = self.rctn_dict['formula']
@@ -118,6 +123,15 @@ def Arr_constructor(loader, node):
 
 CO2_energy = np.arange(20) * 0.2
 H2_vib_energy = np.arange(20) * 0.02
+
+
+def H2_vib_energy(*, v):
+    we = 4401.21
+    wexe = 121.33
+    energy = we * (v + 0.5) - wexe * (v + 0.5) ** 2
+    return energy * const.WNcm2eV
+
+
 if __name__ == "__main__":
     # yaml.add_constructor(u"!CO2", CO2_energy_constructor)
     yaml.add_constructor(u"!eval", eval_constructor)
@@ -126,14 +140,15 @@ if __name__ == "__main__":
     with open("test_0.yaml") as f:
         temp = yaml.load(f)
 
-    rctn_block_list = temp[-1]['The reaction considered']["electron reaction"][0]
+    rctn_block_list = temp[-1]['The reaction considered']["electron reaction"][1]
     rctn_block = Reaction_block(rctn_dict=rctn_block_list)
     # reactant = [re.split(r"\s*<?=>\s*", _)[0] for _ in rctn_block._formula_list]
     # product = [re.split(r"\s*<?=>\s*", _)[1] for _ in rctn_block._formula_list]
     #
     rctn = CrosReactions(reactant=rctn_block._reactant_str_list,
                          product=rctn_block._product_str_list,
-                         k_str=pd.Series(rctn_block._kstr_list))
+                         k_str=pd.Series(rctn_block._kstr_list),
+                         dH_e=pd.Series(rctn_block._threshold_list))
 
 # with open("test_0.yaml") as f:
 #     a = yaml.load_all(f)

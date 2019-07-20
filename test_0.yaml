@@ -1,7 +1,9 @@
-# global variable
-- PATH: &path
-          P:/Coding/Python/CrossSectionFile/H2/H2(X)_to_H2(X)_vibexc
-- H2_vib: &H2_vib
+# ----------------------------------------------------------------------------------------------- #
+#   Global variables
+# ----------------------------------------------------------------------------------------------- #
+- PATH: &H2_cs_path
+    P:/Coding/Python/CrossSectionFile/H2/
+- H2_vib: &H2_vib_0-14
     [
     H2,      H2(v1),  H2(v2),  H2(v3),  H2(v4),
     H2(v5),  H2(v6),  H2(v7),  H2(v8),  H2(v9),
@@ -13,8 +15,8 @@
         - &CO2_mass   44
         - &CO_mass    28
 
-- CO_vib: &CO_vib
-    !eval "['CO'] + ['CO(v{v})'.format(v=v) for v in range(1, 64)]"
+# - CO_vib: &CO_vib
+#     !eval "['CO'] + ['CO(v{v})'.format(v=v) for v in range(1, 64)]"
 
 # ----------------------------------------------------------------------------------------------- #
 #   H2 kinectic
@@ -25,39 +27,96 @@
     formula:
         E + A@ => E + B@
     threshold:
-        !eval "[H2_vib_energy[a]-H2_vib_energy[b] 
-                for a in range(10) 
-                for b in range(10) if a!=b]"
+        !eval "[H2_vib_energy(v=b)-H2_vib_energy(v=a) 
+                for a in range(15) 
+                for b in range(15) if a!=b]"
     kstr:
         "cs_path/H2(X)_to_H2(X)_vibexc/A@_to_B@.csv"
-    lambda: !eval "lambda x: 
+    lambda: 
+        !eval "lambda x: 
             [x.replace('A@', f'H2(v{a})').replace('B@', f'H2(v{b})').replace('H2(v0)', 'H2')
-                for a in range(10)
-                for b in range(10) if a!=b]"
+            for a in range(15)
+            for b in range(15) if a!=b]"
     where:
         abbr:
-            - cs_path: *path
+            - cs_path: *H2_cs_path
 
 # ----------------------------------------------------------------------------------------------- #
+- Rctn_block: &H2_ele_dis_rctn_via_b
+    type:
+        EXCITATION
+    formula:
+        E + A@ => E + H + H
+    threshold:
+        # !eval ""
+    kstr:
+        "cs_path/H2(X)_to_H2(_b)_to_2H/A@_to_H2(b)_to_2H.csv"
+    zip:
+        A@: *H2_vib_0-14
+    where:
+        abbr:
+            - cs_path: *H2_cs_path
 
+- Rctn_block: &H2_ele_dis_rctn_via_B
+    type:
+        EXCITATION
+    formula:
+        E + A@ => E + H + H
+    threshold:
+        # !eval ""
+    kstr:
+        "cs_path/H2(X)_to_H2(B)_to_2H/A@_to_H2(B)_to_2H.csv"
+    zip:
+        A@: *H2_vib_0-14
+    where:
+        abbr:
+            - cs_path: *H2_cs_path
+
+- Rctn_block: &H2_ele_dis_rctn_via_B_1
+    type:
+        EXCITATION
+    formula:
+        E + A@ => E + H + H
+    threshold:
+        # !eval ""
+    kstr:
+        "cs_path/H2(X)_to_H2(B')_to_2H/A@_to_H2(B')_to_2H.csv"
+    zip:
+        A@: *H2_vib_0-14
+    where:
+        abbr:
+            - cs_path: *H2_cs_path
+
+- Rctn_block: &H2_ele_dis_rctn_via_B_2
+    type:
+        EXCITATION
+    formula:
+        E + A@ => E + H + H
+    threshold:
+        # !eval ""
+    kstr:
+        "cs_path/H2(X)_to_H2(B'')_to_2H/A@_to_H2(B'')_to_2H.csv"
+    zip:
+        A@: *H2_vib_0-14
+    where:
+        abbr:
+            - cs_path: *H2_cs_path
+# ----------------------------------------------------------------------------------------------- #
 - Rctn_block:
+    type:
     formula:
         E + A@ => H + H^-
+    threshold:
+        # !eval ""
     kstr:
-        "CS_PATH/H2(X)_to_H2-_to_H+H-/@A_to_H2-_to_H+H-.csv"
+        "cs_path/H2(X)_to_H2-_to_H+H-/@A_to_H2-_to_H+H-.csv"
     zip:
         A@: [H2, H2(v1), H2(v2), H2(v3), H2(v4), H2(v5)]
     where:
         abbr:
-        - "CS_PATH": *path
+            - cs_path: *H2_cs_path
 
 
-- Rctn_block:
-    formula:
-        E + A@ => E + H + H
-    kstr:
-    zip:
-        A@: *H2_vib
 
 # ----------------------------------------------------------------------------------------------- #
 - Rctn_block: &CO2_VT_with_CO
@@ -76,7 +135,7 @@
         - Lij:    0.32*dE/_r*sqrt(_mu/Tgas),
         - F:      0.5*(3-exp(Lij))*exp(Lij)
     zip:
-        M@: *CO_vib
+        # M@: *CO_vib
 
 - Rctn_block: &CO2_VT_with_CO_reversed
     <<: *CO2_VT_with_CO
@@ -105,3 +164,7 @@
     # - *CO2_VT_with_CO
     electron reaction:
     - *H2_ele_vib_rctn
+    - *H2_ele_dis_rctn_via_b
+    - *H2_ele_dis_rctn_via_B
+    - *H2_ele_dis_rctn_via_B_1
+    - *H2_ele_dis_rctn_via_B_2
