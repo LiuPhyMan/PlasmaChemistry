@@ -774,8 +774,8 @@ class EEDF(object):
 
         """
         #   check reaction_type
-        assert reaction_type in ('excitation', 'deexcitation',
-                                 'ionization', 'attachment'), reaction_type
+        assert reaction_type.lower() in ('excitation', 'deexcitation',
+                                         'ionization', 'attachment'), reaction_type
         #   check energy_grid_J
         assert isinstance(energy_grid_J, np.ndarray)
         assert energy_grid_J.ndim == 1
@@ -787,14 +787,14 @@ class EEDF(object):
         assert isinstance(threshold_eV, float)
         assert 0 <= math.fabs(threshold_eV) * const.eV2J < energy_grid_J[-1] + energy_grid_J[0], \
             '{}'.format(threshold_eV)
-        if reaction_type in ('excitation', 'ionization'):
+        if reaction_type.lower() in ('excitation', 'ionization'):
             assert threshold_eV > 0.0
-        elif reaction_type in ('deexcitation',):
+        elif reaction_type.lower() in ('deexcitation',):
             assert threshold_eV < 0.0
-        elif reaction_type in ('attachment',):
+        elif reaction_type.lower() in ('attachment',):
             assert threshold_eV >= 0.0
         else:
-            raise EEDFerror('The threshold_eV is error.')
+            raise EEDFerror(f"The threshold_eV {threshold_eV} is error.")
 
         # --------------------------------------------------------------------------------------- #
         _gamma = math.sqrt(2 / const.m_e)
@@ -817,25 +817,25 @@ class EEDF(object):
 
         _op = np.zeros(_shape)
         if low_threshold:
-            if reaction_type == 'excitation':
+            if reaction_type.lower() == 'excitation':
                 _op[0] = 1.0 * (1 - _phi)
                 _op[1:] = 1.0
-            elif reaction_type == 'deexcitation':
+            elif reaction_type.lower() == 'deexcitation':
                 _op[:-1] = 1.0
-            elif reaction_type == 'attachment':
+            elif reaction_type.lower() == 'attachment':
                 _op[:] = 1.0
-            elif reaction_type == 'ionization':
+            elif reaction_type.lower() == 'ionization':
                 raise EEDFerror('The ionization in low_threshold mode should be avoid.')
             else:
                 raise EEDFerror('The reaction_type {} is error.'.format(reaction_type))
         else:
-            if reaction_type in ('excitation', 'ionization'):
+            if reaction_type.lower() in ('excitation', 'ionization'):
                 _op[:_n] = 0.0
                 _op[_n] = (1 - _phi) * _n / (_n + _phi)
                 _op[_n + 1:] = 1.0
-            elif reaction_type == 'attachment':
+            elif reaction_type.lower() == 'attachment':
                 _op[:] = 1.0
-            elif reaction_type == 'deexcitation':
+            elif reaction_type.lower() == 'deexcitation':
                 _op[:(grid_number - _n - 1)] = 1.0
             else:
                 raise EEDFerror('The reaction_type {} is error.'.format(reaction_type))

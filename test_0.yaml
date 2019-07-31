@@ -2,13 +2,21 @@
 #   Global variables
 # ----------------------------------------------------------------------------------------------- #
 - PATH: &H2_cs_path
-    P:/Coding/Python/CrossSectionFile/H2/
+    U:/__[FileSync]__/Coding/Python/CrossSectionFile/H2
 - H2_vib: &H2_vib_0-14
     [
     H2,      H2(v1),  H2(v2),  H2(v3),  H2(v4),
     H2(v5),  H2(v6),  H2(v7),  H2(v8),  H2(v9),
     H2(v10), H2(v11), H2(v12), H2(v13), H2(v14)
     ]
+
+- H2_vib: &H2_vib_0-13
+    [
+    H2,      H2(v1),  H2(v2),  H2(v3),  H2(v4),
+    H2(v5),  H2(v6),  H2(v7),  H2(v8),  H2(v9),
+    H2(v10), H2(v11), H2(v12), H2(v13)
+    ]
+
 
 - Molecule:
     mass:
@@ -23,7 +31,7 @@
 # ----------------------------------------------------------------------------------------------- #
 - Rctn_block: &H2_ele_vib_rctn
     type:
-        EXCITATION
+        excitation
     formula:
         E + A@ => E + B@
     threshold:
@@ -48,11 +56,13 @@
     formula:
         E + A@ => E + H + H
     threshold:
-        # !eval ""
+        [6.58, 4.06, 3.58, 3.12, 2.70,
+         2.30, 1.94, 1.60, 1.30, 1.02,
+         0.78, 0.56, 0.38, 0.22]
     kstr:
         "cs_path/H2(X)_to_H2(_b)_to_2H/A@_to_H2(b)_to_2H.csv"
     zip:
-        A@: *H2_vib_0-14
+        A@: *H2_vib_0-13
     where:
         abbr:
             - cs_path: *H2_cs_path
@@ -163,8 +173,8 @@
 - The reaction considered:
     # - *CO2_VT_with_CO
     electron reaction:
-    - *H2_ele_vib_rctn
-    - *H2_ele_dis_rctn_via_b
-    - *H2_ele_dis_rctn_via_B
-    - *H2_ele_dis_rctn_via_B_1
-    - *H2_ele_dis_rctn_via_B_2
+        H2_ele_vib_rctn: *H2_ele_vib_rctn
+        H2_ele_dis_rctn_via_b: *H2_ele_dis_rctn_via_b
+    # - *H2_ele_dis_rctn_via_B
+    # - *H2_ele_dis_rctn_via_B_1
+    # - *H2_ele_dis_rctn_via_B_2

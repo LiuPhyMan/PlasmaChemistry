@@ -668,12 +668,15 @@ class CrosReactions(Reactions):
                     Cross sections.
                 info_dict : dict
 
+        Notes
+        -----
+        cs_key, type, threshold_eV and cross_section are needed.
 
         """
         assert isinstance(crostn_dataframe, DataFrame_type)
         assert isinstance(electron_energy_grid, ndarray_type)
         _rate_const_matrix = np.empty((crostn_dataframe.shape[0], electron_energy_grid.size))
-        for i_rctn, cs_key in enumerate(self.k_str):
+        for i_rctn, cs_key in enumerate(self.reactant + " => " + self.product):
             if cs_key not in crostn_dataframe['cs_key'].tolist():
                 raise ReactionClassError('"{}" is not in the cs_frame.'.format(cs_key))
             else:

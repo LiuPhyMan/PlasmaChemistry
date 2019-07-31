@@ -15,6 +15,8 @@ import pandas as pd
 from math import exp
 import numpy as np
 from plasmistry.reactions import CrosReactions
+from plasmistry.electron import get_maxwell_eedf
+from plasmistry.electron import EEDF
 from plasmistry import constants as const
 
 
@@ -35,6 +37,10 @@ class Reaction_block(object):
     def __init__(self, *, rctn_dict):
         super().__init__()
         self.rctn_dict = rctn_dict
+        self._formula = None
+        self._kstr = None
+        self._formula_list = None
+        self._kstr_list = None
         self._treat_rctn_dict()
 
     @property
@@ -46,8 +52,9 @@ class Reaction_block(object):
         return [re.split(r"\s*<?=>\s*", _)[1] for _ in self._formula_list]
 
     @property
-    def _threshold_list(self):
-        return self.rctn_dict["threshold"]
+    def size(self):
+        assert len(self._formula_list) == len(self._kstr_list)
+        return len(self._formula_list)
 
     def _treat_rctn_dict(self):
         self._formula = self.rctn_dict['formula']
@@ -96,6 +103,37 @@ class Reaction_block(object):
         # --------------------------------------------------------------------------------------- #
 
 
+class Cros_Reaction_block(Reaction_block):
+
+    def __init__(self, *, rctn_dict):
+        super().__init__(rctn_dict=rctn_dict)
+
+    @property
+    def type(self):
+        return self.rctn_dict["type"]
+
+    @property
+    def _threshold_list(self):
+        return self.rctn_dict["threshold"]
+
+    def generate_crostn_dataframe(self, *, factor=1):
+        # _df = pd.DataFrame(index=range(self.size),
+        #                    columns=["cs_key", "type", "threshold_eV", "cross_section"])
+        _df = dict()
+        _df["cs_key"] = self._formula_list
+        _df["type"] = self.type
+        _df["threshold_eV"] = self._threshold_list
+        _df["cross_section"] = [np.loadtxt(_path).transpose() * factor for _path in
+                                self._kstr_list]
+        # # _df["cross_section"] = self._kstr_list
+        # for _index, _path in zip(range(self.size), self._kstr_list):
+        #     print(_index)
+        #     print(_path)
+        #     _df.loc[_index, "cross_section"] = np.loadtxt(_path)
+        _df = pd.DataFrame(data=_df, index=range(self.size))
+        return _df
+
+
 # ----------------------------------------------------------------------------------------------- #
 # add a constructor
 # def CO2_energy_constructor(loader, node):
@@ -140,17 +178,18 @@ if __name__ == "__main__":
     with open("test_0.yaml") as f:
         temp = yaml.load(f)
 
-    rctn_block_list = temp[-1]['The reaction considered']["electron reaction"][1]
-    rctn_block = Reaction_block(rctn_dict=rctn_block_list)
-    # reactant = [re.split(r"\s*<?=>\s*", _)[0] for _ in rctn_block._formula_list]
-    # product = [re.split(r"\s*<?=>\s*", _)[1] for _ in rctn_block._formula_list]
-    #
+    ele_rctn_block_list = temp[-1]["The reaction considered"]["electron reaction"]
+    rctn_block_list = ele_rctn_block_list["H2_ele_dis_rctn_via_b"]
+    rctn_block = Cros_Reaction_block(rctn_dict=rctn_block_list)
+    # ------------------------------------------------------------------------------------------- #
+    eedf = EEDF(max_energy_J=20 * const.eV2J,
+                grid_number=100)
+    electron_energy_grid = eedf.energy_point
+    # electron_energy_grid = electron_energy_grid[1:] * const.eV2J
     rctn = CrosReactions(reactant=rctn_block._reactant_str_list,
                          product=rctn_block._product_str_list,
                          k_str=pd.Series(rctn_block._kstr_list),
                          dH_e=pd.Series(rctn_block._threshold_list))
-
-# with open("test_0.yaml") as f:
-#     a = yaml.load_all(f)
-#     a = [_ for _ in a]
-# a = [_ for _ in yaml.load_all(lines)]
+    rctn.set_rate_const_matrix(crostn_dataframe=rctn_block.generate_crostn_dataframe(factor=1e-20),
+                               electron_energy_grid=electron_energy_grid)
+    rctn.set_rate_const(eedf_normalized=get_maxwell_eedf(electron_energy_grid, Te_eV=1.0))
