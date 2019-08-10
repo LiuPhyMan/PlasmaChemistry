@@ -49,6 +49,67 @@
         abbr:
             - cs_path: *H2_cs_path
 
+- Rctn_block: &H2_ele_vib_rctn_forward
+    type:
+        excitation
+    formula:
+        E + A@ => E + B@
+    threshold:
+        !eval "[H2_vib_energy(v=b)-H2_vib_energy(v=a) 
+                for a in range(2) 
+                for b in range(2) if a<b]"
+    kstr:
+        "cs_path/H2(X)_to_H2(X)_vibexc/A@_to_B@.csv"
+    lambda: 
+        !eval "lambda x: 
+            [x.replace('A@', f'H2(v{a})').replace('B@', f'H2(v{b})').replace('H2(v0)', 'H2')
+            for a in range(2)
+            for b in range(2) if a<b]"
+    where:
+        abbr:
+            - cs_path: *H2_cs_path
+
+- Rctn_block: &H2_ele_vib_rctn_backward
+    type:
+        deexcitation
+    # <<: *H2_ele_vib_rctn_forward
+    formula:
+        E + A@ => E + B@
+    threshold:
+        !eval "[H2_vib_energy(v=b)-H2_vib_energy(v=a) 
+                for a in range(2) 
+                for b in range(2) if a>b]"
+    kstr:
+        "cs_path/H2(X)_to_H2(X)_vibexc/A@_to_B@.csv"
+    lambda: 
+        !eval "lambda x: 
+            [x.replace('A@', f'H2(v{a})').replace('B@', f'H2(v{b})').replace('H2(v0)', 'H2')
+            for a in range(2)
+            for b in range(2) if a>b]"
+    where:
+        abbr:
+            - cs_path: *H2_cs_path
+
+
+# - Rctn_block: &H2_ele_vib_rctn
+#     type:
+#         excitation
+#     formula:
+#         E + A@ => E + B@
+#     threshold:
+#         !eval "[H2_vib_energy(v=b)-H2_vib_energy(v=a) 
+#                 for a in range(15) 
+#                 for b in range(15) if a!=b]"
+#     kstr:
+#         "cs_path/H2(X)_to_H2(X)_vibexc/A@_to_B@.csv"
+#     lambda: 
+#         !eval "lambda x: 
+#             [x.replace('A@', f'H2(v{a})').replace('B@', f'H2(v{b})').replace('H2(v0)', 'H2')
+#             for a in range(15)
+#             for b in range(15) if a!=b]"
+#     where:
+#         abbr:
+#             - cs_path: *H2_cs_path
 # ----------------------------------------------------------------------------------------------- #
 - Rctn_block: &H2_ele_dis_rctn_via_b
     type:
@@ -174,6 +235,8 @@
     # - *CO2_VT_with_CO
     electron reaction:
         H2_ele_vib_rctn: *H2_ele_vib_rctn
+        H2_ele_vib_rctn_forward: *H2_ele_vib_rctn_forward
+        H2_ele_vib_rctn_backward: *H2_ele_vib_rctn_backward
         H2_ele_dis_rctn_via_b: *H2_ele_dis_rctn_via_b
     # - *H2_ele_dis_rctn_via_B
     # - *H2_ele_dis_rctn_via_B_1

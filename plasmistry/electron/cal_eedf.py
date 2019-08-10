@@ -217,7 +217,8 @@ class EEDF(object):
 
         """
         assert isinstance(total_species, list)
-        total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'H', 'N2', 'He'}
+        # total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'H', 'N2', 'He'}
+        total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'N2', 'He'}
         #   bg_molecules are the total species in total_elas_moleucles
         # self.bg_molecule_elas = list(set(total_species) & total_elas_molecules)
         self.bg_molecule_elas = [_ for _ in total_species if _ in total_elas_molecules]
@@ -655,7 +656,7 @@ class EEDF(object):
 
         """
         #   check reaction_type
-        assert reaction_type in ('excitation', 'deexcitation',
+        assert reaction_type.lower() in ('excitation', 'deexcitation',
                                  'ionization', 'attachment'), reaction_type
         #   check energy_grid_J
         assert isinstance(energy_grid_J, np.ndarray)
@@ -668,11 +669,11 @@ class EEDF(object):
         assert isinstance(threshold_eV, float)
         assert 0 <= math.fabs(threshold_eV) * const.eV2J < energy_grid_J[-1] + energy_grid_J[0], \
             '{}'.format(threshold_eV)
-        if reaction_type in ('excitation', 'ionization'):
+        if reaction_type.lower() in ('excitation', 'ionization'):
             assert threshold_eV > 0.0
-        elif reaction_type in ('deexcitation',):
+        elif reaction_type.lower() in ('deexcitation',):
             assert threshold_eV < 0.0
-        elif reaction_type in ('attachment',):
+        elif reaction_type.lower() in ('attachment',):
             assert threshold_eV >= 0.0
         else:
             raise EEDFerror('The threshold_eV is error.')
@@ -696,26 +697,26 @@ class EEDF(object):
         _shape = grid_number
         _op = None
         if low_threshold:
-            if reaction_type == 'excitation':
+            if reaction_type.lower() == 'excitation':
                 _diags = np.vstack((-1 * np.ones(_shape), +1 * np.ones(_shape)))
                 _op = sprs.spdiags(_diags, [0, 1], _shape, _shape).toarray()
                 _op[0, 0] = 1 * (1 - _phi)
                 _op[1, 0] = -1 * (1 - _phi)
                 _op = _op * _phi * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
-            elif reaction_type == 'deexcitation':
+            elif reaction_type.lower() == 'deexcitation':
                 _diags = np.vstack((-1 * np.ones(_shape), +1 * np.ones(_shape)))
                 _op = sprs.spdiags(_diags, [0, -1], _shape, _shape).toarray()
                 _op[-1, -1] = 0
                 _op = _op * _phi * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
-            elif reaction_type == 'ionization':
+            elif reaction_type.lower() == 'ionization':
                 raise EEDFerror('The ionization in low_threshold mode should be avoid.')
-            elif reaction_type == 'attachment':
+            elif reaction_type.lower() == 'attachment':
                 _op = sprs.spdiags(-1 * np.ones(_shape), [0], _shape, _shape).toarray()
                 _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
             else:
                 raise EEDFerror('The reaction_type {} is error.'.format(reaction_type))
         else:
-            if reaction_type == 'excitation':
+            if reaction_type.lower() == 'excitation':
                 _diag = np.zeros(_shape)
                 _diag[:_n] = 0.0
                 _diag[_n] = -(1 - _phi)
@@ -725,7 +726,7 @@ class EEDF(object):
                                     _phi * np.ones(_shape)))
                 _op = sprs.spdiags(_diags, [0, _n, _n + 1], _shape, _shape).toarray()
                 _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
-            elif reaction_type == 'ionization':
+            elif reaction_type.lower() == 'ionization':
                 _diag = np.zeros(_shape)
                 _diag[:_n] = 0.0
                 _diag[_n] = -(1 - _phi)
@@ -741,13 +742,13 @@ class EEDF(object):
                 _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
                 _op[0] = _op[0] + 3 / 2 / de * _op_extra_e
                 _op[1] = _op[1] - 1 / 2 / de * _op_extra_e
-            elif reaction_type == 'deexcitation':
+            elif reaction_type.lower() == 'deexcitation':
                 _diags = np.vstack(((-1) * np.ones(_shape - _n - 1),
                                     (1 - _phi) * np.ones(_shape - _n - 1),
                                     (_phi) * np.ones(_shape - _n - 1)))
                 _op = sprs.spdiags(_diags, [0, -_n, -_n - 1], _shape, _shape).toarray()
                 _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
-            elif reaction_type == 'attachment':
+            elif reaction_type.lower() == 'attachment':
                 _op = sprs.spdiags(-1 * np.ones(_shape), [0], _shape, _shape).toarray()
                 _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
             else:

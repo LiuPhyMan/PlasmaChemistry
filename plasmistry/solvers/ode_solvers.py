@@ -62,8 +62,8 @@ def ode_ivp(*, deriv_func, func_args, jac_func=None, jac_args=None,
     # ne_seq = [ne_0]
     # Te_seq = [Te_0]
     while solver.successful() and solver.t < time_end:
-        # time_step = time_end
-        time_step = 1e-15 if solver.t < 1e-15 else time_end
+        time_step = time_end
+        # time_step = 1e-15 if solver.t < 1e-15 else time_end
         # time_step = solver.t * 10 if time_step > solver.t * 10 else time_step
         # print(time_step)
         solver.integrate(time_step, step=True)
@@ -73,7 +73,7 @@ def ode_ivp(*, deriv_func, func_args, jac_func=None, jac_args=None,
             _str = "TIME : {t:.2e}s\tTe : {Te:8.4f}_eV#{Te_K:8.1f}_K]\tne : {ne:8.2e}_m^3"
             _str = "TIME : {t:.2e}s\t"
             print(_str.format(t=solver.t))
-        solver.y[solver.y < 1e-30] = 1e-30
+        # solver.y[solver.y < 1e-30] = 1e-30
         time_seq.append(solver.t)
         y_seq = np.vstack((y_seq, solver.y))
     sol.t = np.array(time_seq)

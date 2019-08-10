@@ -11,6 +11,7 @@ Created on  9:49 2019/7/17
 
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 from plasmistry.electron import EEDF
 from plasmistry import constants as const
 from plasmistry.electron import get_maxwell_eedf
@@ -22,7 +23,7 @@ inelas_df = pd.read_pickle("plasmistry/electron/tests/e.g._inelas_colli_datafram
 species = ['CO2', 'CO2(v0)', 'CO2(v1)', 'CO2(vc)', 'CO', 'O2']
 # ----------------------------------------------------------------------------------------------- #
 eedf = EEDF(max_energy_J=10 * const.eV2J, grid_number=100)
-eedf.set_density_in_J(get_maxwell_eedf(eedf.energy_point, Te_eV=1.0))
+eedf.set_density_in_J(1e14 * get_maxwell_eedf(eedf.energy_point, Te_eV=1.0))
 eedf.initialize(rctn_with_crostn_df=inelas_df,
                 total_species=species)
 eedf.set_parameters(E=1, Tgas=1000, N=1e20)
@@ -43,7 +44,7 @@ def dndt(t, y, _eedf):
 # eedf.density_in_J = y_0
 # density_0 = eedf.electron_density
 # Te_0 = eedf.electron_temperature
-y_0 = get_maxwell_eedf(eedf.energy_point, Te_eV=0.026)
+y_0 = 1e14 * get_maxwell_eedf(eedf.energy_point, Te_eV=0.026)
 sol = ode_ivp(deriv_func=dndt,
               func_args=(eedf,),
               time_span=(0, 1e5),
@@ -55,3 +56,4 @@ sol = ode_ivp(deriv_func=dndt,
 
 # eedf.density_in_J = a[-1]
 # eedf.set_density_in_J(sol.y[-1])
+plt.plot(eedf.energy_point, (sol.y/np.sqrt(eedf.energy_point)).transpose())
