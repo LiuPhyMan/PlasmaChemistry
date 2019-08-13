@@ -43,13 +43,13 @@ class EEDF(object):
         'grid_number',
         # ----
         # distribution
-        'density_in_J',
+        'density_per_J',
         # ----
         # elastic collisions
         '_index_bg_molecule_elas',
-        'crostn_elas',
-        'bg_molecule_elas',
-        'bg_molecule_mass_elas',
+        'crostn_elas',  # ndarray (bg_molecule_elas number x grid_number)
+        'bg_molecule_elas',  # list (bg_molecule_elas number)
+        'bg_molecule_mass_elas',  # list (bg_molecule_elas number)
         # ----
         # inelas collisions
         '_index_bg_molecule_inelas',
@@ -81,7 +81,6 @@ class EEDF(object):
         ----------
         max_energy_J
         grid_number
-        density_in_J
 
         Notes
         -----
@@ -102,7 +101,7 @@ class EEDF(object):
         self.energy_nodes.setflags(write=False)
         self.energy_point.setflags(write=False)
         self.energy_intvl = self.energy_nodes[1] - self.energy_nodes[0]
-        self.set_density_in_J(np.zeros_like(self.energy_point))
+        self.set_density_per_J(np.zeros_like(self.energy_point))
         self._pre_set_flux_ee_colli()
 
     def __setattr__(self, key, value):
@@ -113,17 +112,12 @@ class EEDF(object):
             assert value > 0.0, key
         object.__setattr__(self, key, value)
 
-    # def __getattribute__(self, item):
-    #     r"""
-    #     """
-    #     return object.__getattribute__(self, item)
-
     # ------------------------------------------------------------------------------------------- #
     #   properties
     # ------------------------------------------------------------------------------------------- #
     @property
-    def density_in_eV(self):
-        return self.density_in_J / const.J2eV
+    def density_per_eV(self):
+        return self.density_per_J / const.J2eV
 
     @property
     def energy_point_eV(self):
@@ -132,35 +126,52 @@ class EEDF(object):
     @property
     def electron_density(self):
         r"""Calculate the electron density in m^-3."""
-        return trapz(y=np.hstack((0.0, self.density_in_J, 0.0)),
+        return trapz(y=np.hstack((0.0, self.density_per_J, 0.0)),
                      x=np.hstack((0.0, self.energy_point, self.energy_max_bound)))
 
     @property
-    def reduced_electric_field(self):
+    def reduced_electric_field_in_Td(self):
         r"""Calculate reduced electric field in Td."""
         return self.electric_field / self.total_bg_molecule_density * 1e21
 
     @property
-    def electron_mean_energy(self):
+    def electron_mean_energy_in_J(self):
         r"""Calculate electron mean energy in J."""
         _density = self.electron_density
         return simps(y=np.hstack((0.0, self.energy_point * self.density_in_J, 0.0)),
                      x=np.hstack((0.0, self.energy_point, self.energy_max_bound))) / _density
 
     @property
-    def electron_temperature(self):
+    def electron_mean_energy_in_eV(self):
+        return self.electron_mean_energy_in_J * const.J2eV
+
+    @property
+    def electron_temperature_in_eV(self):
         r"""Calculate electron temperature in K."""
-        return self.electron_mean_energy * const.J2K * 2 / 3
+        return self.electron_mean_energy_in_J * const.J2K * 2 / 3 * const.K2eV
+
+    @property
+    def electron_temperature_in_K(self):
+        r"""Calculate electron temperature in K."""
+        return self.electron_temperature_in_eV * const.eV2K
 
     @property
     def eepf_J(self):
         r"""Electron energy probability function in J^{-3/2}."""
-        return self.density_in_J / self.electron_density / np.sqrt(self.energy_point)
+        return self.density_per_J / np.sqrt(self.energy_point)
 
     @property
     def eepf_eV(self):
         r"""Electron energy probability function in eV^{-3/2}."""
         return self.eepf_J * const.J2eV ** (-3 / 2)
+
+    @property
+    def normalized_eepf_J(self):
+        return self.eepf_J / self.electron_density
+
+    @property
+    def normalized_eepf_eV(self):
+        return self.eepf_eV / self.electron_density
 
     # ------------------------------------------------------------------------------------------- #
     #   public functions
@@ -174,11 +185,11 @@ class EEDF(object):
         self._set_crostn_inelastic(inelas_reaction_dataframe=rctn_with_crostn_df)
         self._set_index_bg_molecule(total_species=total_species)
 
-    def set_density_in_J(self, value):
+    def set_density_per_J(self, value: np.ndarray):
         assert isinstance(value, np.ndarray)
         assert value.ndim == 1
         assert value.size == self.grid_number
-        self.density_in_J = value
+        self.density_per_J = value
 
     def set_parameters(self, *, E, Tgas, N):
         self.gas_temperature = Tgas
@@ -218,20 +229,15 @@ class EEDF(object):
         """
         assert isinstance(total_species, list)
         # total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'H', 'N2', 'He'}
-        total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'N2', 'He'}
+        total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'N2', 'Ar'}
         #   bg_molecules are the total species in total_elas_moleucles
-        # self.bg_molecule_elas = list(set(total_species) & total_elas_molecules)
         self.bg_molecule_elas = [_ for _ in total_species if _ in total_elas_molecules]
         self.bg_molecule_mass_elas = np.array([species_thermal_data.loc[_, 'absolute_mass']
                                                for _ in self.bg_molecule_elas])
-        crostn_path = os.path.dirname(__file__) + r"\elastic_cross_section.txt"
-        elastic_crostn = read_cross_section_to_frame(crostn_path)
+        crostn_path = os.path.dirname(__file__) + r"\elastic_cross_section\\"
         crostn_elas = []
         for molecule in self.bg_molecule_elas:
-            assert molecule in elastic_crostn['cs_key'].tolist(), '{} is not found.'.format(
-                molecule)
-            _crostn = elastic_crostn.loc[elastic_crostn['cs_key'] == molecule,
-                                         'cross_section'].tolist()[0]
+            _crostn = np.loadtxt(crostn_path + f"{molecule}.dat").transpose()
             energy = np.hstack((0.0, _crostn[0], np.inf))
             crostn = np.hstack((0.0, _crostn[1], 0.0))
             # Add the elastic cross section interped into the crostn matrix.
@@ -264,32 +270,32 @@ class EEDF(object):
         type : excitation deexcitation ionization
 
         """
+        assert isinstance(inelas_reaction_dataframe, DataFrame_type)
         _dataframe = inelas_reaction_dataframe.copy()
         _dataframe = _dataframe.reset_index(drop=True)
-        assert isinstance(_dataframe, DataFrame_type)
         _dataframe['bg_molecule'] = ''
         _dataframe['low_threshold'] = None
-        # _get_bg_molecule = re.compile(r"[eE]\s+\+\s+(?P<bg_molecule>[A-Z]\S*)\s+=>.*")
         _get_bg_molecule = re.compile(r"""
         [eE]
         \s+\+\s+
-        (?P<bg_molecule>[A-Z]\S*)
-        \s+=>.*""", re.VERBOSE | re.MULTILINE)
+        (?P<bg_molecule>[a-zA-Z]\S*)
+        \s+=>.*""", re.VERBOSE | re.MULTILINE)  # e + M => ...
         #   Set low_threshold, bg_molecule
         for i_rctn in _dataframe.index:
+            # ----------------------------------------------------------------------------------- #
             # set background molecule
+            # ----------------------------------------------------------------------------------- #
             _temp = _get_bg_molecule.fullmatch(_dataframe.at[i_rctn, 'reaction'])
-            assert _temp, _dataframe.at[i_rctn, 'reaction']
+            assert _temp, f"The format of {_dataframe.at[i_rctn, 'reaction']} is wrong."
             _dataframe.at[i_rctn, 'bg_molecule'] = _temp.groupdict()['bg_molecule']
+            # ----------------------------------------------------------------------------------- #
+            # set low_threshold
+            # ----------------------------------------------------------------------------------- #
             _threshold_eV = _dataframe.at[i_rctn, 'threshold_eV']
             _phi, _n = math.modf(math.fabs(_threshold_eV) / (self.energy_intvl * const.J2eV))
             _n = int(_n)
-            if _n == 0:
-                _dataframe.at[i_rctn, 'low_threshold'] = True
-            else:
-                _dataframe.at[i_rctn, 'low_threshold'] = False
+            _dataframe.at[i_rctn, "low_threshold"] = True if _n == 0 else False
         self.inelas_reaction_dataframe = _dataframe
-        # self.bg_molecule_inelas = list(set(_dataframe['bg_molecule'].tolist()))
         self.bg_molecule_inelas = np.unique(_dataframe["bg_molecule"]).tolist()
         self._set_rate_const_matrix_e_inelas_electron()
         self._set_rate_const_matrix_e_inelas_molecule()
@@ -484,7 +490,7 @@ class EEDF(object):
         assert isinstance(total_species, list)
 
         def set_index(_bg_molecule, total_species):
-            assert set(_bg_molecule) <= set(total_species), f"{self.bg_molecule_inelas}"
+            assert set(_bg_molecule) <= set(total_species)
             _series = pd.Series(data=range(len(total_species)), index=total_species)
             _index = np.zeros((len(_bg_molecule), len(total_species)))
             for i_molecule in range(len(_bg_molecule)):
@@ -503,6 +509,12 @@ class EEDF(object):
             ...
         dni / dt = N * Kii * fi
             ...
+
+        N:   1 x m
+        Kii: m x n x n
+        fi:  n x 1
+
+        dnidt: 1 x n
 
         Returns
         -------
@@ -657,7 +669,7 @@ class EEDF(object):
         """
         #   check reaction_type
         assert reaction_type.lower() in ('excitation', 'deexcitation',
-                                 'ionization', 'attachment'), reaction_type
+                                         'ionization', 'attachment'), reaction_type
         #   check energy_grid_J
         assert isinstance(energy_grid_J, np.ndarray)
         assert energy_grid_J.ndim == 1
