@@ -22,10 +22,12 @@ from plasmistry.molecule import get_ideal_gas_density
 inelas_df = pd.read_pickle("plasmistry/electron/tests/e.g._inelas_colli_dataframe.pkl")
 species = ['CO2', 'CO2(v0)', 'CO2(v1)', 'CO2(vc)', 'CO', 'O2']
 # ----------------------------------------------------------------------------------------------- #
-eedf = EEDF(max_energy_J=10 * const.eV2J, grid_number=100)
-eedf.set_density_in_J(1e14 * get_maxwell_eedf(eedf.energy_point, Te_eV=1.0))
+eedf = EEDF(max_energy_eV=10,
+            grid_number=100)
 eedf.initialize(rctn_with_crostn_df=inelas_df,
                 total_species=species)
+
+
 eedf.set_parameters(E=1, Tgas=1000, N=1e20)
 total_species_density = get_ideal_gas_density(p_Pa=1e5, Tgas_K=2000)
 eedf.set_flux(total_species_density=total_species_density * np.array([1, 0, 0, 0, 0, 0]))
@@ -56,4 +58,4 @@ sol = ode_ivp(deriv_func=dndt,
 
 # eedf.density_in_J = a[-1]
 # eedf.set_density_in_J(sol.y[-1])
-plt.plot(eedf.energy_point, (sol.y/np.sqrt(eedf.energy_point)).transpose())
+plt.plot(eedf.energy_point, (sol.y / np.sqrt(eedf.energy_point)).transpose())

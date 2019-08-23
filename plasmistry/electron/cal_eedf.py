@@ -15,9 +15,10 @@ import pandas as pd
 import scipy.sparse as sprs
 from scipy.integrate import simps, trapz
 from scipy.interpolate import interp1d
+from matplotlib import pyplot as plt
 from .. import constants as const
 from ..molecule import species_thermal_data
-from ..io.io_cross_section import read_cross_section_to_frame
+# from ..io.io_cross_section import read_cross_section_to_frame
 from pandas.core.frame import DataFrame as DataFrame_type
 
 
@@ -73,13 +74,13 @@ class EEDF(object):
     ]
 
     # ------------------------------------------------------------------------------------------- #
-    def __init__(self, *, max_energy_J: float,
+    def __init__(self, *, max_energy_eV: float,
                  grid_number: int):
         r"""
 
         Parameters
         ----------
-        max_energy_J
+        max_energy_eV
         grid_number
 
         Notes
@@ -94,13 +95,15 @@ class EEDF(object):
                                                 w       e
 
         """
-        self.energy_max_bound = max_energy_J
+        self.energy_max_bound = max_energy_eV * const.eV2J
         self.grid_number = grid_number
         self.energy_nodes = np.linspace(0.0, self.energy_max_bound, num=self.grid_number + 1)
         self.energy_point = 0.5 * (self.energy_nodes[:-1] + self.energy_nodes[1:])
         self.energy_nodes.setflags(write=False)
         self.energy_point.setflags(write=False)
         self.energy_intvl = self.energy_nodes[1] - self.energy_nodes[0]
+        self.bg_molecule_elas = None
+        self.bg_molecule_inelas = None
         self.set_density_per_J(np.zeros_like(self.energy_point))
         self._pre_set_flux_ee_colli()
 
@@ -138,7 +141,7 @@ class EEDF(object):
     def electron_mean_energy_in_J(self):
         r"""Calculate electron mean energy in J."""
         _density = self.electron_density
-        return simps(y=np.hstack((0.0, self.energy_point * self.density_in_J, 0.0)),
+        return simps(y=np.hstack((0.0, self.energy_point * self.density_per_J, 0.0)),
                      x=np.hstack((0.0, self.energy_point, self.energy_max_bound))) / _density
 
     @property
@@ -173,6 +176,14 @@ class EEDF(object):
     def normalized_eepf_eV(self):
         return self.eepf_eV / self.electron_density
 
+    @property
+    def normalized_eedf_J(self):
+        return self.density_per_J / self.electron_density
+
+    @property
+    def normalized_eedf_eV(self):
+        return self.density_per_eV / self.electron_density
+
     # ------------------------------------------------------------------------------------------- #
     #   public functions
     # ------------------------------------------------------------------------------------------- #
@@ -191,10 +202,13 @@ class EEDF(object):
         assert value.size == self.grid_number
         self.density_per_J = value
 
-    def set_parameters(self, *, E, Tgas, N):
-        self.gas_temperature = Tgas
-        self.electric_field = E
-        self.total_bg_molecule_density = N
+    def set_parameters(self, *, E=None, Tgas=None, N=None):
+        if E is not None:
+            self.electric_field = E
+        if Tgas is not None:
+            self.gas_temperature = Tgas
+        if N is not None:
+            self.total_bg_molecule_density = N
 
     def set_flux(self, *, total_species_density):
         self._set_flux_electric_field(total_species_density=total_species_density)
@@ -338,8 +352,8 @@ class EEDF(object):
         self.J_flux_ef = np.empty_like(self.energy_nodes)
         lam_F = self.get_lam_F(D_k=self.D_k_ef, F_k=self.F_k_ef)
         self.J_flux_ef[0] = self.J_flux_ef[-1] = 0.0
-        self.J_flux_ef[1:-1] = -(self.D_k_ef - lam_F)[1:-1] * self.density_in_J[1:] + \
-                               (self.D_k_ef + self.F_k_ef - lam_F)[1:-1] * self.density_in_J[:-1]
+        self.J_flux_ef[1:-1] = -(self.D_k_ef - lam_F)[1:-1] * self.density_per_J[1:] + \
+                               (self.D_k_ef + self.F_k_ef - lam_F)[1:-1] * self.density_per_J[:-1]
 
     def _set_flux_elastic_colli(self, *, total_species_density: np.ndarray):
         r"""
@@ -374,8 +388,8 @@ class EEDF(object):
         self.J_flux_el = np.empty_like(self.energy_nodes)
         lam_F = self.get_lam_F(D_k=self.D_k_el, F_k=self.F_k_el)
         self.J_flux_el[0] = self.J_flux_el[-1] = 0.0
-        self.J_flux_el[1:-1] = -(self.D_k_el - lam_F)[1:-1] * self.density_in_J[1:] + \
-                               (self.D_k_el + self.F_k_el - lam_F)[1:-1] * self.density_in_J[:-1]
+        self.J_flux_el[1:-1] = -(self.D_k_el - lam_F)[1:-1] * self.density_per_J[1:] + \
+                               (self.D_k_el + self.F_k_el - lam_F)[1:-1] * self.density_per_J[:-1]
 
     def _pre_set_flux_ee_colli(self):
         r"""
@@ -465,10 +479,10 @@ class EEDF(object):
         _const = 2 * pi / 3 * sqrt(2 / const.m_e) * const.e ** 4 / (4 * pi * const.epsilon_0) ** 2
         self.ee_alpha = _const * log(L)
         self.J_flux_ee = np.zeros_like(self.energy_nodes)
-        ee_a = self.ee_op_a.dot(self.density_in_J)
-        ee_b = self.ee_op_b.dot(self.density_in_J)
-        positive_term = ee_a * self.density_in_J
-        negative_term = ee_b * self.density_in_J
+        ee_a = self.ee_op_a.dot(self.density_per_J)
+        ee_b = self.ee_op_b.dot(self.density_per_J)
+        positive_term = ee_a * self.density_per_J
+        negative_term = ee_b * self.density_per_J
         self.J_flux_ee[1:-1] = self.ee_alpha * (positive_term[:-1]
                                                 - negative_term[1:]) * self.energy_intvl
 
@@ -594,7 +608,7 @@ class EEDF(object):
 
         """
         _density_bg_molecule = self._index_bg_molecule_inelas.dot(density)
-        _temp = self.rate_const_matrix_e_inelas_electron.dot(self.density_in_J)
+        _temp = self.rate_const_matrix_e_inelas_electron.dot(self.density_per_J)
         dnidt = _density_bg_molecule.dot(_temp.reshape(-1, self.grid_number))
         return dnidt
 
@@ -611,7 +625,7 @@ class EEDF(object):
         """
         _density_bg_molecule = self._index_bg_molecule_inelas.dot(density)
         dNdt = _density_bg_molecule.dot(
-            self.rate_const_matrix_e_inelas_molecule.dot(self.density_in_J))
+            self.rate_const_matrix_e_inelas_molecule.dot(self.density_per_J))
         return dNdt
 
     def _get_deriv_ef(self):
@@ -656,7 +670,7 @@ class EEDF(object):
         Parameters
         ----------
         reaction_type : str
-            'excitation', 'deexcitation', 'ionization'
+            'excitation', 'deexcitation', 'ionization', 'attachment'
         energy_grid_J : ndarray
         threshold_eV : float
         crostn_eV_m2 : ndarray
@@ -678,7 +692,7 @@ class EEDF(object):
         assert crostn_eV_m2.ndim == 2
         assert crostn_eV_m2.shape[0] == 2
         #   check threshold_eV
-        assert isinstance(threshold_eV, float)
+        assert isinstance(threshold_eV, (float, int, np.number))
         assert 0 <= math.fabs(threshold_eV) * const.eV2J < energy_grid_J[-1] + energy_grid_J[0], \
             '{}'.format(threshold_eV)
         if reaction_type.lower() in ('excitation', 'ionization'):
@@ -689,7 +703,11 @@ class EEDF(object):
             assert threshold_eV >= 0.0
         else:
             raise EEDFerror('The threshold_eV is error.')
-
+        # --------------------------------------------------------------------------------------- #
+        #   set n, phi, low_threshold
+        #       threshold = (_n + _phi) * de
+        #       0 < _phi < 1
+        #       n is an integer
         # --------------------------------------------------------------------------------------- #
         _gamma = math.sqrt(2 / const.m_e)
         grid_number = energy_grid_J.size
@@ -699,16 +717,30 @@ class EEDF(object):
         assert 0 <= _phi < 1
         assert 0 <= _n < grid_number
         low_threshold = True if _n == 0 else False
-
+        # --------------------------------------------------------------------------------------- #
+        #   set discretized energy and cross section.
+        # --------------------------------------------------------------------------------------- #
         _energy = np.hstack((0.0, crostn_eV_m2[0], np.inf))
         _crostn = np.hstack((0.0, crostn_eV_m2[1], 0.0))
-        _energy_discretized = energy_grid_J.copy()
-        _energy_discretized[_n] = _energy_discretized[_n] + 0.5 * _phi * de
-        _crostn_discretized = interp1d(_energy, _crostn)(_energy_discretized * const.J2eV)
-
+        # --------------------------------------------------------------------------------------- #
+        _energy_discretized = energy_grid_J * const.J2eV
+        # --------------------------------------------------------------------------------------- #
+        #   set discretized cross section
+        # --------------------------------------------------------------------------------------- #
+        _crostn_func = interp1d(_energy, _crostn)
+        _crostn_discretized = np.zeros_like(_energy_discretized)
+        _crostn_discretized[_n] = _crostn_func(_energy_discretized[_n] + 0.5 * _phi * de)
+        _crostn_discretized[_n + 1:] = _crostn_func(_energy_discretized[_n + 1:])
+        print(_crostn_discretized)
+        # --------------------------------------------------------------------------------------- #
         _shape = grid_number
         _op = None
         if low_threshold:
+            print("low threshold")
+            print(reaction_type)
+            # ----------------------------------------------------------------------------------- #
+            #   low threshold case
+            # ----------------------------------------------------------------------------------- #
             if reaction_type.lower() == 'excitation':
                 _diags = np.vstack((-1 * np.ones(_shape), +1 * np.ones(_shape)))
                 _op = sprs.spdiags(_diags, [0, 1], _shape, _shape).toarray()
@@ -724,10 +756,16 @@ class EEDF(object):
                 raise EEDFerror('The ionization in low_threshold mode should be avoid.')
             elif reaction_type.lower() == 'attachment':
                 _op = sprs.spdiags(-1 * np.ones(_shape), [0], _shape, _shape).toarray()
-                _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
+                _op = _op * _gamma * _crostn_discretized * np.sqrt(
+                    energy_grid_J)  # TODO check _phi
             else:
                 raise EEDFerror('The reaction_type {} is error.'.format(reaction_type))
+            # ----------------------------------------------------------------------------------- #
+            #   high threshold case
+            # ----------------------------------------------------------------------------------- #
         else:
+            print("high threshold")
+            print(reaction_type)
             if reaction_type.lower() == 'excitation':
                 _diag = np.zeros(_shape)
                 _diag[:_n] = 0.0
@@ -737,6 +775,9 @@ class EEDF(object):
                                     (1 - _phi) * np.ones(_shape),
                                     _phi * np.ones(_shape)))
                 _op = sprs.spdiags(_diags, [0, _n, _n + 1], _shape, _shape).toarray()
+                print(_op)
+                print(_gamma)
+                print(_crostn_discretized)
                 _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
             elif reaction_type.lower() == 'ionization':
                 _diag = np.zeros(_shape)
@@ -797,7 +838,7 @@ class EEDF(object):
         assert crostn_eV_m2.ndim == 2
         assert crostn_eV_m2.shape[0] == 2
         #   check threshold_eV
-        assert isinstance(threshold_eV, float)
+        assert isinstance(threshold_eV, (int, float, np.number))
         assert 0 <= math.fabs(threshold_eV) * const.eV2J < energy_grid_J[-1] + energy_grid_J[0], \
             '{}'.format(threshold_eV)
         if reaction_type.lower() in ('excitation', 'ionization'):
@@ -855,41 +896,59 @@ class EEDF(object):
         _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J) * de
         return _op
 
+    def plot_normalized_eedf(self):
+        plt.figure()
+        plt.plot(self.energy_point_eV, self.normalized_eedf_eV, marker=".")
+        plt.xlabel("energy (eV)")
+        plt.ylabel("eV^-1")
+        plt.grid()
+
+    def plot_normalized_eepf(self):
+        plt.figure()
+        plt.semilogy(self.energy_point_eV, self.normalized_eepf_eV, marker=".")
+        plt.xlabel("energy (eV)")
+        plt.ylabel("eV^-3/2")
+        plt.grid()
+
     # ------------------------------------------------------------------------------------------- #
     def __str__(self):
-        _temp = self.inelas_reaction_dataframe[['reaction',
-                                                'bg_molecule',
-                                                'type',
-                                                'threshold_eV',
-                                                ]].copy()
-        _text = '''
-        \n ====================
-        \n            ELECTRON TEMPERATURE : {temperature:.3f} eV
-        \n                ELECTRON DENSITY : {density:.2e} cm^-3
-        \n ====================
-        \n BACKGROUND MOLECULE DENSITY (N) : {bg_molecule_density:.2e} cm^-3
-        \n              ELECTRIC FIELD (E) : {electric_field:.2e} V/m
-        \n          GAS TEMPERATURE (Tgas) : {gas_temperature:.0f} K
-        \n    REDUCED ELECTRIC FIELD (E/N) : {reduced_electric_field:.3f} Td
-        \n     ELASTIC COLLISION MOLECULES : {elastic_molecules}
-        \n ====================
-        \n     DISCRETIZATION CELLS NUMBER : {cell_number} cells
-        \n               ENERGY SPACE (eV) : (0.00 {energy_space:.2f})
-        \n                 ENERGY INTERVAL : {interval:.2f} eV
-        \n ====================
-        \n INELASTIC REACTIONS :
-        \n {inelas_reaction_info}
-        '''.format(temperature=self.electron_temperature * const.K2eV,
-                   density=self.electron_density * 1e-6,
-                   bg_molecule_density=self.total_bg_molecule_density * 1e-6,
-                   electric_field=self.electric_field,
-                   gas_temperature=self.gas_temperature,
-                   reduced_electric_field=self.reduced_electric_field,
-                   cell_number=self.grid_number,
-                   energy_space=self.energy_max_bound * const.J2eV,
-                   interval=self.energy_intvl * const.J2eV,
-                   elastic_molecules=self.bg_molecule_elas,
-                   inelas_reaction_info=_temp)
+        # _temp = self.inelas_reaction_dataframe[['reaction',
+        #                                         'bg_molecule',
+        #                                         'type',
+        #                                         'threshold_eV',
+        #                                         ]].copy()
+        # _text = '''
+        # \n INELASTIC REACTIONS :
+        # \n {inelas_reaction_info}
+        # '''.format(temperature=self.electron_temperature * const.K2eV,
+        #            density=self.electron_density * 1e-6,
+        #            bg_molecule_density=self.total_bg_molecule_density * 1e-6,
+        #            electric_field=self.electric_field,
+        #            gas_temperature=self.gas_temperature,
+        #            reduced_electric_field=self.reduced_electric_field,
+        #            cell_number=self.grid_number,
+        #            energy_space=self.energy_max_bound * const.J2eV,
+        #            interval=self.energy_intvl * const.J2eV,
+        #            elastic_molecules=self.bg_molecule_elas,
+        #            inelas_reaction_info=_temp)
+        # \n BACKGROUND MOLECULE DENSITY (N) : {self.total_bg_molecule_density:.2e} m^-3"""
+        _text = f"""
+        \n ===============
+        \n     NUMBER OF DISCRETIZED CELLS : {self.grid_number} cells
+        \n               ENERGY SPACE (eV) : (0.0, {self.energy_max_bound * const.J2eV:.1f})
+        \n            ENERGY INTERVAL (eV) : {self.energy_intvl * const.J2eV:.3f} 
+        \n ===============
+        \n            ELECTRON TEMPERATURE : {self.electron_temperature_in_eV:.3f} eV
+        \n                ELECTRON DENSITY : {self.electron_density:.2e} m^-3
+        \n ===============
+        \n              ELECTRIC FIELD (E) : {self.electric_field:.0f} V/m
+        \n          GAS TEMPERATURE (Tgas) : {self.gas_temperature:.0f} K
+        \n BACKGROUND MOLECULE DENSITY (N) : {self.total_bg_molecule_density:.1e} m^-3
+        \n    REDUCED ELECTRIC FIELD (E/N) : {self.reduced_electric_field_in_Td:.1f} Td
+        \n ===============
+        \n     ELASTIC COLLISION MOLECULES : {self.bg_molecule_elas}
+        \n   INELASTIC COLLISION MOLECULES : {self.bg_molecule_inelas}
+        """
         return _text
 
 
