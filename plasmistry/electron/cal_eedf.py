@@ -731,13 +731,13 @@ class EEDF(object):
         _crostn_discretized = np.zeros_like(_energy_discretized)
         _crostn_discretized[_n] = _crostn_func(_energy_discretized[_n] + 0.5 * _phi * de)
         _crostn_discretized[_n + 1:] = _crostn_func(_energy_discretized[_n + 1:])
-        print(_crostn_discretized)
+        # print(_crostn_discretized)
         # --------------------------------------------------------------------------------------- #
         _shape = grid_number
         _op = None
         if low_threshold:
-            print("low threshold")
-            print(reaction_type)
+            # print("low threshold")
+            # print(reaction_type)
             # ----------------------------------------------------------------------------------- #
             #   low threshold case
             # ----------------------------------------------------------------------------------- #
@@ -764,8 +764,8 @@ class EEDF(object):
             #   high threshold case
             # ----------------------------------------------------------------------------------- #
         else:
-            print("high threshold")
-            print(reaction_type)
+            # print("high threshold")
+            # print(reaction_type)
             if reaction_type.lower() == 'excitation':
                 _diag = np.zeros(_shape)
                 _diag[:_n] = 0.0
@@ -775,9 +775,9 @@ class EEDF(object):
                                     (1 - _phi) * np.ones(_shape),
                                     _phi * np.ones(_shape)))
                 _op = sprs.spdiags(_diags, [0, _n, _n + 1], _shape, _shape).toarray()
-                print(_op)
-                print(_gamma)
-                print(_crostn_discretized)
+                # print(_op)
+                # print(_gamma)
+                # print(_crostn_discretized)
                 _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
             elif reaction_type.lower() == 'ionization':
                 _diag = np.zeros(_shape)
