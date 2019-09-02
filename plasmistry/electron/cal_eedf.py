@@ -210,7 +210,7 @@ class EEDF(object):
         if N is not None:
             self.total_bg_molecule_density = N
 
-    def set_flux(self, *, total_species_density):
+    def set_flux(self, *, total_species_density: np.ndarray):
         self._set_flux_electric_field(total_species_density=total_species_density)
         self._set_flux_elastic_colli(total_species_density=total_species_density)
         self._set_flux_ee_colli()
@@ -263,7 +263,7 @@ class EEDF(object):
         r"""
         Set inelas_reaction_dataframe.
             columns : [set previously]
-                        reaction
+                        formula
                         type
                         threshold_eV
                         cross_section
@@ -299,8 +299,8 @@ class EEDF(object):
             # ----------------------------------------------------------------------------------- #
             # set background molecule
             # ----------------------------------------------------------------------------------- #
-            _temp = _get_bg_molecule.fullmatch(_dataframe.at[i_rctn, 'reaction'])
-            assert _temp, f"The format of {_dataframe.at[i_rctn, 'reaction']} is wrong."
+            _temp = _get_bg_molecule.fullmatch(_dataframe.at[i_rctn, 'formula'])
+            assert _temp, f"The format of {_dataframe.at[i_rctn, 'formula']} is wrong."
             _dataframe.at[i_rctn, 'bg_molecule'] = _temp.groupdict()['bg_molecule']
             # ----------------------------------------------------------------------------------- #
             # set low_threshold
@@ -470,7 +470,7 @@ class EEDF(object):
             .J_flux_ee
 
         """
-        _mean_energy = self.electron_mean_energy
+        _mean_energy = self.electron_mean_energy_in_J
         _density = self.electron_density
         _temp = 2 / 3 * (const.epsilon_0 * _mean_energy) ** 3 / _density
 
@@ -903,11 +903,14 @@ class EEDF(object):
         plt.ylabel("eV^-1")
         plt.grid()
 
-    def plot_normalized_eepf(self):
+    def plot_normalized_eepf(self, xlim=None, ylim=(1e-12, 1e1)):
         plt.figure()
         plt.semilogy(self.energy_point_eV, self.normalized_eepf_eV, marker=".")
         plt.xlabel("energy (eV)")
         plt.ylabel("eV^-3/2")
+        plt.ylim(ylim)
+        if xlim is not None:
+            plt.xlim(xlim)
         plt.grid()
 
     # ------------------------------------------------------------------------------------------- #
@@ -934,14 +937,15 @@ class EEDF(object):
         # \n BACKGROUND MOLECULE DENSITY (N) : {self.total_bg_molecule_density:.2e} m^-3"""
         _text = f"""
         \n ===============
-        \n     NUMBER OF DISCRETIZED CELLS : {self.grid_number} cells
         \n               ENERGY SPACE (eV) : (0.0, {self.energy_max_bound * const.J2eV:.1f})
+        \n     NUMBER OF DISCRETIZED CELLS : {self.grid_number} cells
         \n            ENERGY INTERVAL (eV) : {self.energy_intvl * const.J2eV:.3f} 
         \n ===============
-        \n            ELECTRON TEMPERATURE : {self.electron_temperature_in_eV:.3f} eV
+        \n            ELECTRON TEMPERATURE : {self.electron_temperature_in_eV:.4f} eV
+        \n            ELECTRON MEAN ENERGY : {self.electron_mean_energy_in_eV:.4f} eV
         \n                ELECTRON DENSITY : {self.electron_density:.2e} m^-3
         \n ===============
-        \n              ELECTRIC FIELD (E) : {self.electric_field:.0f} V/m
+        \n              ELECTRIC FIELD (E) : {self.electric_field:.0f} V/m ({self.electric_field/1e5:.2f} kV/cm) 
         \n          GAS TEMPERATURE (Tgas) : {self.gas_temperature:.0f} K
         \n BACKGROUND MOLECULE DENSITY (N) : {self.total_bg_molecule_density:.1e} m^-3
         \n    REDUCED ELECTRIC FIELD (E/N) : {self.reduced_electric_field_in_Td:.1f} Td

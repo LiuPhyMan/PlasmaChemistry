@@ -29,68 +29,6 @@
 # ----------------------------------------------------------------------------------------------- #
 #   H2 kinectic
 # ----------------------------------------------------------------------------------------------- #
-- Rctn_block: &H2_ele_vib_rctn
-    type:
-        excitation
-    formula:
-        E + A@ => E + B@
-    threshold:
-        !eval "[H2_vib_energy(v=b)-H2_vib_energy(v=a) 
-                for a in range(15) 
-                for b in range(15) if a!=b]"
-    kstr:
-        "cs_path/H2(X)_to_H2(X)_vibexc/A@_to_B@.csv"
-    lambda: 
-        !eval "lambda x: 
-            [x.replace('A@', f'H2(v{a})').replace('B@', f'H2(v{b})').replace('H2(v0)', 'H2')
-            for a in range(15)
-            for b in range(15) if a!=b]"
-    where:
-        abbr:
-            - cs_path: *H2_cs_path
-
-- Rctn_block: &H2_ele_vib_rctn_forward
-    type:
-        excitation
-    formula:
-        E + A@ => E + B@
-    threshold:
-        !eval "[H2_vib_energy(v=b)-H2_vib_energy(v=a) 
-                for a in range(2) 
-                for b in range(2) if a<b]"
-    kstr:
-        "cs_path/H2(X)_to_H2(X)_vibexc/A@_to_B@.csv"
-    lambda: 
-        !eval "lambda x: 
-            [x.replace('A@', f'H2(v{a})').replace('B@', f'H2(v{b})').replace('H2(v0)', 'H2')
-            for a in range(2)
-            for b in range(2) if a<b]"
-    where:
-        abbr:
-            - cs_path: *H2_cs_path
-
-- Rctn_block: &H2_ele_vib_rctn_backward
-    type:
-        deexcitation
-    # <<: *H2_ele_vib_rctn_forward
-    formula:
-        E + A@ => E + B@
-    threshold:
-        !eval "[H2_vib_energy(v=b)-H2_vib_energy(v=a) 
-                for a in range(2) 
-                for b in range(2) if a>b]"
-    kstr:
-        "cs_path/H2(X)_to_H2(X)_vibexc/A@_to_B@.csv"
-    lambda: 
-        !eval "lambda x: 
-            [x.replace('A@', f'H2(v{a})').replace('B@', f'H2(v{b})').replace('H2(v0)', 'H2')
-            for a in range(2)
-            for b in range(2) if a>b]"
-    where:
-        abbr:
-            - cs_path: *H2_cs_path
-
-
 # - Rctn_block: &H2_ele_vib_rctn
 #     type:
 #         excitation
@@ -110,6 +48,44 @@
 #     where:
 #         abbr:
 #             - cs_path: *H2_cs_path
+# ----------------------------------------------------------------------------------------------- #
+#   H2 ele vibrational excitation
+# ----------------------------------------------------------------------------------------------- #
+- Rctn_block: &H2_ele_vib_rctn_forward
+    type:
+        excitation
+    formula:
+        E + A@ => E + B@
+    threshold:
+        !eval "[H2_vib_energy_in_eV(v=_to) - H2_vib_energy_in_eV(v=_from) 
+                for _from in range(15) 
+                for _to in range(15) if _from < _to]"
+    kstr:
+        "cs_path/H2(X)_to_H2(X)_vibexc/A@_to_B@.csv"
+    lambda: 
+        !eval "lambda x: 
+            [x.replace('A@', f'H2(v{_from})').replace('B@', f'H2(v{_to})').replace('H2(v0)', 'H2')
+            for _from in range(15)
+            for _to in range(15) if _from < _to]"
+    where:
+        abbr:
+            - cs_path: *H2_cs_path
+
+- Rctn_block: &H2_ele_vib_rctn_backward
+    <<: *H2_ele_vib_rctn_forward
+    type:
+        deexcitation
+    threshold:
+        !eval "[H2_vib_energy_in_eV(v=_to) - H2_vib_energy_in_eV(v=_from) 
+                for _from in range(15) 
+                for _to in range(15) if _from > _to]"
+    lambda: 
+        !eval "lambda x: 
+            [x.replace('A@', f'H2(v{_from})').replace('B@', f'H2(v{_to})').replace('H2(v0)', 'H2')
+            for _from in range(15)
+            for _to in range(15) if _from > _to]"
+
+
 # ----------------------------------------------------------------------------------------------- #
 - Rctn_block: &H2_ele_dis_rctn_via_b
     type:
@@ -202,7 +178,7 @@
         - k10:    k10_0 + k10_1 + k10_2
         - _mu:    22
         - _r:     4.587156
-        - dE:     !eval "CO2_energy[1] - CO2_energy[0]"
+        # - dE:     !eval "CO2_energy[1] - CO2_energy[0]"
         - Lij:    0.32*dE/_r*sqrt(_mu/Tgas),
         - F:      0.5*(3-exp(Lij))*exp(Lij)
     zip:
@@ -231,13 +207,12 @@
 
 # ----------------------------------------------------------------------------------------------- #
 # ----------------------------------------------------------------------------------------------- #
-- The reaction considered:
+- The reactions considered:
     # - *CO2_VT_with_CO
-    electron reaction:
-        H2_ele_vib_rctn: *H2_ele_vib_rctn
+    electron reactions:
         H2_ele_vib_rctn_forward: *H2_ele_vib_rctn_forward
         H2_ele_vib_rctn_backward: *H2_ele_vib_rctn_backward
-        H2_ele_dis_rctn_via_b: *H2_ele_dis_rctn_via_b
+        # H2_ele_dis_rctn_via_b: *H2_ele_dis_rctn_via_b
     # - *H2_ele_dis_rctn_via_B
     # - *H2_ele_dis_rctn_via_B_1
     # - *H2_ele_dis_rctn_via_B_2

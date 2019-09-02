@@ -19,6 +19,7 @@ from matplotlib import pyplot as plt
 from plasmistry.reactions import CrosReactions
 from plasmistry.molecule import get_ideal_gas_density
 from plasmistry.solvers import ode_ivp
+from plasmistry.molecule import get_vib_energy
 from plasmistry.electron import get_maxwell_eedf
 from plasmistry.electron import EEDF
 from plasmistry import constants as const
@@ -124,7 +125,7 @@ class Cros_Reaction_block(Reaction_block):
         # _df = pd.DataFrame(index=range(self.size),
         #                    columns=["cs_key", "type", "threshold_eV", "cross_section"])
         _df = dict()
-        _df["cs_key"] = self._formula_list
+        _df["formula"] = self._formula_list
         _df["type"] = self._type_list
         _df["threshold_eV"] = self._threshold_list
         _df["cross_section"] = [np.loadtxt(_path).transpose() * factor for _path in
@@ -136,14 +137,6 @@ class Cros_Reaction_block(Reaction_block):
         #     _df.loc[_index, "cross_section"] = np.loadtxt(_path)
         _df = pd.DataFrame(data=_df, index=range(self.size))
         return _df
-
-
-# ----------------------------------------------------------------------------------------------- #
-# add a constructor
-# def CO2_energy_constructor(loader, node):
-#     CO2_energy = [0.1, 0.2, 0.3, 0.4]
-#     value = loader.construct_scalar(node)
-#     return CO2_energy[int(value[-2])]
 
 
 def eval_constructor(loader, node):
@@ -163,15 +156,12 @@ def Arr_constructor(loader, node):
     return f"({A})*Tgas**({b})*exp(-({E})/Tgas)"
 
 
-CO2_energy = np.arange(20) * 0.2
-H2_vib_energy = np.arange(20) * 0.02
+def H2_vib_energy_in_eV(*, v):
+    return get_vib_energy('H2', quantum_number=v, minimum_is_zero=True)
 
 
-def H2_vib_energy(*, v):
-    we = 4401.21
-    wexe = 121.33
-    energy = we * (v + 0.5) - wexe * (v + 0.5) ** 2
-    return energy * const.WNcm2eV
+def CO2_vib_energy_in_eV(*, v):
+    return get_vib_energy('CO2', quantum_number=v, minimum_is_zero=True)
 
 
 if __name__ == "__main__":
@@ -190,6 +180,7 @@ if __name__ == "__main__":
     crostn_dataframe = rctn_block.generate_crostn_dataframe(factor=1e-20)
     crostn_dataframe["reaction"] = crostn_dataframe["cs_key"]
     # ------------------------------------------------------------------------------------------- #
+    r"""
     eedf = EEDF(max_energy_J=10 * const.eV2J,
                 grid_number=2000)
     electron_energy_grid = eedf.energy_point
@@ -243,3 +234,4 @@ if __name__ == "__main__":
         y_seq = np.vstack((y_seq, solver.y))
 
     # plt.plot(eedf.energy_point, (sol.y / np.sqrt(eedf.energy_point)).transpose())
+    """
