@@ -87,11 +87,16 @@
 
 
 # ----------------------------------------------------------------------------------------------- #
-- Rctn_block: &H2_ele_dis_rctn_via_b
+#   H2 dissociation to H atom.
+# ----------------------------------------------------------------------------------------------- #
+- Rctn_block: &_H2_ele_dis
     type:
         EXCITATION
     formula:
         E + A@ => E + H + H
+
+- Rctn_block: &H2_ele_dis_rctn_via_b
+    <<: *_H2_ele_dis
     threshold:
         [6.58, 4.06, 3.58, 3.12, 2.70,
          2.30, 1.94, 1.60, 1.30, 1.02,
@@ -105,10 +110,7 @@
             - cs_path: *H2_cs_path
 
 - Rctn_block: &H2_ele_dis_rctn_via_B
-    type:
-        EXCITATION
-    formula:
-        E + A@ => E + H + H
+    <<: *_H2_ele_dis
     threshold:
         # !eval ""
     kstr:
@@ -120,10 +122,7 @@
             - cs_path: *H2_cs_path
 
 - Rctn_block: &H2_ele_dis_rctn_via_B_1
-    type:
-        EXCITATION
-    formula:
-        E + A@ => E + H + H
+    <<: *_H2_ele_dis
     threshold:
         # !eval ""
     kstr:
@@ -135,10 +134,7 @@
             - cs_path: *H2_cs_path
 
 - Rctn_block: &H2_ele_dis_rctn_via_B_2
-    type:
-        EXCITATION
-    formula:
-        E + A@ => E + H + H
+    <<: *_H2_ele_dis
     threshold:
         # !eval ""
     kstr:
@@ -149,8 +145,9 @@
         abbr:
             - cs_path: *H2_cs_path
 # ----------------------------------------------------------------------------------------------- #
-- Rctn_block:
+- Rctn_block: &H2_ele_dis_att_rctn
     type:
+        ATTACHMENT
     formula:
         E + A@ => H + H^-
     threshold:
@@ -179,7 +176,7 @@
         - _mu:    22
         - _r:     4.587156
         # - dE:     !eval "CO2_energy[1] - CO2_energy[0]"
-        - Lij:    0.32*dE/_r*sqrt(_mu/Tgas),
+        - Lij:    0.32*dE/_r*sqrt(_mu/Tgas)
         - F:      0.5*(3-exp(Lij))*exp(Lij)
     zip:
         # M@: *CO_vib
@@ -210,9 +207,9 @@
 - The reactions considered:
     # - *CO2_VT_with_CO
     electron reactions:
-        H2_ele_vib_rctn_forward: *H2_ele_vib_rctn_forward
+        H2_ele_vib_rctn_forward:  *H2_ele_vib_rctn_forward
         H2_ele_vib_rctn_backward: *H2_ele_vib_rctn_backward
-        # H2_ele_dis_rctn_via_b: *H2_ele_dis_rctn_via_b
+        H2_ele_dis_rctn_via_b:    *H2_ele_dis_rctn_via_b
     # - *H2_ele_dis_rctn_via_B
     # - *H2_ele_dis_rctn_via_B_1
     # - *H2_ele_dis_rctn_via_B_2

@@ -129,6 +129,10 @@ class EEDF(object):
         return self.energy_point * const.J2eV
 
     @property
+    def energy_nodes_eV(self):
+        return self.energy_nodes * const.J2eV
+
+    @property
     def electron_density(self):
         r"""Calculate the electron density in m^-3."""
         return trapz(y=np.hstack((0.0, self.density_per_J, 0.0)),
@@ -198,6 +202,12 @@ class EEDF(object):
     def n_bg_molecule_inelas(self):
         return len(self.bg_molecule_inelas)
 
+    @property
+    def inelas_rctn_info(self):
+        _df = self.inelas_reaction_dataframe[['formula', 'type', 'threshold_eV']].copy()
+        _df['rate const'] = self._get_molecule_rate_const_e_inelas()
+        _df['energy lose'] = _df['threshold_eV'] * _df['rate const']
+        return _df
     # ------------------------------------------------------------------------------------------- #
     #   public functions
     # ------------------------------------------------------------------------------------------- #
