@@ -54,8 +54,10 @@ class EEDF(object):
         # ----
         # inelas collisions
         '_index_bg_molecule_inelas',
+        '_index_bg_molecule_inelas_in_order',
         'inelas_reaction_dataframe',
         'bg_molecule_inelas',
+        'bg_molecule_inelas_in_order',
         'rate_const_matrix_e_inelas_electron',
         'rate_const_matrix_e_inelas_molecule',
         # ----
@@ -184,6 +186,18 @@ class EEDF(object):
     def normalized_eedf_eV(self):
         return self.density_per_eV / self.electron_density
 
+    @property
+    def n_inelas_rctn(self):
+        return self.inelas_reaction_dataframe.shape[0]
+
+    @property
+    def n_bg_molecule_elas(self):
+        return len(self.bg_molecule_elas)
+
+    @property
+    def n_bg_molecule_inelas(self):
+        return len(self.bg_molecule_inelas)
+
     # ------------------------------------------------------------------------------------------- #
     #   public functions
     # ------------------------------------------------------------------------------------------- #
@@ -310,7 +324,9 @@ class EEDF(object):
             _n = int(_n)
             _dataframe.at[i_rctn, "low_threshold"] = True if _n == 0 else False
         self.inelas_reaction_dataframe = _dataframe
-        self.bg_molecule_inelas = np.unique(_dataframe["bg_molecule"]).tolist()
+        # self.bg_molecule_inelas = np.unique(_dataframe["bg_molecule"]).tolist()
+        self.bg_molecule_inelas_in_order = _dataframe["bg_molecule"].values
+        self.bg_molecule_inelas = np.unique(self.bg_molecule_inelas_in_order)
         self._set_rate_const_matrix_e_inelas_electron()
         self._set_rate_const_matrix_e_inelas_molecule()
 
@@ -511,8 +527,12 @@ class EEDF(object):
                 _index[i_molecule, _series[_bg_molecule[i_molecule]]] = 1
             return sprs.csr_matrix(_index, shape=_index.shape)
 
-        self._index_bg_molecule_elas = set_index(self.bg_molecule_elas, total_species)
-        self._index_bg_molecule_inelas = set_index(self.bg_molecule_inelas, total_species)
+        self._index_bg_molecule_elas = set_index(self.bg_molecule_elas,
+                                                 total_species)
+        self._index_bg_molecule_inelas = set_index(self.bg_molecule_inelas,
+                                                   total_species)
+        self._index_bg_molecule_inelas_in_order = set_index(self.bg_molecule_inelas_in_order,
+                                                            total_species)
 
     def _set_rate_const_matrix_e_inelas_electron(self):
         r"""
@@ -525,7 +545,7 @@ class EEDF(object):
             ...
 
         N:   1 x m
-        Kii: m x n x n
+        Kii: (m x n) x n
         fi:  n x 1
 
         dnidt: 1 x n
@@ -534,6 +554,9 @@ class EEDF(object):
         -------
         Kii : ndarray
             m x n x n shape
+
+        Notes
+        -----
 
         """
         _shape = self.grid_number
@@ -576,6 +599,7 @@ class EEDF(object):
         """
         _shape = self.grid_number
         _rate_const_matrix = np.empty((self.inelas_reaction_dataframe.shape[0], _shape))
+
         for i_rctn in self.inelas_reaction_dataframe.index:
             _reaction_type = self.inelas_reaction_dataframe.at[i_rctn, 'type']
             _threshold_eV = self.inelas_reaction_dataframe.at[i_rctn, 'threshold_eV']
@@ -587,13 +611,15 @@ class EEDF(object):
             _rate_const_matrix[i_rctn] = _op
         # --------------------------------------------------------------------------------------- #
         # merge
+        #   it should not be merged.
         # --------------------------------------------------------------------------------------- #
-        bg_molecule = self.inelas_reaction_dataframe['bg_molecule'].values
-        _matrix_new = np.empty((len(self.bg_molecule_inelas), _shape))
-        for i_index, i_molecule in enumerate(self.bg_molecule_inelas):
-            _matrix_new[i_index] = _rate_const_matrix[bg_molecule == i_molecule].sum(axis=0)
+        # bg_molecule = self.inelas_reaction_dataframe['bg_molecule'].values
+        # _matrix_new = np.empty((len(self.bg_molecule_inelas), _shape))
+        # for i_index, i_molecule in enumerate(self.bg_molecule_inelas):
+        #     _matrix_new[i_index] = _rate_const_matrix[bg_molecule == i_molecule].sum(axis=0)
 
-        self.rate_const_matrix_e_inelas_molecule = _matrix_new
+        # self.rate_const_matrix_e_inelas_molecule = _matrix_new
+        self.rate_const_matrix_e_inelas_molecule = _rate_const_matrix
 
     def _get_electron_rate_e_inelas(self, *, density):
         r"""
@@ -612,6 +638,10 @@ class EEDF(object):
         dnidt = _density_bg_molecule.dot(_temp.reshape(-1, self.grid_number))
         return dnidt
 
+    def _get_molecule_rate_const_e_inelas(self):
+        _temp = self.rate_const_matrix_e_inelas_molecule.dot(self.density_per_J)
+        return _temp/self.electron_density
+
     def _get_molecule_rate_e_inelas(self, *, density):
         r"""
 
@@ -623,9 +653,10 @@ class EEDF(object):
         -------
 
         """
-        _density_bg_molecule = self._index_bg_molecule_inelas.dot(density)
-        dNdt = _density_bg_molecule.dot(
-            self.rate_const_matrix_e_inelas_molecule.dot(self.density_per_J))
+        # _density_bg_molecule = self._index_bg_molecule_inelas.dot(density)
+        _density_bg_molecule_in_order = self._index_bg_molecule_inelas_in_order.dot(density)
+        _rate_const = self._get_molecule_rate_const_e_inelas()
+        dNdt = _density_bg_molecule_in_order * _rate_const * self.electron_density
         return dNdt
 
     def _get_deriv_ef(self):
@@ -945,7 +976,7 @@ class EEDF(object):
         \n            ELECTRON MEAN ENERGY : {self.electron_mean_energy_in_eV:.4f} eV
         \n                ELECTRON DENSITY : {self.electron_density:.2e} m^-3
         \n ===============
-        \n              ELECTRIC FIELD (E) : {self.electric_field:.0f} V/m ({self.electric_field/1e5:.2f} kV/cm) 
+        \n              ELECTRIC FIELD (E) : {self.electric_field:.0f} V/m ({self.electric_field / 1e5:.2f} kV/cm) 
         \n          GAS TEMPERATURE (Tgas) : {self.gas_temperature:.0f} K
         \n BACKGROUND MOLECULE DENSITY (N) : {self.total_bg_molecule_density:.1e} m^-3
         \n    REDUCED ELECTRIC FIELD (E/N) : {self.reduced_electric_field_in_Td:.1f} Td
