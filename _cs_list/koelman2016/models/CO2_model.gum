@@ -1,0 +1,162 @@
+Annotation	"Chemistry adopted from Kozak and Bogaerts work: Splitting of CO2 by vibrational excitation in non-equilibrium plasmas: a reaction kinetics model, http://stacks.iop.org/0963-0252/23/i=4/a=045004"
+Include	@PLASIMO_INPUTDATA_DIR/input/gmplugins.cnf	Plugins
+InitViews	{
+	ViewList	{
+		Context	wx
+	}
+}
+Include	@PLASIMO_INPUTDATA_DIR/input/published/koelman2016/models/CO2_chemistry.gum:!Mixture	Mixture
+Declarations	{
+	Include	@PLASIMO_INPUTDATA_DIR/input/published/koelman2016/models/CO2_chemistry.gum:!Declarations
+	Declare	{
+		Type	Constant
+		Name	L
+		Value	90*mm
+	}
+	Declare	{
+		Type	Constant
+		Name	Length
+		Value	90*mm
+	}
+	Declare	{
+		Type	Constant
+		Name	R_inner
+		Value	22/2*mm
+	}
+	Declare	{
+		Type	Constant
+		Name	R_outer
+		Value	26/2*mm
+	}
+	Declare	{
+		Type	Constant
+		Name	Volume
+		Value	"`pi*Length*(R_outer^2 - R_inner^2)"
+	}
+}
+InputPowerDensity	{
+	Function	"lut[file='@PLASIMO_INPUTDATA_DIR/input/published/koelman2016/models/power_pulse_single.lut',units='s W',clip_low,clip_high](time)*20e10/(m^3)"
+}
+Options	{
+	QuasiNeutralityIons	{
+		Species	CO2+
+		Species	CO4+
+		Species	CO+
+		Species	C2O2+
+		Species	C2O3+
+		Species	C2O4+
+		Species	C+
+		Species	C2+
+		Species	O+
+		Species	O2+
+		Species	O4+
+		Species	CO2-
+		Species	CO3-
+		Species	CO4-
+		Species	O-
+		Species	O2-
+		Species	O3-
+		Species	O4-
+	}
+	ConstantDensity	{
+	}
+	UseQuasiNeutrality	yes
+	UseTeFloor	yes
+}
+InitialValues	{
+	Type	Values
+	Temperatures	{
+		Heavy	300*K
+		Electron	300*K
+	}
+	Densities	{
+		Species	CO2	2.47926940594502574e+25/m^3
+		Species	CO	60278566313321.742e+6/m^3
+		Species	C2O	6634.5781009460225e+6/m^3
+		Species	C	574562.48653454205e+6/m^3
+		Species	C2	2602889960.6275306e+6/m^3
+		Species	O	59149471932582.320e+6/m^3
+		Species	O2	552694561825.60193e+6/m^3
+		Species	O3	4132840235.9663920e+6/m^3
+		Species	CO2+	374031911.77631527e+6/m^3
+		Species	CO4+	4508369920.0000000e+6/m^3
+		Species	CO+	6830253.5833342895e+6/m^3
+		Species	C2O2+	19089559.377264660e+6/m^3
+		Species	C2O3+	1539382707.5637276e+6/m^3
+		Species	C2O4+	55324685271.841576e+6/m^3
+		Species	C+	3644.8094763170275e+6/m^3
+		Species	C2+	2034979520.7806354e+6/m^3
+		Species	O+	13124741.512285637e+6/m^3
+		Species	O2+	36514963.723711081e+6/m^3
+		Species	O4+	0.67193574211377294e+6/m^3
+		Species	CO2-	2602850048.0000000e+6/m^3
+		Species	CO3-	5966305681.5023260e+6/m^3
+		Species	CO4-	1441636465.2503996e+6/m^3
+		Species	O-	139321208.32646886e+6/m^3
+		Species	O2-	3794.8472782158665e+6/m^3
+		Species	O3-	80.415406158698616e+6/m^3
+		Species	O4-	1.41065301349370609/m^3
+		Species	CO2[e1]	2590686873720360.5e+6/m^3
+		Species	CO2[e2]	1065791647968589.9e+6/m^3
+		Species	CO2[va]	1.12301363609301491e+24/m^3
+		Species	CO2[vb]	1.03638799419720848e+23/m^3
+		Species	CO2[vc]	4695428012326684.0e+6/m^3
+		Species	CO2[vd]	286208208092497.88e+6/m^3
+		Species	CO2[v01]	323064006138278.75e+6/m^3
+		Species	CO2[v02]	1394911285587.1165e+6/m^3
+		Species	CO2[v03]	852686842805.32947e+6/m^3
+		Species	CO2[v04]	558341125635.91309e+6/m^3
+		Species	CO2[v05]	371319005266.62585e+6/m^3
+		Species	CO2[v06]	244714597868.69861e+6/m^3
+		Species	CO2[v07]	158134780759.61826e+6/m^3
+		Species	CO2[v08]	99933430365.417221e+6/m^3
+		Species	CO2[v09]	61850463390.268776e+6/m^3
+		Species	CO2[v10]	37606121367.806557e+6/m^3
+		Species	CO2[v11]	22536186926.421566e+6/m^3
+		Species	CO2[v12]	13356439414.252645e+6/m^3
+		Species	CO2[v13]	7858334286.2193947e+6/m^3
+		Species	CO2[v14]	4605661347.4424038e+6/m^3
+		Species	CO2[v15]	2694546774.8240433e+6/m^3
+		Species	CO2[v16]	1575305644.0516739e+6/m^3
+		Species	CO2[v17]	920728022.11728120e+6/m^3
+		Species	CO2[v18]	538074782.78678834e+6/m^3
+		Species	CO2[v19]	314242482.68697244e+6/m^3
+		Species	CO2[v20]	182888952.24142215e+6/m^3
+		Species	CO2[v21]	99976502.671790481e+6/m^3
+		Species	CO[e1]	8693382.6923234984e+6/m^3
+		Species	CO[e2]	2277336.6636589677e+6/m^3
+		Species	CO[e3]	4061643.1058120984e+6/m^3
+		Species	CO[e4]	1074646.7768962567e+6/m^3
+		Species	CO[v01]	2069509820.9827383e+6/m^3
+		Species	CO[v02]	8112666.4551017061e+6/m^3
+		Species	CO[v03]	4672776.6426095115e+6/m^3
+		Species	CO[v04]	2673173.7513380856e+6/m^3
+		Species	CO[v05]	1505306.8762586270e+6/m^3
+		Species	CO[v06]	835214.06371203472e+6/m^3
+		Species	CO[v07]	457292.37551166210e+6/m^3
+		Species	CO[v08]	247589.07181216759e+6/m^3
+		Species	CO[v09]	132482.60362189307e+6/m^3
+		Species	CO[v10]	66382.556272174945e+6/m^3
+		Species	O2[e1]	2595259079.2854643e+6/m^3
+		Species	O2[e2]	2593802040.2040257e+6/m^3
+		Species	O2[v01]	2718697287.4104443e+6/m^3
+		Species	O2[v02]	2774396342.3313956e+6/m^3
+		Species	O2[v03]	2236703357.7849298e+6/m^3
+		Species	e	53706895217.298737e+6/m^3
+	}
+}
+Schedule	{
+	StartTime	1e-22*s
+	EndTime	1*s
+}
+Output	{
+	Directory	data/
+	data_ext	.out
+	Prefix	co2
+	SaveRates	Yes
+}
+Stepper	{
+	Type	ODEPack_LSODA
+}
+Type	GlobalModel
+Author	"P.M.J. Koelman"

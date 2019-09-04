@@ -1,0 +1,26 @@
+#Cosby, 1993. (Ref 28 Liu, Victor).
+#
+#Cross sections for electron-impact dissociation of CO. The cross sections are expressed in units of   10^-22 cm^2. 
+#
+#Ev      σ
+#
+# notes:
+#	wgraef: 26-02-2015 set threshold at 11.16 eV, converted to m^2
+#
+#legend energy crosssection
+#units eV m^2
+11.16	0.0
+13.5   10.8e-22
+18.5   28.4e-22
+21.0   48.0e-22
+23.5   52.0e-22
+28.5   65.8e-22
+33.5   65.6e-22
+38.5   75.0e-22
+48.5   75.6e-22
+58.5   75.0e-22
+73.5   69.5e-22
+98.5   65.8e-22
+123.5 64.7e-22
+148.5 58.6e-22
+198.5 43.6e-22

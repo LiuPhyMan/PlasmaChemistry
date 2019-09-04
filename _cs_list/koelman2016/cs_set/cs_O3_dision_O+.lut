@@ -1,0 +1,20 @@
+#IONIZATION
+#O3 -> O^+ + O^- + O
+#  1.835e+1 / threshold energy
+#COMMENT: partial diss Ionization
+#UPDATED: 2010-08-19 15:54:37
+#-----------------------------
+#legend energy crosssection
+#units eV m^2
+1.80E+01	0.00E+00
+1.84E+01	1.00E-24
+3.00E+01	5.08E-22
+4.00E+01	1.40E-21
+5.00E+01	2.05E-21
+6.00E+01	3.08E-21
+7.00E+01	3.08E-21
+8.00E+01	3.38E-21
+9.00E+01	3.61E-21
+1.00E+02	3.80E-21
+#-----------------------------
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

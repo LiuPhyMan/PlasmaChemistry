@@ -61,8 +61,9 @@ class Reaction_block(object):
     def _treat_rctn_dict(self):
         self._formula = self.rctn_dict['formula']
         self._kstr = self.rctn_dict['kstr']
-
         assert ("zip" not in self.rctn_dict) or ("lambda" not in self.rctn_dict)
+        # --------------------------------------------------------------------------------------- #
+        #   'where' key is for formula and kstr
         # --------------------------------------------------------------------------------------- #
         if "where" in self.rctn_dict:
             assert isinstance(self.rctn_dict['where'], dict)
@@ -82,6 +83,8 @@ class Reaction_block(object):
                     self._kstr = self._kstr.replace(_key, _value)
 
         # --------------------------------------------------------------------------------------- #
+        #   'zip' and 'lambda' are used to treat formula_list and kstr_list
+        # --------------------------------------------------------------------------------------- #
         if "zip" in self.rctn_dict:
             _formula_list = []
             _kstr_list = []
@@ -98,7 +101,7 @@ class Reaction_block(object):
             self._formula_list = _formula_list
             self._kstr_list = _kstr_list
         if "lambda" in self.rctn_dict:
-            lambda_func = self.rctn_dict['lambda']
+            lambda_func = eval(self.rctn_dict['lambda'])
             self._formula_list = lambda_func(self._formula)
             self._kstr_list = lambda_func(self._kstr)
 
@@ -128,8 +131,8 @@ class Cros_Reaction_block(Reaction_block):
         _df["formula"] = self._formula_list
         _df["type"] = self._type_list
         _df["threshold_eV"] = self._threshold_list
-        _df["cross_section"] = [np.loadtxt(_path).transpose() * factor for _path in
-                                self._kstr_list]
+        # _df["cross_section"] = [np.loadtxt(_path, comments="#").transpose() * factor
+        #                         for _path in self._kstr_list]
         # # _df["cross_section"] = self._kstr_list
         # for _index, _path in zip(range(self.size), self._kstr_list):
         #     print(_index)
@@ -164,6 +167,10 @@ def CO2_vib_energy_in_eV(*, v):
     return get_vib_energy('CO2', quantum_number=v, minimum_is_zero=True)
 
 
+def CO_vib_energy_in_eV(*, v):
+    return get_vib_energy("CO", quantum_number=v, minimum_is_zero=True)
+
+
 if __name__ == "__main__":
     # yaml.add_constructor(u"!CO2", CO2_energy_constructor)
     yaml.add_constructor(u"!eval", eval_constructor)
@@ -172,15 +179,18 @@ if __name__ == "__main__":
     with open("test_0.yaml") as f:
         temp = yaml.load(f)
 
-    ele_rctn_block_list = temp[-1]["The reaction considered"]["electron reaction"]
-    # rctn_block_list = ele_rctn_block_list["H2_ele_dis_rctn_via_b"]
+    ele_rctn_block_list = temp[-1]["The reactions considered"]["electron reactions"]
+    rctn_block_list = ele_rctn_block_list["CO2_ele_vib_rctn_forward"]
+    rctn_block = Cros_Reaction_block(rctn_dict=rctn_block_list)
+    0.5 * (3 - 2 / 3 * exp(1)) * exp(-2 / 3 * 1)
+    r"""
+    rctn_block_list = ele_rctn_block_list["H2_ele_dis_rctn_via_b"]
     rctn_block_0 = Cros_Reaction_block(rctn_dict=ele_rctn_block_list["H2_ele_vib_rctn_forward"])
     rctn_block_1 = Cros_Reaction_block(rctn_dict=ele_rctn_block_list["H2_ele_vib_rctn_backward"])
     rctn_block = rctn_block_0 + rctn_block_1
     crostn_dataframe = rctn_block.generate_crostn_dataframe(factor=1e-20)
     crostn_dataframe["reaction"] = crostn_dataframe["cs_key"]
     # ------------------------------------------------------------------------------------------- #
-    r"""
     eedf = EEDF(max_energy_J=10 * const.eV2J,
                 grid_number=2000)
     electron_energy_grid = eedf.energy_point

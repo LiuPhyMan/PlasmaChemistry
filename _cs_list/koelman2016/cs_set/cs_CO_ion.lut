@@ -1,0 +1,45 @@
+#Orient, Srivastava. 1987
+#
+#Ionisation cross sections for electron impact on CO. The cross sections are expressed in units of   10^-20 cm^2. 
+#
+#
+#E,(eV)	σ(CO+)
+#
+# notes:
+#	wgraef: 26-02-2015 set threshold at 14.01 eV, converted to m^2
+#
+#legend energy crosssection
+#units eV m^2
+14.01	0.00e-20
+15	0.07e-20
+20	0.34e-20
+25	0.72e-20
+30	1.04e-20
+40	1.53e-20
+50	1.73e-20
+60	1.88e-20
+70	1.98e-20
+80	2.03e-20
+90	2.05e-20
+100	2.06e-20
+120	2.06e-20
+140	2.03e-20
+160	1.97e-20
+180	1.92e-20
+200	1.85e-20
+220	1.78e-20
+240	1.73e-20
+260	1.68e-20
+280	1.64e-20
+300	1.59e-20
+320	1.57e-20
+340	1.52e-20
+360	1.50e-20
+380	1.48e-20
+400	1.45e-20
+420	1.41e-20
+440	1.38e-20
+460	1.35e-20
+480	1.34e-20
+500	1.32e-20
+510	1.31e-20

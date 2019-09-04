@@ -108,9 +108,9 @@ def get_vib_energy(molecule, *, quantum_number, state='X', minimum_is_zero=False
     """
     assert molecule in molecular_const
     if molecule in ('CO', 'O2', 'N2', 'H2'):
-        assert isinstance(quantum_number, int)
+        assert isinstance(quantum_number, int), quantum_number
     elif molecule in ('H2O', 'CO2'):
-        assert isinstance(quantum_number, tuple)
+        assert isinstance(quantum_number, tuple), quantum_number
         assert len(quantum_number) == 3
 
     spe_const = molecular_const[molecule][state]

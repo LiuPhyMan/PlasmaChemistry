@@ -1,0 +1,91 @@
+#LXCat, www.lxcat.net
+#Generated on 13 Feb 2015. All rights reserved.
+#
+#RECOMMENDED REFERENCE FORMAT
+#- Morgan database, www.lxcat.net, retrieved on February 13, 2015.
+#
+#CROSS SECTION DATA FORMAT
+#In downloaded files, each collision process is defined by a block consisting of
+#1st line
+#Keyword in capitals indicating the type of the collision. Possible collision types are elastic, effective, excitation,
+#ionization, or attachment (capital letters required, key words are case sensitive), where "elastic" is used to denote
+#the elastic momentum transfer cross section and where "effective" denotes the total momentum transfer cross section (sum
+#of elastic momentum transfer and total inelastic cross sections).  The latter is useful for solving the Boltzmann
+#equation in the 2-term approximation.
+#2nd line
+#Name of the target particle species. This name is a character string, freely chosen by the user, e.g. "Ar". Optionally
+#for excitation processes, the name of the corresponding excited state can be specified on the same line, separated from
+#the first name either by arrow "->" (dash + greater than) or by double-head arrow "<->" (less than + dash +
+#greater than), e.g. "Ar -> Ar*" and "Ar <-> Ar*", respectively. In the later case BOLSIG+ will automatically
+#define the inverse superelastic process, constructing the superelastic cross-section by detailed balancing, and
+#considering the indicated excited state as the target. In this case, the ratio of statistical weights must be input in
+#the 3rd line (see below).  Alternatively, superelastic collisions could be defined explicitly as excitation collisions
+#with a negative electron energy loss with user input cross sections and species name, "Ar*", for example.
+#3rd line
+#For elastic and effective collisions, the ratio of the electron mass to the target particle mass. For excitation or
+#ionization collisions, the electron energy loss (nominally the threshold energy) in eV. For attachment, the 3rd line is
+#missing. In case of an excitation process where an excited state has been indicated on the 2nd line using double-head
+#arrow "<->", the 3rd line must specify also ratio of the statistical weights of the final state to the initial state
+#as the second parameter in 3rd line this is needed by BOLSIG+ to calculate the de-excitation cross-section.
+#from 4th line (optionally)
+#User comments and reference information, maximum 100 lines. The only constraint on format is that these comment lines
+#must not start with a number.
+#Finally
+#Table of the cross section as a function of energy. The table starts and ends by a line of dashes "------" (at least 5),
+#and has otherwise two numbers per line: the energy in eV and the cross section in m2.
+#
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#DATABASE:         Morgan (Kinema Research  Software)
+#DESCRIPTION:      Assembled over the course of 30 years WL Morgan and suitable for use with 2-term Boltzmann solvers.
+#CONTACT:          W. Lowell Morgan, Kinema Research  Software
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#
+#**************************************************************************************************************
+#
+#
+#EFFECTIVE
+#O3
+# 1.142100e-5
+#SPECIES: e / O3
+#PROCESS: E + O3 -> E + O3, Effective
+#PARAM.:  m/M = 0.000011421, complete set
+#UPDATED: 2011-06-06 18:16:58
+#COLUMNS: Energy (eV) | Cross section (m2)
+#-----------------------------
+#legend energy crosssection
+#units eV m^2
+ 0.000000e+0	3.000000e-19
+ 3.661000e-1	2.966500e-19
+ 5.063000e-1	2.572100e-19
+ 5.991000e-1	2.287300e-19
+ 9.000000e-1	2.056900e-19
+ 1.204000e+0	1.914000e-19
+ 1.817000e+0	1.781600e-19
+ 2.946000e+0	1.637400e-19
+ 4.128000e+0	1.547900e-19
+ 5.363000e+0	1.469200e-19
+ 6.032000e+0	1.457200e-19
+ 6.858000e+0	1.477700e-19
+ 7.480000e+0	1.586200e-19
+ 8.261000e+0	1.782000e-19
+ 8.726000e+0	1.814100e-19
+ 9.239000e+0	1.758500e-19
+ 9.854000e+0	1.648000e-19
+ 1.031000e+1	1.581500e-19
+ 1.077000e+1	1.537000e-19
+ 1.150000e+1	1.601500e-19
+ 1.191000e+1	1.622700e-19
+ 1.253000e+1	1.588900e-19
+ 1.356000e+1	1.521500e-19
+ 1.479000e+1	1.453800e-19
+ 1.587000e+1	1.397200e-19
+ 1.695000e+1	1.296900e-19
+ 1.762000e+1	1.186300e-19
+ 1.787000e+1	1.153100e-19
+ 1.834000e+1	1.228900e-19
+ 1.875000e+1	1.304900e-19
+ 1.942000e+1	1.292900e-19
+ 1.979000e+1	1.347000e-19
+ 1.000000e+2	1.400000e-19
+#-----------------------------
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

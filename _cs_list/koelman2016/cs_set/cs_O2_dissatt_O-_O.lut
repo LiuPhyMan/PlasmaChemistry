@@ -1,0 +1,163 @@
+#LXCat, www.lxcat.net
+#Generated on 17 Feb 2015. All rights reserved.
+#
+#RECOMMENDED REFERENCE FORMAT
+#- IST-Lisbon database, www.lxcat.net, retrieved on February 17, 2015.
+#
+#CROSS SECTION DATA FORMAT
+#In downloaded files, each collision process is defined by a block consisting of
+#1st line
+#Keyword in capitals indicating the type of the collision. Possible collision types are elastic, effective, excitation,
+#ionization, or attachment (capital letters required, key words are case sensitive), where "elastic" is used to denote
+#the elastic momentum transfer cross section and where "effective" denotes the total momentum transfer cross section (sum
+#of elastic momentum transfer and total inelastic cross sections).  The latter is useful for solving the Boltzmann
+#equation in the 2-term approximation.
+#2nd line
+#Name of the target particle species. This name is a character string, freely chosen by the user, e.g. "Ar". Optionally
+#for excitation processes, the name of the corresponding excited state can be specified on the same line, separated from
+#the first name either by arrow "->" (dash + greater than) or by double-head arrow "<->" (less than + dash +
+#greater than), e.g. "Ar -> Ar*" and "Ar <-> Ar*", respectively. In the later case BOLSIG+ will automatically
+#define the inverse superelastic process, constructing the superelastic cross-section by detailed balancing, and
+#considering the indicated excited state as the target. In this case, the ratio of statistical weights must be input in
+#the 3rd line (see below).  Alternatively, superelastic collisions could be defined explicitly as excitation collisions
+#with a negative electron energy loss with user input cross sections and species name, "Ar*", for example.
+#3rd line
+#For elastic and effective collisions, the ratio of the electron mass to the target particle mass. For excitation or
+#ionization collisions, the electron energy loss (nominally the threshold energy) in eV. For attachment, the 3rd line is
+#missing. In case of an excitation process where an excited state has been indicated on the 2nd line using double-head
+#arrow "<->", the 3rd line must specify also ratio of the statistical weights of the final state to the initial state
+#as the second parameter in 3rd line this is needed by BOLSIG+ to calculate the de-excitation cross-section.
+#from 4th line (optionally)
+#User comments and reference information, maximum 100 lines. The only constraint on format is that these comment lines
+#must not start with a number.
+#Finally
+#Table of the cross section as a function of energy. The table starts and ends by a line of dashes "------" (at least 5),
+#and has otherwise two numbers per line: the energy in eV and the cross section in m2.
+#
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#DATABASE:         IST-Lisbon database
+#DESCRIPTION:      The IST-Lisbon database contains the most up-to-date electron-neutral collisional data (together with
+#                  the measured swarm parameters used to validate these data), resulting from the research effort of the
+#                  Group of Gas Discharges and Gaseous Electronics with the IPFN/IST (Instituto de Plasmas e Fusão
+#                  Nuclear / Instituto Superior Técnico), Lisbon, Portugal.
+#                  The data correspond to contributions from different authors (see Comments).
+#                  For each gas, a COMPLETE SET of electron-neutral cross sections is presented the data were validated
+#                  against swarm parameters by solving the two-term homogeneous electron Boltzmann equation.
+#CONTACT:          LL Alves and CM Ferreira
+#                  e-mail: llalves@@ist.utl.pt and matos.ferreira@@ist.utl.pt
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#
+#**************************************************************************************************************
+#
+#COMMENT: G. Gousset, C.M. Ferreira, M. Pinheiro, P.A. Sá, M. Touzeau, M. Vialle and J. Loureiro quotElectron and
+#         heavy-particle kinetics in the low pressure oxygen positive columnquot 1991 J. Phys. D 24 290.
+#         The complete cross sections set was compiled mostly from A.V. Phelps 1985 Technical Report 28 JILA Information
+#         Center Report, University of Colorado, Boulder, Colorado, USA.
+#         The cross sections were originally limited to 40 eV kinetic energy, and were later extended to 1 keV using
+#         information from the databases PHELPS and BIAGI-v8.9. The cross section for the excitation of O2(a1Deltag) was
+#         extended up to 200 eV using the results of K.J. Wakiya 1978 J Phys B 11 3931, and extrapolated up to 1 keV. 
+#         When this complete set is used in a two-term Boltzmann solver (choosing a linear interpolation scheme with no
+#         extrapolation after the last energy point, and adopting the SST growth model), it yields calculated swarm
+#         parameters in good agreement with measurements for E/N values between 10 and 1000 Td. 
+#         For E/N lt 10 Td, the set must be further completed to include rotational excitation mechanisms (see below),
+#         in order to reproduce measured swarm data.
+#         For 10 Td lt E/N lt 1000 Td rotational excitations/de-excitations  can be neglected, and the set yields
+#         swarm parameters in good agreement with measurements.
+#         IMPORTANT NOTICE ABOUT ROTATIONAL EXCITATION
+#         For E/N lt 10Td, this set is to be completed with the rotational cross sections J-J+2 (J=1,3,..,29) also
+#         available in this database. Calculations should include inelastic-stepwise and superelastic transitions
+#         between these rotational states, assuming a Boltzmann  distribution for their populations: n_J/N = (g_J/P_rot)
+#         exp[-E_J/(k_B T_g)] with P_rot = Sum_(J odd)^31 g_J exp[-E_J/(k_B T_g)] [cf. R.D. Hake Jr. and A.V. Phelps
+#         1967 Phys. Rev. 158 70]. At T_g=300K, these populations are n_1/N=4.09e(-2), n_3/N=8.91e(-2), n_5/N=1.24e(-1),
+#         n_7/N=1.41e(-1), n_9/N=1.41e(-1), n_11/N=1.27e(-1), n_13/N=1.06e(-1), n_15/N=8.13e(-2), n_17/N=5.81e(-2),
+#         n_19/N=3.88e(-2), n_21/N=2.42e(-2), n_23/N=1.42e(-2), n_25/N=7.82e(-3), n_27/N=4.05e(-3), n_29/N=1.97e(-3),
+#         n_31/N=9.04e(-4). 
+#         When the full N2 cross section set PLUS the N2(J=1), N2(J=3), .., N2(J=29) excitation cross sections are used
+#         in a two-term Boltzmann solver, one obtains calculated swarm parameters in good agreement with measurements at
+#         low E/N. Note that the limited features of the online Bolsig+ version are insufficient to include a rotational
+#         distribution.
+#
+#ATTACHMENT
+#O2 -> O- + O
+#SPECIES: e / O2
+#PROCESS: E + O2 -> O- + O, Attachment
+#PARAM.:  E = 0 eV, complete set
+#COMMENT: Phelps A V 1985 Technical Report 28 JILA Information Center Report, University of
+#COMMENT: Colorado, Boulder, Colorado, USA extended following Biagi v8.9.
+#UPDATED: 2014-04-20 21:12:10
+#COLUMNS: Energy (eV) | Cross section (m2)
+#-----------------------------
+#
+# notes:
+#	wgraef: 26-02-2015 set threshold at 3.68 eV
+#
+#legend energy crosssection
+#units eV m^2
+ 3.680000e+0	0.000000e+0
+ 3.700000e+0	0.000000e+0
+ 3.800000e+0	0.000000e+0
+ 3.900000e+0	0.000000e+0
+ 4.000000e+0	0.000000e+0
+ 4.100000e+0	0.000000e+0
+ 4.200000e+0	0.000000e+0
+ 4.300000e+0	0.000000e+0
+ 4.400000e+0	0.000000e+0
+ 4.500000e+0	0.000000e+0
+ 4.600000e+0	0.000000e+0
+ 4.700000e+0	0.000000e+0
+ 4.800000e+0	0.000000e+0
+ 4.900000e+0	0.000000e+0
+ 5.000000e+0	2.000000e-24
+ 5.100000e+0	3.000000e-24
+ 5.200000e+0	4.000000e-24
+ 5.300000e+0	1.000000e-23
+ 5.400000e+0	2.300000e-23
+ 5.500000e+0	3.100000e-23
+ 5.600000e+0	4.100000e-23
+ 5.700000e+0	5.200000e-23
+ 5.800000e+0	6.300000e-23
+ 5.900000e+0	7.200000e-23
+ 6.000000e+0	9.600000e-23
+ 6.100000e+0	1.080000e-22
+ 6.200000e+0	1.180000e-22
+ 6.300000e+0	1.250000e-22
+ 6.400000e+0	1.340000e-22
+ 6.500000e+0	1.400000e-22
+ 6.600000e+0	1.440000e-22
+ 6.700000e+0	1.490000e-22
+ 6.800000e+0	1.530000e-22
+ 6.900000e+0	1.550000e-22
+ 7.000000e+0	1.560000e-22
+ 7.100000e+0	1.550000e-22
+ 7.200000e+0	1.510000e-22
+ 7.300000e+0	1.480000e-22
+ 7.400000e+0	1.400000e-22
+ 7.500000e+0	1.330000e-22
+ 7.600000e+0	1.250000e-22
+ 7.700000e+0	1.130000e-22
+ 7.800000e+0	1.100000e-22
+ 7.900000e+0	9.500000e-23
+ 8.000000e+0	8.400000e-23
+ 8.100000e+0	7.500000e-23
+ 8.200000e+0	6.600000e-23
+ 8.300000e+0	5.300000e-23
+ 8.400000e+0	4.600000e-23
+ 8.500000e+0	4.000000e-23
+ 8.600000e+0	3.500000e-23
+ 8.700000e+0	2.900000e-23
+ 8.800000e+0	2.600000e-23
+ 8.900000e+0	2.200000e-23
+ 9.000000e+0	2.000000e-23
+ 9.100000e+0	1.700000e-23
+ 9.200000e+0	1.400000e-23
+ 9.300000e+0	1.200000e-23
+ 9.400000e+0	1.100000e-23
+ 9.500000e+0	8.800000e-24
+ 1.000000e+1	5.300000e-24
+ 1.100000e+1	2.800000e-24
+ 1.200000e+1	1.000000e-24
+ 1.000000e+2	1.000000e-26
+ 5.000000e+2	0.000000e+0
+ 1.000000e+3	0.000000e+0
+#-----------------------------
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

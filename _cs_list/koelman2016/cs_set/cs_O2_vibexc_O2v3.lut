@@ -1,0 +1,499 @@
+#LXCat, www.lxcat.net
+#Generated on 13 Feb 2015. All rights reserved.
+#
+#RECOMMENDED REFERENCE FORMAT
+#- IST-Lisbon database, www.lxcat.net, retrieved on February 13, 2015.
+#
+#CROSS SECTION DATA FORMAT
+#In downloaded files, each collision process is defined by a block consisting of
+#1st line
+#Keyword in capitals indicating the type of the collision. Possible collision types are elastic, effective, excitation,
+#ionization, or attachment (capital letters required, key words are case sensitive), where "elastic" is used to denote
+#the elastic momentum transfer cross section and where "effective" denotes the total momentum transfer cross section (sum
+#of elastic momentum transfer and total inelastic cross sections).  The latter is useful for solving the Boltzmann
+#equation in the 2-term approximation.
+#2nd line
+#Name of the target particle species. This name is a character string, freely chosen by the user, e.g. "Ar". Optionally
+#for excitation processes, the name of the corresponding excited state can be specified on the same line, separated from
+#the first name either by arrow "->" (dash + greater than) or by double-head arrow "<->" (less than + dash +
+#greater than), e.g. "Ar -> Ar*" and "Ar <-> Ar*", respectively. In the later case BOLSIG+ will automatically
+#define the inverse superelastic process, constructing the superelastic cross-section by detailed balancing, and
+#considering the indicated excited state as the target. In this case, the ratio of statistical weights must be input in
+#the 3rd line (see below).  Alternatively, superelastic collisions could be defined explicitly as excitation collisions
+#with a negative electron energy loss with user input cross sections and species name, "Ar*", for example.
+#3rd line
+#For elastic and effective collisions, the ratio of the electron mass to the target particle mass. For excitation or
+#ionization collisions, the electron energy loss (nominally the threshold energy) in eV. For attachment, the 3rd line is
+#missing. In case of an excitation process where an excited state has been indicated on the 2nd line using double-head
+#arrow "<->", the 3rd line must specify also ratio of the statistical weights of the final state to the initial state
+#as the second parameter in 3rd line this is needed by BOLSIG+ to calculate the de-excitation cross-section.
+#from 4th line (optionally)
+#User comments and reference information, maximum 100 lines. The only constraint on format is that these comment lines
+#must not start with a number.
+#Finally
+#Table of the cross section as a function of energy. The table starts and ends by a line of dashes "------" (at least 5),
+#and has otherwise two numbers per line: the energy in eV and the cross section in m2.
+#
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#DATABASE:         IST-Lisbon database
+#DESCRIPTION:      The IST-Lisbon database contains the most up-to-date electron-neutral collisional data (together with
+#                  the measured swarm parameters used to validate these data), resulting from the research effort of the
+#                  Group of Gas Discharges and Gaseous Electronics with the IPFN/IST (Instituto de Plasmas e Fusão
+#                  Nuclear / Instituto Superior Técnico), Lisbon, Portugal.
+#                  The data correspond to contributions from different authors (see Comments).
+#                  For each gas, a COMPLETE SET of electron-neutral cross sections is presented the data were validated
+#                  against swarm parameters by solving the two-term homogeneous electron Boltzmann equation.
+#CONTACT:          LL Alves and CM Ferreira
+#                  e-mail: llalves@@ist.utl.pt and matos.ferreira@@ist.utl.pt
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#
+#**************************************************************************************************************
+#
+#COMMENT: G. Gousset, C.M. Ferreira, M. Pinheiro, P.A. Sá, M. Touzeau, M. Vialle and J. Loureiro quotElectron and
+#         heavy-particle kinetics in the low pressure oxygen positive columnquot 1991 J. Phys. D 24 290.
+#         The complete cross sections set was compiled mostly from A.V. Phelps 1985 Technical Report 28 JILA Information
+#         Center Report, University of Colorado, Boulder, Colorado, USA.
+#         The cross sections were originally limited to 40 eV kinetic energy, and were later extended to 1 keV using
+#         information from the databases PHELPS and BIAGI-v8.9. The cross section for the excitation of O2(a1Deltag) was
+#         extended up to 200 eV using the results of K.J. Wakiya 1978 J Phys B 11 3931, and extrapolated up to 1 keV. 
+#         When this complete set is used in a two-term Boltzmann solver (choosing a linear interpolation scheme with no
+#         extrapolation after the last energy point, and adopting the SST growth model), it yields calculated swarm
+#         parameters in good agreement with measurements for E/N values between 10 and 1000 Td. 
+#         For E/N lt 10 Td, the set must be further completed to include rotational excitation mechanisms (see below),
+#         in order to reproduce measured swarm data.
+#         For 10 Td lt E/N lt 1000 Td rotational excitations/de-excitations  can be neglected, and the set yields
+#         swarm parameters in good agreement with measurements.
+#         IMPORTANT NOTICE ABOUT ROTATIONAL EXCITATION
+#         For E/N lt 10Td, this set is to be completed with the rotational cross sections J-J+2 (J=1,3,..,29) also
+#         available in this database. Calculations should include inelastic-stepwise and superelastic transitions
+#         between these rotational states, assuming a Boltzmann  distribution for their populations: n_J/N = (g_J/P_rot)
+#         exp[-E_J/(k_B T_g)] with P_rot = Sum_(J odd)^31 g_J exp[-E_J/(k_B T_g)] [cf. R.D. Hake Jr. and A.V. Phelps
+#         1967 Phys. Rev. 158 70]. At T_g=300K, these populations are n_1/N=4.09e(-2), n_3/N=8.91e(-2), n_5/N=1.24e(-1),
+#         n_7/N=1.41e(-1), n_9/N=1.41e(-1), n_11/N=1.27e(-1), n_13/N=1.06e(-1), n_15/N=8.13e(-2), n_17/N=5.81e(-2),
+#         n_19/N=3.88e(-2), n_21/N=2.42e(-2), n_23/N=1.42e(-2), n_25/N=7.82e(-3), n_27/N=4.05e(-3), n_29/N=1.97e(-3),
+#         n_31/N=9.04e(-4). 
+#         When the full N2 cross section set PLUS the N2(J=1), N2(J=3), .., N2(J=29) excitation cross sections are used
+#         in a two-term Boltzmann solver, one obtains calculated swarm parameters in good agreement with measurements at
+#         low E/N. Note that the limited features of the online Bolsig+ version are insufficient to include a rotational
+#         distribution.
+#
+#EXCITATION
+#O2 -> O2(v=0 - v=3)
+# 6.000000e-1
+#SPECIES: e / O2
+#PROCESS: E + O2 -> E + O2(v=0 - v=3), Excitation
+#PARAM.:  E = 0.6 eV, complete set
+#COMMENT: Phelps A V 1985 Technical Report 28 JILA Information Center Report, University of
+#COMMENT: Colorado, Boulder, Colorado, USA.
+#UPDATED: 2014-04-20 21:15:44
+#COLUMNS: Energy (eV) | Cross section (m2)
+#-----------------------------
+#legend energy crosssection
+#units eV m^2
+# 0.000000e+0	0.000000e+0
+# 1.000000e-1	0.000000e+0
+# 2.000000e-1	0.000000e+0
+# 3.000000e-1	0.000000e+0
+# 4.000000e-1	0.000000e+0
+# 5.000000e-1	0.000000e+0
+ 6.000000e-1	0.000000e+0
+ 7.000000e-1	1.000000e-23
+ 8.000000e-1	4.000000e-23
+ 9.000000e-1	8.000000e-23
+ 1.000000e+0	1.200000e-22
+ 1.100000e+0	1.500000e-22
+ 1.200000e+0	1.420000e-22
+ 1.300000e+0	1.250000e-22
+ 1.400000e+0	1.000000e-23
+ 1.500000e+0	6.000000e-23
+ 1.600000e+0	3.000000e-23
+ 1.700000e+0	0.000000e+0
+ 1.800000e+0	0.000000e+0
+ 1.900000e+0	0.000000e+0
+ 2.000000e+0	0.000000e+0
+ 2.100000e+0	0.000000e+0
+ 2.200000e+0	0.000000e+0
+ 2.300000e+0	0.000000e+0
+ 2.400000e+0	0.000000e+0
+ 2.500000e+0	0.000000e+0
+ 2.600000e+0	0.000000e+0
+ 2.700000e+0	0.000000e+0
+ 2.800000e+0	0.000000e+0
+ 2.900000e+0	0.000000e+0
+ 3.000000e+0	0.000000e+0
+ 3.100000e+0	0.000000e+0
+ 3.200000e+0	0.000000e+0
+ 3.300000e+0	0.000000e+0
+ 3.400000e+0	0.000000e+0
+ 3.500000e+0	0.000000e+0
+ 3.600000e+0	0.000000e+0
+ 3.700000e+0	0.000000e+0
+ 3.800000e+0	0.000000e+0
+ 3.900000e+0	0.000000e+0
+ 4.000000e+0	0.000000e+0
+ 4.100000e+0	0.000000e+0
+ 4.200000e+0	0.000000e+0
+ 4.300000e+0	0.000000e+0
+ 4.400000e+0	0.000000e+0
+ 4.500000e+0	0.000000e+0
+ 4.600000e+0	0.000000e+0
+ 4.700000e+0	0.000000e+0
+ 4.800000e+0	0.000000e+0
+ 4.900000e+0	0.000000e+0
+ 5.000000e+0	0.000000e+0
+ 5.100000e+0	3.000000e-24
+ 5.200000e+0	5.000000e-24
+ 5.300000e+0	1.500000e-23
+ 5.400000e+0	2.000000e-23
+ 5.500000e+0	3.100000e-23
+ 5.600000e+0	4.700000e-23
+ 5.700000e+0	6.200000e-23
+ 5.800000e+0	8.000000e-23
+ 5.900000e+0	1.000000e-22
+ 6.000000e+0	1.250000e-22
+ 6.100000e+0	1.650000e-22
+ 6.200000e+0	1.850000e-22
+ 6.300000e+0	2.200000e-22
+ 6.400000e+0	2.350000e-22
+ 6.500000e+0	2.550000e-22
+ 6.600000e+0	2.750000e-22
+ 6.700000e+0	3.000000e-22
+ 6.800000e+0	3.200000e-22
+ 6.900000e+0	3.400000e-22
+ 7.000000e+0	3.630000e-22
+ 7.100000e+0	3.850000e-22
+ 7.200000e+0	4.100000e-22
+ 7.300000e+0	4.350000e-22
+ 7.400000e+0	4.600000e-22
+ 7.500000e+0	4.800000e-22
+ 7.600000e+0	5.000000e-22
+ 7.700000e+0	5.250000e-22
+ 7.800000e+0	5.500000e-22
+ 7.900000e+0	5.700000e-22
+ 8.000000e+0	5.800000e-22
+ 8.100000e+0	6.300000e-22
+ 8.200000e+0	6.600000e-22
+ 8.300000e+0	6.800000e-22
+ 8.400000e+0	7.100000e-22
+ 8.500000e+0	7.300000e-22
+ 8.600000e+0	7.380000e-22
+ 8.700000e+0	7.430000e-22
+ 8.800000e+0	7.500000e-22
+ 8.900000e+0	7.510000e-22
+ 9.000000e+0	7.500000e-22
+ 9.100000e+0	7.480000e-22
+ 9.200000e+0	7.400000e-22
+ 9.300000e+0	7.250000e-22
+ 9.400000e+0	7.200000e-22
+ 9.500000e+0	7.150000e-22
+ 9.600000e+0	7.000000e-22
+ 9.700000e+0	6.970000e-22
+ 9.800000e+0	6.950000e-22
+ 9.900000e+0	6.900000e-22
+ 1.000000e+1	6.750000e-22
+ 1.010000e+1	6.640000e-22
+ 1.020000e+1	6.530000e-22
+ 1.030000e+1	6.420000e-22
+ 1.040000e+1	6.310000e-22
+ 1.050000e+1	6.200000e-22
+ 1.060000e+1	6.090000e-22
+ 1.070000e+1	5.970000e-22
+ 1.080000e+1	5.860000e-22
+ 1.090000e+1	5.740000e-22
+ 1.100000e+1	5.630000e-22
+ 1.110000e+1	5.520000e-22
+ 1.120000e+1	5.420000e-22
+ 1.130000e+1	5.310000e-22
+ 1.140000e+1	5.210000e-22
+ 1.150000e+1	5.100000e-22
+ 1.160000e+1	5.030000e-22
+ 1.170000e+1	4.960000e-22
+ 1.180000e+1	4.890000e-22
+ 1.190000e+1	4.820000e-22
+ 1.200000e+1	4.750000e-22
+ 1.210000e+1	4.600000e-22
+ 1.220000e+1	4.450000e-22
+ 1.230000e+1	4.300000e-22
+ 1.240000e+1	4.150000e-22
+ 1.250000e+1	4.000000e-22
+ 1.260000e+1	3.800000e-22
+ 1.270000e+1	3.600000e-22
+ 1.280000e+1	3.400000e-22
+ 1.290000e+1	3.200000e-22
+ 1.300000e+1	3.000000e-22
+ 1.310000e+1	2.860000e-22
+ 1.320000e+1	2.720000e-22
+ 1.330000e+1	2.580000e-22
+ 1.340000e+1	2.440000e-22
+ 1.350000e+1	2.300000e-22
+ 1.360000e+1	2.190000e-22
+ 1.370000e+1	2.080000e-22
+ 1.380000e+1	1.970000e-22
+ 1.390000e+1	1.860000e-22
+ 1.400000e+1	1.750000e-22
+ 1.410000e+1	1.670000e-22
+ 1.420000e+1	1.590000e-22
+ 1.430000e+1	1.510000e-22
+ 1.440000e+1	1.430000e-22
+ 1.450000e+1	1.350000e-22
+ 1.460000e+1	1.260000e-22
+ 1.470000e+1	1.160000e-22
+ 1.480000e+1	1.070000e-22
+ 1.490000e+1	9.700000e-23
+ 1.500000e+1	8.800000e-23
+ 1.510000e+1	8.400000e-23
+ 1.520000e+1	8.100000e-23
+ 1.530000e+1	7.700000e-23
+ 1.540000e+1	7.400000e-23
+ 1.550000e+1	7.000000e-23
+ 1.560000e+1	6.600000e-23
+ 1.570000e+1	6.200000e-23
+ 1.580000e+1	5.800000e-23
+ 1.590000e+1	5.400000e-23
+ 1.600000e+1	5.000000e-23
+ 1.610000e+1	4.700000e-23
+ 1.620000e+1	4.400000e-23
+ 1.630000e+1	4.200000e-23
+ 1.640000e+1	3.900000e-23
+ 1.650000e+1	3.600000e-23
+ 1.660000e+1	3.500000e-23
+ 1.670000e+1	3.300000e-23
+ 1.680000e+1	3.200000e-23
+ 1.690000e+1	3.000000e-23
+ 1.700000e+1	2.900000e-23
+ 1.710000e+1	2.700000e-23
+ 1.720000e+1	2.500000e-23
+ 1.730000e+1	2.400000e-23
+ 1.740000e+1	2.200000e-23
+ 1.750000e+1	2.000000e-23
+ 1.760000e+1	1.900000e-23
+ 1.770000e+1	1.700000e-23
+ 1.780000e+1	1.600000e-23
+ 1.790000e+1	1.400000e-23
+ 1.800000e+1	1.300000e-23
+ 1.810000e+1	1.200000e-23
+ 1.820000e+1	1.100000e-23
+ 1.830000e+1	1.000000e-23
+ 1.840000e+1	9.000000e-24
+ 1.850000e+1	8.000000e-24
+ 1.860000e+1	7.000000e-24
+ 1.870000e+1	6.000000e-24
+ 1.880000e+1	6.000000e-24
+ 1.890000e+1	5.000000e-24
+ 1.900000e+1	4.000000e-24
+ 1.910000e+1	3.000000e-24
+ 1.920000e+1	2.000000e-24
+ 1.930000e+1	2.000000e-24
+ 1.940000e+1	1.000000e-24
+ 1.950000e+1	0.000000e+0
+ 1.960000e+1	0.000000e+0
+ 1.970000e+1	0.000000e+0
+ 1.980000e+1	0.000000e+0
+ 1.990000e+1	0.000000e+0
+ 2.000000e+1	0.000000e+0
+ 2.010000e+1	0.000000e+0
+ 2.020000e+1	0.000000e+0
+ 2.030000e+1	0.000000e+0
+ 2.040000e+1	0.000000e+0
+ 2.050000e+1	0.000000e+0
+ 2.060000e+1	0.000000e+0
+ 2.070000e+1	0.000000e+0
+ 2.080000e+1	0.000000e+0
+ 2.090000e+1	0.000000e+0
+ 2.100000e+1	0.000000e+0
+ 2.110000e+1	0.000000e+0
+ 2.120000e+1	0.000000e+0
+ 2.130000e+1	0.000000e+0
+ 2.140000e+1	0.000000e+0
+ 2.150000e+1	0.000000e+0
+ 2.160000e+1	0.000000e+0
+ 2.170000e+1	0.000000e+0
+ 2.180000e+1	0.000000e+0
+ 2.190000e+1	0.000000e+0
+ 2.200000e+1	0.000000e+0
+ 2.210000e+1	0.000000e+0
+ 2.220000e+1	0.000000e+0
+ 2.230000e+1	0.000000e+0
+ 2.240000e+1	0.000000e+0
+ 2.250000e+1	0.000000e+0
+ 2.260000e+1	0.000000e+0
+ 2.270000e+1	0.000000e+0
+ 2.280000e+1	0.000000e+0
+ 2.290000e+1	0.000000e+0
+ 2.300000e+1	0.000000e+0
+ 2.310000e+1	0.000000e+0
+ 2.320000e+1	0.000000e+0
+ 2.330000e+1	0.000000e+0
+ 2.340000e+1	0.000000e+0
+ 2.350000e+1	0.000000e+0
+ 2.360000e+1	0.000000e+0
+ 2.370000e+1	0.000000e+0
+ 2.380000e+1	0.000000e+0
+ 2.390000e+1	0.000000e+0
+ 2.400000e+1	0.000000e+0
+ 2.410000e+1	0.000000e+0
+ 2.420000e+1	0.000000e+0
+ 2.430000e+1	0.000000e+0
+ 2.440000e+1	0.000000e+0
+ 2.450000e+1	0.000000e+0
+ 2.460000e+1	0.000000e+0
+ 2.470000e+1	0.000000e+0
+ 2.480000e+1	0.000000e+0
+ 2.490000e+1	0.000000e+0
+ 2.500000e+1	0.000000e+0
+ 2.510000e+1	0.000000e+0
+ 2.520000e+1	0.000000e+0
+ 2.530000e+1	0.000000e+0
+ 2.540000e+1	0.000000e+0
+ 2.550000e+1	0.000000e+0
+ 2.560000e+1	0.000000e+0
+ 2.570000e+1	0.000000e+0
+ 2.580000e+1	0.000000e+0
+ 2.590000e+1	0.000000e+0
+ 2.600000e+1	0.000000e+0
+ 2.610000e+1	0.000000e+0
+ 2.620000e+1	0.000000e+0
+ 2.630000e+1	0.000000e+0
+ 2.640000e+1	0.000000e+0
+ 2.650000e+1	0.000000e+0
+ 2.660000e+1	0.000000e+0
+ 2.670000e+1	0.000000e+0
+ 2.680000e+1	0.000000e+0
+ 2.690000e+1	0.000000e+0
+ 2.700000e+1	0.000000e+0
+ 2.710000e+1	0.000000e+0
+ 2.720000e+1	0.000000e+0
+ 2.730000e+1	0.000000e+0
+ 2.740000e+1	0.000000e+0
+ 2.750000e+1	0.000000e+0
+ 2.760000e+1	0.000000e+0
+ 2.770000e+1	0.000000e+0
+ 2.780000e+1	0.000000e+0
+ 2.790000e+1	0.000000e+0
+ 2.800000e+1	0.000000e+0
+ 2.810000e+1	0.000000e+0
+ 2.820000e+1	0.000000e+0
+ 2.830000e+1	0.000000e+0
+ 2.840000e+1	0.000000e+0
+ 2.850000e+1	0.000000e+0
+ 2.860000e+1	0.000000e+0
+ 2.870000e+1	0.000000e+0
+ 2.880000e+1	0.000000e+0
+ 2.890000e+1	0.000000e+0
+ 2.900000e+1	0.000000e+0
+ 2.910000e+1	0.000000e+0
+ 2.920000e+1	0.000000e+0
+ 2.930000e+1	0.000000e+0
+ 2.940000e+1	0.000000e+0
+ 2.950000e+1	0.000000e+0
+ 2.960000e+1	0.000000e+0
+ 2.970000e+1	0.000000e+0
+ 2.980000e+1	0.000000e+0
+ 2.990000e+1	0.000000e+0
+ 3.000000e+1	0.000000e+0
+ 3.010000e+1	0.000000e+0
+ 3.020000e+1	0.000000e+0
+ 3.030000e+1	0.000000e+0
+ 3.040000e+1	0.000000e+0
+ 3.050000e+1	0.000000e+0
+ 3.060000e+1	0.000000e+0
+ 3.070000e+1	0.000000e+0
+ 3.080000e+1	0.000000e+0
+ 3.090000e+1	0.000000e+0
+ 3.100000e+1	0.000000e+0
+ 3.110000e+1	0.000000e+0
+ 3.120000e+1	0.000000e+0
+ 3.130000e+1	0.000000e+0
+ 3.140000e+1	0.000000e+0
+ 3.150000e+1	0.000000e+0
+ 3.160000e+1	0.000000e+0
+ 3.170000e+1	0.000000e+0
+ 3.180000e+1	0.000000e+0
+ 3.190000e+1	0.000000e+0
+ 3.200000e+1	0.000000e+0
+ 3.210000e+1	0.000000e+0
+ 3.220000e+1	0.000000e+0
+ 3.230000e+1	0.000000e+0
+ 3.240000e+1	0.000000e+0
+ 3.250000e+1	0.000000e+0
+ 3.260000e+1	0.000000e+0
+ 3.270000e+1	0.000000e+0
+ 3.280000e+1	0.000000e+0
+ 3.290000e+1	0.000000e+0
+ 3.300000e+1	0.000000e+0
+ 3.310000e+1	0.000000e+0
+ 3.320000e+1	0.000000e+0
+ 3.330000e+1	0.000000e+0
+ 3.340000e+1	0.000000e+0
+ 3.350000e+1	0.000000e+0
+ 3.360000e+1	0.000000e+0
+ 3.370000e+1	0.000000e+0
+ 3.380000e+1	0.000000e+0
+ 3.390000e+1	0.000000e+0
+ 3.400000e+1	0.000000e+0
+ 3.410000e+1	0.000000e+0
+ 3.420000e+1	0.000000e+0
+ 3.430000e+1	0.000000e+0
+ 3.440000e+1	0.000000e+0
+ 3.450000e+1	0.000000e+0
+ 3.460000e+1	0.000000e+0
+ 3.470000e+1	0.000000e+0
+ 3.480000e+1	0.000000e+0
+ 3.490000e+1	0.000000e+0
+ 3.500000e+1	0.000000e+0
+ 3.510000e+1	0.000000e+0
+ 3.520000e+1	0.000000e+0
+ 3.530000e+1	0.000000e+0
+ 3.540000e+1	0.000000e+0
+ 3.550000e+1	0.000000e+0
+ 3.560000e+1	0.000000e+0
+ 3.570000e+1	0.000000e+0
+ 3.580000e+1	0.000000e+0
+ 3.590000e+1	0.000000e+0
+ 3.600000e+1	0.000000e+0
+ 3.610000e+1	0.000000e+0
+ 3.620000e+1	0.000000e+0
+ 3.630000e+1	0.000000e+0
+ 3.640000e+1	0.000000e+0
+ 3.650000e+1	0.000000e+0
+ 3.660000e+1	0.000000e+0
+ 3.670000e+1	0.000000e+0
+ 3.680000e+1	0.000000e+0
+ 3.690000e+1	0.000000e+0
+ 3.700000e+1	0.000000e+0
+ 3.710000e+1	0.000000e+0
+ 3.720000e+1	0.000000e+0
+ 3.730000e+1	0.000000e+0
+ 3.740000e+1	0.000000e+0
+ 3.750000e+1	0.000000e+0
+ 3.760000e+1	0.000000e+0
+ 3.770000e+1	0.000000e+0
+ 3.780000e+1	0.000000e+0
+ 3.790000e+1	0.000000e+0
+ 3.800000e+1	0.000000e+0
+ 3.810000e+1	0.000000e+0
+ 3.820000e+1	0.000000e+0
+ 3.830000e+1	0.000000e+0
+ 3.840000e+1	0.000000e+0
+ 3.850000e+1	0.000000e+0
+ 3.860000e+1	0.000000e+0
+ 3.870000e+1	0.000000e+0
+ 3.880000e+1	0.000000e+0
+ 3.890000e+1	0.000000e+0
+ 3.900000e+1	0.000000e+0
+ 3.910000e+1	0.000000e+0
+ 3.920000e+1	0.000000e+0
+ 3.930000e+1	0.000000e+0
+ 3.940000e+1	0.000000e+0
+ 3.950000e+1	0.000000e+0
+ 3.960000e+1	0.000000e+0
+ 3.970000e+1	0.000000e+0
+ 3.980000e+1	0.000000e+0
+ 3.990000e+1	0.000000e+0
+ 4.000000e+1	0.000000e+0
+ 1.000000e+2	0.000000e+0
+ 2.000000e+2	0.000000e+0
+ 5.000000e+2	0.000000e+0
+ 1.000000e+3	0.000000e+0
+#-----------------------------
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

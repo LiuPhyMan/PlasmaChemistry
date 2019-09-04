@@ -1,0 +1,23 @@
+The archives koelman2016.tgz and koelman.zip contain the data that are
+used in the paper:
+
+  'A Comprehensive Chemical Model for the Splitting of CO2 in Non-Equilibrium Plasmas'
+  by P.M.J. Koelman et al. (2016)  DOI: 10.1002/ppap.201600155
+  See: http://dx.doi.org/10.1002/ppap.201600155
+
+Please visit the Plasma Matters website http://plasimo.phys.tue.nl/resources
+to check for later versions and updates of this data set.
+
+The ZIP file has the CRLF line endings and is suitable for Windows systems,
+the tgz archive is meant for Unix/Linux systems. Both archives contain only
+human-readable text files and unpack to a subdirectory koelman2016.
+iOn a comand line, unpacking can be achieved with:
+
+        Windows:    unzip koelman2016.zip
+        Unix/Linux: tar zxvf koelman2016.tgz
+
+If you wish to use these data with your copy of the Plasimo plasma modelling
+toolkit, please unpack the archive relative to the input directory of your
+Plasimo installation. For more information on Plasimo, please visit the website
+http://plasma-matters.nl
+
