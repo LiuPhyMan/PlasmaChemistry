@@ -22,6 +22,12 @@
     H2(v5),  H2(v6),  H2(v7),  H2(v8),  H2(v9),
     H2(v10), H2(v11), H2(v12), H2(v13)
     ]
+- CO_vib: &CO_vib_0-10
+    [
+    CO,     CO(v1), CO(v2), CO(v3), CO(v4),
+    CO(v5), CO(v6), CO(v7), CO(v8), CO(v9),
+    CO(v10)
+    ]
 
 
 - Molecule:
@@ -36,36 +42,39 @@
     type:
         excitation
     formula:
-        E + A@ => E + B@
-    threshold:
-        !eval "[H2_vib_energy_in_eV(v=_to) - H2_vib_energy_in_eV(v=_from) 
-                for _from in range(15) 
-                for _to in range(15) if _from < _to]"
+        E + H2(vA@) => E + H2(vB@)
     kstr:
-        "cs_path/H2(X)_to_H2(X)_vibexc/A@_to_B@.csv"
-    lambda: 
-        "lambda x: 
-        [x.replace('A@', f'H2(v{_from})').replace('B@', f'H2(v{_to})').replace('H2(v0)', 'H2')
-        for _from in range(15)
-        for _to in range(15) if _from < _to]"
-    where:
+        "cs_path/H2(X)_to_H2(X)_vibexc/H2(vA@)_to_H2(vB@).csv"
+    threshold:
+        thres@
+    where: # where is only supported for formula and kstr. After iterator process.
         abbr:
-            - cs_path: *H2_cs_path
+            cs_path: *H2_cs_path
+            H2(v0): H2
+    iterator: &H2_ele_vib_iterator
+        repl:
+            formula:
+                A@: _from
+                B@: _to
+            kstr:
+                A@: _from
+                B@: _to
+            threshold:
+                thres@: H2_vib_energy_in_eV(v=_to) - H2_vib_energy_in_eV(v=_from)
+        loop:
+            _from: range(15)
+            _to: range(15)
+        condition:
+            _from < _to
 
 - Rctn_block: &H2_ele_vib_rctn_backward
     <<: *H2_ele_vib_rctn_forward
     type:
         deexcitation
-    threshold:
-        !eval "[H2_vib_energy_in_eV(v=_to) - H2_vib_energy_in_eV(v=_from) 
-                for _from in range(15) 
-                for _to in range(15) if _from > _to]"
-    lambda: 
-        "lambda x: 
-        [x.replace('A@', f'H2(v{_from})').replace('B@', f'H2(v{_to})').replace('H2(v0)', 'H2')
-        for _from in range(15)
-        for _to in range(15) if _from > _to]"
-
+    iterator:
+        <<: *H2_ele_vib_iterator
+        condition:
+            _from > _to
 
 # ----------------------------------------------------------------------------------------------- #
 #   H2 dissociation to H atom.
@@ -75,20 +84,31 @@
         EXCITATION
     formula:
         E + A@ => E + H + H
+    where:
+        abbr:
+            - cs_path: *H2_cs_path
 
 - Rctn_block: &H2_ele_dis_rctn_via_b
     <<: *_H2_ele_dis
     threshold:
-        [6.58, 4.06, 3.58, 3.12, 2.70,
-         2.30, 1.94, 1.60, 1.30, 1.02,
-         0.78, 0.56, 0.38, 0.22]
+        thres@
     kstr:
         "cs_path/H2(X)_to_H2(_b)_to_2H/A@_to_H2(b)_to_2H.csv"
-    zip:
-        A@: *H2_vib_0-13
-    where:
-        abbr:
-            - cs_path: *H2_cs_path
+    iterator:
+        repl:
+            formula:
+                A@: _i_
+            kstr:
+                A@: _i_
+            threshold:
+                thres@: _thres_
+        loop:
+            _i_: *H2_vib_0-13
+            _thres_: 
+                [6.58, 4.06, 3.58, 3.12, 2.70,
+                 2.30, 1.94, 1.60, 1.30, 1.02,
+                 0.78, 0.56, 0.38, 0.22]
+
 
 - Rctn_block: &H2_ele_dis_rctn_via_B
     <<: *_H2_ele_dis
@@ -107,7 +127,7 @@
     threshold:
         # !eval ""
     kstr:
-        "cs_path/H2(X)_to_H2(B')_to_2H/A@_to_H2(B')_to_2H.csv"
+        cs_path/H2(X)_to_H2(B')_to_2H/A@_to_H2(B')_to_2H.csv
     zip:
         A@: *H2_vib_0-14
     where:
@@ -150,7 +170,7 @@
     formula:
         E + A@ => E + B@
     threshold:
-        !eval "[CO2_vib_energy_in_eV(v=(0, 0, _to)) - CO2_vib_energy_in_eV(v=(0, 0, _from)) 
+        "[CO2_vib_energy_in_eV(v=(0, 0, _to)) - CO2_vib_energy_in_eV(v=(0, 0, _from)) 
                 for _from in range(22) 
                 for _to in range(22) if _from < _to]"
     kstr:
@@ -169,7 +189,7 @@
     type:
         DEEXCITATION
     threshold:
-        !eval "[CO2_vib_energy_in_eV(v=(0, 0, _to)) - CO2_vib_energy_in_eV(v=(0, 0, _from)) 
+        "[CO2_vib_energy_in_eV(v=(0, 0, _to)) - CO2_vib_energy_in_eV(v=(0, 0, _from)) 
                 for _from in range(22) 
                 for _to in range(22) if _from > _to]"
     kstr:
@@ -189,7 +209,7 @@
     formula:
         E + CO(vA@) => E + CO(vB@)
     threshold:
-        !eval "[CO_vib_energy_in_eV(v=_to) - CO_vib_energy_in_eV(v=_from) 
+        "[CO_vib_energy_in_eV(v=_to) - CO_vib_energy_in_eV(v=_from) 
                 for _from in range(11) 
                 for _to in range(11) if _from < _to]"
     kstr:
@@ -208,7 +228,7 @@
     type: 
         deexcitation
     threshold:
-        !eval "[CO_vib_energy_in_eV(v=_to) - CO_vib_energy_in_eV(v=_from) 
+        "[CO_vib_energy_in_eV(v=_to) - CO_vib_energy_in_eV(v=_from) 
                 for _from in range(11) 
                 for _to in range(11) if _from > _to]"
     kstr:
@@ -220,7 +240,7 @@
         for _to in range(11) if _from > _to]"
 
 
- 
+
 # ----------------------------------------------------------------------------------------------- #
 #   Vibrational relaxation process
 # ----------------------------------------------------------------------------------------------- #
@@ -233,40 +253,54 @@
         CO2(v1) + M@ => CO2 + M@
     kstr:   k10 * F
     where:
-        - k10_0:  !LT [4.25e-1, -407, 824]
-        - k10_1:  !LT [4.25e-1, -404, 1096]
-        - k10_2:  !LT [4.25e-1, -252, 685]
-        - k10:    k10_0 + k10_1 + k10_2
-        - _mu:    22
-        - _r:     4.587156
-        # - dE:     !eval "CO2_energy[1] - CO2_energy[0]"
-        - Lij:    0.32 * dE_K/_r * sqrt(_mu/Tgas)
-        - F:      0.5 * (3 - exp(-2/3*Lij)) * exp(-2/3*Lij)
-    zip:
-        M@: *CO_vib
-        dE_K: 
+        vari:
+            - k10_0:  !LT [4.25e-1, -407, 824]
+            - k10_1:  !LT [4.25e-1, -404, 1096]
+            - k10_2:  !LT [4.25e-1, -252, 685]
+            - k10:    k10_0 + k10_1 + k10_2
+            - _mu:    22
+            - _r:     4.587156
+            - Lij:    0.32 * dE_K/_r * sqrt(_mu/Tgas)
+            - F:      0.5 * (3 - exp(-2/3*Lij)) * exp(-2/3*Lij)
+        
+
 - Rctn_block: &CO2_VT_with_CO2
     type:
         VT
     formula:
         CO2(vA@) + M@ => CO2(vB@) + M@
-    # kstr:
+    kstr:   
+        k10 * F / dE@
+    where:
+        abbr:
+            CO2(v0): CO2
+        vari:
+            - k10_0:  !LT [4.25e-1, -407, 824]
+            - k10_1:  !LT [4.25e-1, -404, 1096]
+            - k10_2:  !LT [4.25e-1, -252, 685]
+            - k10:    k10_0 + k10_1 + k10_2
+            - _mu:    22
+            - _r:     4.587156
+            - Lij:    0.32 * dE_K/_r * sqrt(_mu/Tgas)
+            - F:      0.5 * (3 - exp(-2/3*Lij)) * exp(-2/3*Lij)
+    iterator:
+        repl:
+            formula:
+                A@: _i_ 
+                B@: _i_ - 1
+                M@: _M_
+            kstr:
+                dE@: CO_vib_energy_in_eV(v=_i_) - CO_vib_energy_in_eV(v=_i_-1)
+        loop:
+            _M_: *CO_vib_0-10
+            _i_: range(1, 22)
 
-    # zip:
-    #     A@: !eval "[     i for _ in range(22)]"
-    #     B@: !eval "[ i + 1 for _ in range(21)]"
-    lambda:
-        "lambda x:
-        [x.replace('A@', i).replace('B@', i-1).replace('M@', M)
-        for M in ['CO', 'CO(v1)', 'CO(v2)']
-        for i in range(1, 22)]"
-
-
-- Rctn_block: &CO2_VT_with_CO_reversed
-    <<: *CO2_VT_with_CO
+- Rctn_block: &CO2_VT_with_CO2_reversed
+    <<: *CO2_VT_with_CO2
     formula:
-        CO2 + M@ => CO2(v1) + M@
-    kstr:   k10 * F / dE
+        CO2(vB@) + M@ => CO2(vA@) + M@
+    kstr:
+        k10 * F / dE
 
 # ----------------------------------------------------------------------------------------------- #
 - Rctn_block: &OH_VT
@@ -286,10 +320,11 @@
     electron reactions:
         H2_ele_vib_rctn_forward:  *H2_ele_vib_rctn_forward
         H2_ele_vib_rctn_backward: *H2_ele_vib_rctn_backward
-        H2_ele_dis_rctn_via_b:    *H2_ele_dis_rctn_via_b
-        CO2_ele_vib_rctn_forward: *CO2_ele_vib_rctn_forward
-        CO_ele_vib_rctn_forward: *CO_ele_vib_rctn_forward
-        CO_ele_vib_rctn_backward: *CO_ele_vib_rctn_backward
+        # H2_ele_dis_rctn_via_b:    *H2_ele_dis_rctn_via_b
+        # CO2_ele_vib_rctn_forward: *CO2_ele_vib_rctn_forward
+        # CO_ele_vib_rctn_forward: *CO_ele_vib_rctn_forward
+        # CO_ele_vib_rctn_backward: *CO_ele_vib_rctn_backward
+        CO2_VT_with_CO2: *CO2_VT_with_CO2
     # - *H2_ele_dis_rctn_via_B
     # - *H2_ele_dis_rctn_via_B_1
     # - *H2_ele_dis_rctn_via_B_2

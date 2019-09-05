@@ -36,7 +36,11 @@ class Reaction_block(object):
         self._type_list = None
         if rctn_dict is not None:
             self.rctn_dict = rctn_dict
-            self._treat_rctn_dict()
+            self._formula = rctn_dict['formula']
+            self._kstr = rctn_dict['kstr']
+            self._treat_where_vari()
+            self._treat_iterator()
+            self._treat_where_abbr()
 
     @property
     def _reactant_str_list(self):
@@ -58,55 +62,54 @@ class Reaction_block(object):
         result._type_list = self._type_list + other._type_list
         return result
 
-    def _treat_rctn_dict(self):
-        self._formula = self.rctn_dict['formula']
-        self._kstr = self.rctn_dict['kstr']
-        assert ("zip" not in self.rctn_dict) or ("lambda" not in self.rctn_dict)
+    def _treat_iterator(self):
+        if 'iterator' not in self.rctn_dict:
+            return None
+        else:
+            _iter = self.rctn_dict['iterator']
+            if 'formula' in _iter['repl']:
+                _formula_list = eval(self.repl_func(self._formula,
+                                                    _iter['repl']['formula'],
+                                                    _iter))
+            if 'kstr' in _iter['repl']:
+                _kstr_list = eval(self.repl_func(self._kstr,
+                                                 _iter['repl']['kstr'],
+                                                 _iter))
+        self._formula_list = _formula_list
+        self._kstr_list = _kstr_list
+        self._type_list = [self.rctn_dict['type'] for _ in range(len(self._kstr_list))]
+
+    def _treat_where_abbr(self):
         # --------------------------------------------------------------------------------------- #
-        #   'where' key is for formula and kstr
+        #   treat 'where' part.
         # --------------------------------------------------------------------------------------- #
-        if "where" in self.rctn_dict:
-            assert isinstance(self.rctn_dict['where'], dict)
-            if "abbr" in self.rctn_dict["where"]:
-                reversed_abbr_dict = self.rctn_dict["where"]["abbr"][::-1]
-                for _key_value in reversed_abbr_dict:
-                    _key = list(_key_value.items())[0][0]
-                    _value = str(list(_key_value.items())[0][1])
-                    self._formula = self._formula.replace(_key, _value)
-                    self._kstr = self._kstr.replace(_key, _value)
-            if "vari" in self.rctn_dict["where"]:
-                reversed_vari_dict = self.rctn_dict["where"]["vari"][::-1]
-                for _key_value in reversed_vari_dict:
+        if 'where' in self.rctn_dict:
+            if 'abbr' in self.rctn_dict['where']:
+                for _key in self.rctn_dict['where']['abbr']:
+                    _value = self.rctn_dict['where']['abbr'][_key]
+                    self._formula_list = [_.replace(_key, _value) for _ in self._formula_list]
+                    self._kstr_list = [_.replace(_key, _value) for _ in self._kstr_list]
+
+    def _treat_where_vari(self):
+        if 'where' in self.rctn_dict:
+            if 'vari' in self.rctn_dict['where']:
+                reversed_vari_list = self.rctn_dict['where']['vari'][::-1]
+                for _key_value in reversed_vari_list:
                     _key = list(_key_value.items())[0][0]
                     _value = f"({str(list(_key_value.items())[0][1])})"
-                    self._formula = self._formula.replace(_key, _value)
                     self._kstr = self._kstr.replace(_key, _value)
 
-        # --------------------------------------------------------------------------------------- #
-        #   'zip' and 'lambda' are used to treat formula_list and kstr_list
-        # --------------------------------------------------------------------------------------- #
-        if "zip" in self.rctn_dict:
-            _formula_list = []
-            _kstr_list = []
-            _zip_dict = self.rctn_dict['zip']
-            _zip_number = len(_zip_dict[list(_zip_dict.keys())[0]])
-            for _i in range(_zip_number):
-                _formula = self._formula
-                _kstr = self._kstr
-                for _key in _zip_dict:
-                    _formula = _formula.replace(_key, str(_zip_dict[_key][_i]))
-                    _kstr = _kstr.replace(_key, str(_zip_dict[_key][_i]))
-                _formula_list.append(_formula)
-                _kstr_list.append(_kstr)
-            self._formula_list = _formula_list
-            self._kstr_list = _kstr_list
-        if "lambda" in self.rctn_dict:
-            lambda_func = eval(self.rctn_dict['lambda'])
-            self._formula_list = lambda_func(self._formula)
-            self._kstr_list = lambda_func(self._kstr)
-
-        # --------------------------------------------------------------------------------------- #
-        self._type_list = [self.rctn_dict["type"] for _ in range(self.size)]
+    @staticmethod
+    def repl_func(x, _repl, _iter):
+        assert len(_iter['loop']) in (1, 2)
+        _str_expr = f"'{x}'." + '.'.join([f"replace('{k}', str({v}))" for k, v in _repl.items()])
+        _loop_expr = ' '.join([f'for {key} in {value}' for key, value in _iter['loop'].items()])
+        if 'condition' in _iter:
+            _expr = f"[{_str_expr} {_loop_expr} if {_iter['condition']}]"
+        else:
+            _expr = f"[{_str_expr} {_loop_expr}]"
+        # print(_expr)
+        return _expr
 
 
 class Cros_Reaction_block(Reaction_block):
@@ -114,7 +117,8 @@ class Cros_Reaction_block(Reaction_block):
     def __init__(self, *, rctn_dict=None):
         super().__init__(rctn_dict=rctn_dict)
         if rctn_dict is not None:
-            self._threshold_list = self.rctn_dict["threshold"]
+            self._threshold = self.rctn_dict["threshold"]
+        self._set_threshold_list()
 
     def __add__(self, other):
         result = Cros_Reaction_block()
@@ -124,22 +128,39 @@ class Cros_Reaction_block(Reaction_block):
         result._threshold_list = self._threshold_list + other._threshold_list
         return result
 
+    def _set_threshold_list(self):
+        self._threshold = self.rctn_dict['threshold']
+        _iter = self.rctn_dict['iterator']
+        self._threshold_list = eval(self.repl_func(self._threshold,
+                                                   _iter['repl']['threshold'],
+                                                   _iter))
+
     def generate_crostn_dataframe(self, *, factor=1):
-        # _df = pd.DataFrame(index=range(self.size),
-        #                    columns=["cs_key", "type", "threshold_eV", "cross_section"])
         _df = dict()
         _df["formula"] = self._formula_list
         _df["type"] = self._type_list
         _df["threshold_eV"] = self._threshold_list
-        # _df["cross_section"] = [np.loadtxt(_path, comments="#").transpose() * factor
-        #                         for _path in self._kstr_list]
-        # # _df["cross_section"] = self._kstr_list
-        # for _index, _path in zip(range(self.size), self._kstr_list):
-        #     print(_index)
-        #     print(_path)
-        #     _df.loc[_index, "cross_section"] = np.loadtxt(_path)
-        _df = pd.DataFrame(data=_df, index=range(self.size))
-        return _df
+        _df["cross_section"] = [np.vstack((np.loadtxt(_path, comments="#")[:, 0],
+                                           np.loadtxt(_path, comments="#")[:, 1] * factor))
+                                for _path in self._kstr_list]
+        return pd.DataFrame(data=_df, index=range(self.size))
+
+
+class Coef_Reaction_block(Reaction_block):
+
+    def __init__(self, *, rctn_dict=None):
+        super().__init__(rctn_dict=rctn_dict)
+
+    def generate_crostn_dataframe(self):
+        _df = dict()
+        _df["formula"] = self._formula_list
+
+        _df['reactant'] = [re.split(r"\s*=>\s*", _)[0] for _ in self._formula_list]
+        _df['product'] = [re.split(r"\s*=>\s*", _)[1] for _ in self._formula_list]
+
+        _df["type"] = self._type_list
+        _df["kstr"] = self._kstr_list
+        return pd.DataFrame(data=_df, index=range(self.size))
 
 
 def eval_constructor(loader, node):
@@ -180,9 +201,11 @@ if __name__ == "__main__":
         temp = yaml.load(f)
 
     ele_rctn_block_list = temp[-1]["The reactions considered"]["electron reactions"]
-    rctn_block_list = ele_rctn_block_list["CO2_ele_vib_rctn_forward"]
-    rctn_block = Cros_Reaction_block(rctn_dict=rctn_block_list)
-    0.5 * (3 - 2 / 3 * exp(1)) * exp(-2 / 3 * 1)
+    rctn_block_list = ele_rctn_block_list['CO2_VT_with_CO2']
+    rctn_block = Reaction_block(rctn_dict=rctn_block_list)
+    # rctn_block_list = ele_rctn_block_list["CO2_ele_vib_rctn_forward"]
+    # rctn_block = Cros_Reaction_block(rctn_dict=rctn_block_list)
+    # 0.5 * (3 - 2 / 3 * exp(1)) * exp(-2 / 3 * 1)
     r"""
     rctn_block_list = ele_rctn_block_list["H2_ele_dis_rctn_via_b"]
     rctn_block_0 = Cros_Reaction_block(rctn_dict=ele_rctn_block_list["H2_ele_vib_rctn_forward"])
