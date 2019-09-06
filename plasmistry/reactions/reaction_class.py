@@ -479,12 +479,13 @@ class Reactions(object):
         \n====SPECIES====
         \n{self.species}
         \n====REACTIONS====
-        \n columns: reactions dH_g[eV] dH_e[eV] rate_const_str rate_const rate
+        \n columns: reactions dH_g[eV] dH_e[eV] k_str rate_const rate
         \n{table}
-        \n====
+        \n====PROPERTIES====
         \nCLASS : {self.__class__}.
         \nType : {self.reaction_type}.
-        \n__{self.n_species}__ species. __{self.n_reactions}__ reactions.
+        \n__{self.n_species}__ species. 
+        \n__{self.n_reactions}__ reactions.
         """
         return output
 
@@ -499,6 +500,16 @@ class Reactions(object):
         },
             columns=['formula', 'dH_e', 'dH_g', 'k_str', 'rate_const', 'rate'])
         return output
+
+    def view_density(self, density):
+        _df = pd.DataFrame(index=self.species)
+        _df['density'] = density
+        return _df
+
+    def view_dndt(self):
+        _df = pd.DataFrame(index=self.species)
+        _df['dndt'] = self.get_dn()
+        return _df
 
 
 # ----------------------------------------------------------------------------------------------- #
@@ -518,6 +529,9 @@ class CoefReactions(Reactions):
         Calling format : self.k_str_compiled(Tgas_K=..., Te_eV=..., EN_Td=...)
 
     """
+    _operator_in_kstr = {'exp': math.exp,
+                         'log': math.log,
+                         'sqrt': math.sqrt}
     __slots__ = Reactions.__slots__ + ['rate_const_instance',
                                        'pre_exec_list',
                                        'pre_exec_list_compiled',
@@ -544,7 +558,7 @@ class CoefReactions(Reactions):
         \n{k_str_compiled}
         \n====MID_VARIABLES====
         \n{mid_variables}""".format(
-            pre_exec_list=r'\n'.join(self.pre_exec_list) if self.pre_exec_list else [],
+            pre_exec_list='\n'.join(self.pre_exec_list) if self.pre_exec_list else [],
             mid_variables=pd.Series(self.mid_variables),
             k_str_compiled=self.k_str_compiled)
         return Reactions.__str__(self) + output
@@ -576,11 +590,11 @@ class CoefReactions(Reactions):
         self.k_str_compiled = compile('({})'.format(', '.join(k_str_formated)), '<string>', 'eval')
 
     # ------------------------------------------------------------------------------------------- #
-    def set_rate_const_instance(self, rate_const_instance):
-        self.rate_const_instance = rate_const_instance
+    # def set_rate_const_instance(self, rate_const_instance):
+    #     self.rate_const_instance = rate_const_instance
 
     # ------------------------------------------------------------------------------------------- #
-    def set_rate_const(self, *, Tgas_K, Te_eV, EN_Td):
+    def set_rate_const(self, *, Tgas_K, Te_eV=None, EN_Td=None):
         r"""
         Calculate rate constants basing on k_str expressions.
             set self.mid_variables
@@ -603,16 +617,16 @@ class CoefReactions(Reactions):
             Electric field.
 
         """
-        assert isinstance(Tgas_K, float) or isinstance(Tgas_K, int)
-        assert isinstance(Te_eV, float) or isinstance(Te_eV, int)
-        assert isinstance(EN_Td, float) or isinstance(EN_Td, int)
+        assert isinstance(Tgas_K, (float, int))
+        assert isinstance(Te_eV, (float, int)) or Te_eV is None
+        assert isinstance(EN_Td, (float, int)) or EN_Td is None
         #
         self.mid_variables = {'EN': EN_Td, 'Tgas': Tgas_K, 'Te': Te_eV}
         if self.pre_exec_list is not None:
             for line_compiled in self.pre_exec_list_compiled:
-                exec(line_compiled, {'exp': math.exp}, self.mid_variables)
+                exec(line_compiled, self._operator_in_kstr, self.mid_variables)
         self.rate_const = np.array(eval(self.k_str_compiled,
-                                        {'exp': math.exp, 'log': math.log},
+                                        self._operator_in_kstr,
                                         self.mid_variables), dtype=np.float64)
         # --------------------------------------------------------------------------------------- #
         # self.rate_const_instance.set_density(density)
@@ -741,4 +755,7 @@ class MixReactions(Reactions):
         self.rate_const = np.hstack((self.cros_reactions.rate_const,
                                      self.coef_reactions.rate_const))
 
+
 # ----------------------------------------------------------------------------------------------- #
+if __name__ == "__main__":
+    pass
