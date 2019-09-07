@@ -192,6 +192,21 @@ def CO_vib_energy_in_eV(*, v):
     return get_vib_energy("CO", quantum_number=v, minimum_is_zero=True)
 
 
+def H2_vib_interval_eV(*, v_upper):
+    assert v_upper > 0
+    return H2_vib_energy_in_eV(v=v_upper) - H2_vib_energy_in_eV(v=v_upper - 1)
+
+
+# def CO2_vib_interval_eV(*, v_upper):
+#     assert v_upper > 0
+#     return CO2_vib_energy_in_eV(v=v_upper) - CO2_vib_energy_in_eV(v=v_upper - 1)
+
+
+def CO_vib_interval_eV(*, v_upper):
+    assert v_upper > 0
+    return CO_vib_energy_in_eV(v=v_upper) - CO_vib_energy_in_eV(v=v_upper - 1)
+
+
 if __name__ == "__main__":
     # yaml.add_constructor(u"!CO2", CO2_energy_constructor)
     yaml.add_constructor(u"!eval", eval_constructor)
