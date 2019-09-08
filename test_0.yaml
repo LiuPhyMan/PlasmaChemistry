@@ -6,6 +6,8 @@
         U:/__[FileSync]__/Coding/Python/CrossSectionFile/H2
     CO2: &CO2_cs_path
         E:/Coding/PlasmaChemistry/_cs_list/koelman2016
+    CO2_dis_path: &CO2_dis_cs_path
+        E:/Coding/PlasmaChemistry/_cs_list
     CO: &CO_cs_path
         E:/Coding/PlasmaChemistry/_cs_list/koelman2016
 
@@ -36,7 +38,7 @@
     - &CO_mass    28
 
 # =============================================================================================== #
-#   H2 kineticon
+#   H2 kinetic
 # =============================================================================================== #
 # ----------------------------------------------------------------------------------------------- #
 #   H2 electron vibration
@@ -63,11 +65,10 @@
                 _A_: v_lower
                 _B_: v_upper
             threshold:
-                _thres_: H2_vib_energy_in_eV(v=upper) - H2_vib_energy_in_eV(v=v_lower)
+                _thres_: H2_vib_energy_in_eV(v=v_upper) - H2_vib_energy_in_eV(v=v_lower)
         loop:
-            product:
-                v_lower: range(15)
-                v_upper: range(15)
+            v_lower: range(15)
+            v_upper: range(15)
         condition:
             v_lower < v_upper
 
@@ -78,7 +79,7 @@
     iterator:
         <<: *iterator_H2_ele_vib
         condition:
-            _from > _to
+            v_lower > v_upper
 
 # ----------------------------------------------------------------------------------------------- #
 #   H2 electron dissociation
@@ -96,24 +97,29 @@
             H2(v0): H2
 
 - Rctn_block: &H2_ele_dis_via_b
-    <<: *_H2_ele_dis
+    # <<: *_H2_ele_dis
+    type:
+        EXCITATION
+    formula:
+        E + H2(v_A_) => E + H + H
+    threshold:
+        [6.58, 4.06, 3.58, 3.12, 2.70,
+        2.30, 1.94, 1.60, 1.30, 1.02,
+        0.78, 0.56, 0.38, 0.22]
     kstr:
-        "cs_path/H2(X)_to_H2(_b)_to_2H/H2(v_A_)_to_H2(b)_to_2H.csv"
+        cs_path/H2(X)_to_H2(_b)_to_2H/H2(v_A_)_to_H2(b)_to_2H.csv
+    where:
+        abbr:
+            cs_path: *H2_cs_path
+            H2(v0): H2
     iterator:
         repl:
             formula:
                 _A_: v
             kstr:
                 _A_: v
-            threshold:
-                _thres_: thres
         loop:
-            zip:
-                v: range(14)
-                thres: [6.58, 4.06, 3.58, 3.12, 2.70,
-                        2.30, 1.94, 1.60, 1.30, 1.02,
-                        0.78, 0.56, 0.38, 0.22]
-
+            v: range(14)
 
 - Rctn_block: &H2_ele_dis_via_B
     <<: *_H2_ele_dis
@@ -189,48 +195,79 @@
                 _v: range(6)
 
 # =============================================================================================== #
-#   CO2 ele vibrational excitation
+#   CO2 ele kinetic
 # =============================================================================================== #
+# ----------------------------------------------------------------------------------------------- #
+#   CO2 electron vibration
+# ----------------------------------------------------------------------------------------------- #
 - Rctn_block: &CO2_ele_vib_forward
     type:
         EXCITATION
     formula:
         E + CO2(v_A_) => E + CO2(v_B_)
     kstr:
-        "cs_path/cs_set/scaling/CO2/0-21/cs_A@_excitation_B@.lut"
+        cs_path/cs_set/scaling/CO2/cs_CO2v_A__vibexc_CO2v_B_.lut
     threshold:
-        thres@
+        _thres_
     where:
         abbr:
             cs_path: *CO2_cs_path
             CO2(v0): CO2
-    iterator:
+    iterator: &iterator_CO2_ele_vib
         repl:
             formula:
-                A@: _from
-                B@: _to
+                _A_: v_lower
+                _B_: v_upper
             kstr:
-                A@: _from
-                B@: _to
+                _A_: v_lower
+                _B_: v_upper
             threshold:
-                thres@: CO2_vib_energy_in_eV(v=_to) - CO2_vib_energy_in_eV(v=_from)
+                _thres_: CO2_vib_energy_in_eV(v=(0,0,v_upper)) - CO2_vib_energy_in_eV(v=(0,0,v_lower))
         loop:
-            _from: range(21)
-            _to: range(21)
+            v_lower: range(21)
+            v_upper: range(21)
         condition:
-            _from < _to
+            v_lower < v_upper
 
 - Rctn_block: &CO2_ele_vib_backward
     <<: *CO2_ele_vib_forward
     type:
         DEEXCITATION
     kstr:
-        "cs_path/cs_set/scaling/CO2/0-21/cs_A@_excitation_B@.lut"
-    lambda:
-        "lambda x:
-        [x.replace('A@', f'CO2(v{_from})').replace('B@', f'CO2(v{_to})').replace('CO2(v0)', 'CO2')
-        for _from in range(22)
-        for _to in range(22) if _from > _to]"
+        cs_path/cs_set/reverse/CO2/cs_CO2v_B__vibexc_CO2v_A__reverse.lut
+    iterator:
+        <<: *iterator_CO2_ele_vib
+        condition:
+            v_lower > v_upper
+
+# ----------------------------------------------------------------------------------------------- #
+#   CO2 electron dissociation
+# ----------------------------------------------------------------------------------------------- #
+- Rctn_block: &CO2_ele_diss
+    type:
+        EXCITATION
+    formula:
+        E + CO2(v_A_) => E + CO + O
+    threshold: # for the 10 eV channel, TODO
+        [12.00, 11.709, 11.421, 11.135, 10.854,
+        10.575, 10.299, 10.026, 9.7565, 9.49,
+        9.2265, 8.9662, 8.7089, 8.4548, 8.2037,
+        7.9557, 7.7109, 7.4691, 7.2304, 6.9948,
+        6.7623, 6.5328]
+    kstr:
+        cs_path/CO2_dis/cs_CO2v_A__diss_CO_O.dat
+    where:
+        abbr:
+            cs_path: *CO2_dis_cs_path
+            CO2(v0): CO2
+    iterator:
+        repl:
+            formula:
+                _A_: v
+            kstr:
+                _A_: v
+        loop:
+            v: range(22)
 
 # ----------------------------------------------------------------------------------------------- #
 #   CO ele vibrational excitation
@@ -373,10 +410,12 @@
 - The reactions considered:
     # - *CO2_VT_with_CO
     electron reactions:
-        H2_ele_vib_rctn_forward:  *H2_ele_vib_rctn_forward
-        H2_ele_vib_rctn_backward: *H2_ele_vib_rctn_backward
-        # H2_ele_dis_rctn_via_b:    *H2_ele_dis_rctn_via_b
-        # CO2_ele_vib_rctn_forward: *CO2_ele_vib_rctn_forward
+        H2_ele_vib_forward:     *H2_ele_vib_forward
+        H2_ele_vib_backward:    *H2_ele_vib_backward
+        H2_ele_dis_via_b:       *H2_ele_dis_via_b
+        CO2_ele_vib_forward:    *CO2_ele_vib_forward
+        CO2_ele_vib_backward:   *CO2_ele_vib_backward
+        CO2_ele_diss:           *CO2_ele_diss
         # CO_ele_vib_rctn_forward: *CO_ele_vib_rctn_forward
         # CO_ele_vib_rctn_backward: *CO_ele_vib_rctn_backward
         CO2_VT_with_CO2: *CO2_VT_with_CO2
@@ -384,3 +423,4 @@
     # - *H2_ele_dis_rctn_via_B
     # - *H2_ele_dis_rctn_via_B_1
     # - *H2_ele_dis_rctn_via_B_2
+# 
