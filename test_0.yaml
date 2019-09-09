@@ -416,11 +416,10 @@
         CO2_ele_vib_forward:    *CO2_ele_vib_forward
         CO2_ele_vib_backward:   *CO2_ele_vib_backward
         CO2_ele_diss:           *CO2_ele_diss
-        # CO_ele_vib_rctn_forward: *CO_ele_vib_rctn_forward
-        # CO_ele_vib_rctn_backward: *CO_ele_vib_rctn_backward
-        CO2_VT_with_CO2: *CO2_VT_with_CO2
-        CO2=>CO+O: *CO2_vib_to_CO_O
-    # - *H2_ele_dis_rctn_via_B
+        CO_ele_vib_forward:     *CO_ele_vib_rctn_forward
+        CO_ele_vib_backward:    *CO_ele_vib_rctn_backward
+        CO2_VT_with_CO2:        *CO2_VT_with_CO2
+        CO2=>CO+O:              *CO2_vib_to_CO_O
     # - *H2_ele_dis_rctn_via_B_1
     # - *H2_ele_dis_rctn_via_B_2
 # 
