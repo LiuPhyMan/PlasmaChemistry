@@ -9,8 +9,35 @@ Created on 20:09 2018/10/25
 @IDE:       PyCharm
 """
 import re
+import numpy as np
+import pandas as pd
+from matplotlib import pyplot as plt
 from plasmistry.io import read_reactionFile
 from plasmistry import constants as const
+from yaml_demo import H2_vib_energy_in_eV
+
+
+class H2_vib_group(object):
+    def __init__(self, *, total_density, Tvib_K):
+        self.total_density = total_density
+        self.formula = ['H2'] + [f'H2(v{v})' for v in range(1, 15)]
+        self.vib_energy = np.array([H2_vib_energy_in_eV(v=v) for v in range(15)])
+        self.set_Tvib_K(Tvib_K)
+
+    def set_Tvib_K(self, Tvib_K):
+        _distri_factor = np.exp(-self.vib_energy / (Tvib_K * const.K2eV))
+        self.densities = self.total_density / _distri_factor.sum() * _distri_factor
+
+    def view(self):
+        _df = pd.DataFrame(self.vib_energy, index=self.formula, columns=['vib_energy'])
+        _df['density'] = self.densities
+        _df['ratio'] = [f'{_ * 100:.1f}%' for _ in self.densities / self.total_density]
+        return _df
+
+    def plot_vdf(self):
+        _ratio = self.densities / self.total_density
+        plt.semilogy(self.vib_energy, _ratio, marker='.')
+        plt.xticks(self.vib_energy, range(len(self.vib_energy)))
 
 
 # ----------------------------------------------------------------------------------------------- #
@@ -70,20 +97,7 @@ def treat_multi_cmds(origin_line, _cmds):
 
 
 if __name__ == "__main__":
-    with open("_rctn_list\H2.inp") as f:
-        line_list = f.readlines()
-    start_line = 123
-    end_line = 131
-    line_list = line_list[start_line - 1:end_line]
-    lines = ''.join(line_list)
-    # merge the lines end with \ to the following one.
-    lines = re.sub('\\\\\s*\n\s*', ' ', lines)
-    # split the lines to lines list.
-    line_list = lines.split('\n')
-    # # trip the lines.
-    line_list = [_.strip() for _ in line_list]
-    # ------------------------------------------------------------------------------------------- #
-    treat_where_or_lambda_cmds()
+    pass
 
     # temp = read_reactionFile('_rctn_list\H2.inp', start_line=123, end_line=131)
 

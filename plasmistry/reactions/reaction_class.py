@@ -504,6 +504,7 @@ class Reactions(object):
     def view_density(self, density):
         _df = pd.DataFrame(index=self.species)
         _df['density'] = density
+        _df['ratio'] = [f'{_ * 100:.1f}%' for _ in density / density.sum()]
         return _df
 
     def view_dndt(self):

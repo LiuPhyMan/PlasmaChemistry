@@ -101,14 +101,25 @@ class Reaction_block(object):
 
     @staticmethod
     def repl_func(x, _repl, _iter):
-        assert len(_iter['loop']) in (1, 2)
         _str_expr = f"'{x}'." + '.'.join([f"replace('{k}', str({v}))" for k, v in _repl.items()])
-        _loop_expr = ' '.join([f'for {key} in {value}' for key, value in _iter['loop'].items()])
+        # product loop
+        _iter_loop = _iter['loop']
+        if 'product' in _iter_loop:
+            _loop_dict = _iter_loop['product']
+            _loop_expr = ' '.join([f'for {key} in {value}'
+                                   for key, value in _loop_dict.items()])
+        # zip loop
+        elif 'zip' in _iter_loop:
+            _loop_dict = _iter_loop['zip']
+            _loop_expr = 'for {key} in zip({value})'.format(key=', '.join(_loop_dict.keys()),
+                                                            value=', '.join(_loop_dict.values()))
+        else:
+            raise Exception(f"product or zip is not in loop. {_iter}")
         if 'condition' in _iter:
             _expr = f"[{_str_expr} {_loop_expr} if {_iter['condition']}]"
         else:
             _expr = f"[{_str_expr} {_loop_expr}]"
-        # print(_expr)
+        print(_expr)
         return _expr
 
 
@@ -187,12 +198,24 @@ def H2_vib_energy_in_eV(*, v):
     return get_vib_energy('H2', quantum_number=v, minimum_is_zero=True)
 
 
+def H2_vib_energy_in_K(*, v):
+    return H2_vib_energy_in_eV(v=v) * const.eV2K
+
+
 def CO2_vib_energy_in_eV(*, v):
     return get_vib_energy('CO2', quantum_number=v, minimum_is_zero=True)
 
 
+def CO2_vib_energy_in_K(*, v):
+    return CO2_vib_energy_in_eV(v=v) * const.eV2K
+
+
 def CO_vib_energy_in_eV(*, v):
     return get_vib_energy("CO", quantum_number=v, minimum_is_zero=True)
+
+
+def CO_vib_energy_in_K(*, v):
+    return CO_vib_energy_in_eV(v=v) * const.eV2K
 
 
 def H2_vib_interval_eV(*, v_upper):
