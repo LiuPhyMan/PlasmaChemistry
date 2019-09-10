@@ -144,7 +144,7 @@ user_dir: &user_home /home/user
 user_pics: *user_home
 
 ---
-kstr: |
+kstr: -
   cs_path/
     H2(X)_to_H2(X)_vibexc/
     H2A_H2B.csv
