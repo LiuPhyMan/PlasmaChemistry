@@ -2,12 +2,14 @@
 #   Global variables
 # ----------------------------------------------------------------------------------------------- #
 - PATH:
-    H2: &H2_cs_path
+    - &H2_cs_path
         U:/__[FileSync]__/Coding/Python/CrossSectionFile/H2
-    CO2: &CO2_cs_path
+    - &CO2_cs_path
         E:/Coding/PlasmaChemistry/_cs_list/koelman2016
-    CO: &CO_cs_path
+    - &CO_cs_path
         E:/Coding/PlasmaChemistry/_cs_list/koelman2016
+    - &CO2_dis_cs_path
+        E:/Coding/PlasmaChemistry/_cs_list/CO2_dis
 
 - H2_vib: &H2_vib_0-14
     [
@@ -200,7 +202,7 @@
         abbr:
             cs_path: *CO2_cs_path
             CO2(v0): CO2
-    iterator:
+    iterator: &iterator_CO2_ele_vib
         repl:
             formula:
                 A@: _from
@@ -232,6 +234,7 @@
 #   CO2 electron dissociation
 # ----------------------------------------------------------------------------------------------- #
 - Rctn_block: &CO2_ele_diss
+    # through 10 eV channel
     type:
         EXCITATION
     formula:
