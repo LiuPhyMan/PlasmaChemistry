@@ -65,7 +65,7 @@
                 _A_: v_lower
                 _B_: v_upper
             threshold:
-                _thres_: H2_vib_energy_in_eV(v=upper) - H2_vib_energy_in_eV(v=v_lower)
+                _thres_: H2_vib_energy_in_eV(v=v_upper) - H2_vib_energy_in_eV(v=v_lower)
         loop:
             product:
                 v_lower: range(15)
@@ -195,9 +195,9 @@
     formula:
         E + CO2(v_A_) => E + CO2(v_B_)
     kstr:
-        "cs_path/cs_set/scaling/CO2/0-21/cs_A@_excitation_B@.lut"
+        cs_path/cs_set/scaling/CO2/cs_CO2v_A__vibexc_CO2v_B_.lut
     threshold:
-        thres@
+        _thres_
     where:
         abbr:
             cs_path: *CO2_cs_path
@@ -205,19 +205,20 @@
     iterator: &iterator_CO2_ele_vib
         repl:
             formula:
-                A@: _from
-                B@: _to
+                _A_: v_lower
+                _B_: v_upper
             kstr:
-                A@: _from
-                B@: _to
+                _A_: v_lower
+                _B_: v_upper
             threshold:
-                thres@: CO2_vib_energy_in_eV(v=_to) - CO2_vib_energy_in_eV(v=_from)
+                _thres_: CO2_vib_energy_in_eV(v=(0,0,v_upper)) 
+                        -CO2_vib_energy_in_eV(v=(0,0,v_lower))
         loop:
             product:
                 v_lower: range(21)
                 v_upper: range(21)
         condition:
-            _from < _to
+            v_lower < v_upper
 
 - Rctn_block: &CO2_ele_vib_backward
     <<: *CO2_ele_vib_forward
@@ -330,7 +331,7 @@
 #             - F:      0.5 * (3 - exp(-2/3*Lij)) * exp(-2/3*Lij)
 
 
-- Rctn_block: &CO2_VT_with_CO2
+- Rctn_block: &CO2_VT_with_CO2_forward
     type:
         VT
     formula:
@@ -362,8 +363,8 @@
                 _M_: [CO,]
                 _i_: range(1, 22)
 
-- Rctn_block: &CO2_VT_with_CO2_reversed
-    <<: *CO2_VT_with_CO2
+- Rctn_block: &CO2_VT_with_CO2_backward
+    <<: *CO2_VT_with_CO2_forward
     formula:
         CO2(v_B_) + _M_ => CO2(v_A_) + _M_
     kstr:
@@ -437,8 +438,9 @@
         CO_ele_vib_backward:    *CO_ele_vib_backward
         # CO_ele_dis
         # CO_ele_vib_backward:    *CO_ele_vib_rctn_backward
-        CO2_VT_with_CO2:            *CO2_VT_with_CO2
-        CO2_VT_with_CO2_reversed:   *CO2_VT_with_CO2_reversed
+    relaxation reactions:
+        CO2_VT_with_CO2_forward:    *CO2_VT_with_CO2_forward
+        CO2_VT_with_CO2_backward:   *CO2_VT_with_CO2_backward
         # CO2=>CO+O:              *CO2_vib_to_CO_O
     # - *H2_ele_dis_rctn_via_B_1
     # - *H2_ele_dis_rctn_via_B_2

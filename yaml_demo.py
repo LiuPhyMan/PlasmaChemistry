@@ -119,7 +119,7 @@ class Reaction_block(object):
             _expr = f"[{_str_expr} {_loop_expr} if {_iter['condition']}]"
         else:
             _expr = f"[{_str_expr} {_loop_expr}]"
-        print(_expr)
+        # print(_expr)
         return _expr
 
 
