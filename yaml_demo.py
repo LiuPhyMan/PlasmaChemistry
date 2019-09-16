@@ -142,9 +142,12 @@ class Cros_Reaction_block(Reaction_block):
     def _set_threshold_list(self):
         self._threshold = self.rctn_dict['threshold']
         _iter = self.rctn_dict['iterator']
-        self._threshold_list = eval(self.repl_func(self._threshold,
-                                                   _iter['repl']['threshold'],
-                                                   _iter))
+        if 'threshold' in _iter['repl']:
+            self._threshold_list = eval(self.repl_func(self._threshold,
+                                                       _iter['repl']['threshold'],
+                                                       _iter))
+        else:
+            self._threshold_list = self._threshold
 
     def generate_crostn_dataframe(self, *, factor=1):
         _df = dict()
@@ -154,7 +157,9 @@ class Cros_Reaction_block(Reaction_block):
         _df["cross_section"] = [np.vstack((np.loadtxt(_path, comments="#")[:, 0],
                                            np.loadtxt(_path, comments="#")[:, 1] * factor))
                                 for _path in self._kstr_list]
-        return pd.DataFrame(data=_df, index=range(self.size))
+        _df = pd.DataFrame(data=_df, index=range(self.size))
+        _df = _df.astype({'threshold_eV': np.float})
+        return _df
 
 
 class Coef_Reaction_block(Reaction_block):

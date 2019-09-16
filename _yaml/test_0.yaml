@@ -215,8 +215,8 @@
                         -CO2_vib_energy_in_eV(v=(0,0,v_lower))
         loop:
             product:
-                v_lower: range(21)
-                v_upper: range(21)
+                v_lower: range(22)
+                v_upper: range(22)
         condition:
             v_lower < v_upper
 
