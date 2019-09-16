@@ -12,6 +12,8 @@ import numpy as np
 import pandas as pd
 
 number_regexp = r"[+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?"
+
+
 # ----------------------------------------------------------------------------------------------- #
 class IoReactionsError(Exception):
     pass
@@ -428,6 +430,160 @@ def read_reactionList(reaction_list):
                                       k_str=k_strM))
     reaction_info = reaction_info[['reactant', 'product', 'dH', 'k_str']]
     return dict(reaction_info=reaction_info)
+
+
+class Reaction_block(object):
+
+    def __init__(self, *, rctn_dict=None):
+        super().__init__()
+        self._formula = None
+        self._kstr = None
+        self._formula_list = None
+        self._kstr_list = None
+        self._type_list = None
+        if rctn_dict is not None:
+            self.rctn_dict = rctn_dict
+            self._formula = rctn_dict['formula']
+            self._kstr = rctn_dict['kstr']
+            self._treat_where_vari()
+            self._treat_iterator()
+            self._treat_where_abbr()
+
+    @property
+    def _reactant_str_list(self):
+        return [re.split(r"\s*<?=>\s*", _)[0] for _ in self._formula_list]
+
+    @property
+    def _product_str_list(self):
+        return [re.split(r"\s*<?=>\s*", _)[1] for _ in self._formula_list]
+
+    @property
+    def size(self):
+        assert len(self._formula_list) == len(self._kstr_list)
+        return len(self._formula_list)
+
+    def __add__(self, other):
+        result = Reaction_block()
+        result._formula_list = self._formula_list + other._formula_list
+        result._kstr_list = self._kstr_list + other._kstr_list
+        result._type_list = self._type_list + other._type_list
+        return result
+
+    def _treat_iterator(self):
+        if 'iterator' not in self.rctn_dict:
+            return None
+        else:
+            _iter = self.rctn_dict['iterator']
+            if 'formula' in _iter['repl']:
+                _formula_list = eval(self.repl_func(self._formula,
+                                                    _iter['repl']['formula'],
+                                                    _iter))
+            if 'kstr' in _iter['repl']:
+                _kstr_list = eval(self.repl_func(self._kstr,
+                                                 _iter['repl']['kstr'],
+                                                 _iter))
+        self._formula_list = _formula_list
+        self._kstr_list = _kstr_list
+        self._type_list = [self.rctn_dict['type'] for _ in range(len(self._kstr_list))]
+
+    def _treat_where_abbr(self):
+        # --------------------------------------------------------------------------------------- #
+        #   treat 'where' part.
+        # --------------------------------------------------------------------------------------- #
+        if 'where' in self.rctn_dict:
+            if 'abbr' in self.rctn_dict['where']:
+                for _key in self.rctn_dict['where']['abbr']:
+                    _value = self.rctn_dict['where']['abbr'][_key]
+                    self._formula_list = [_.replace(_key, _value) for _ in self._formula_list]
+                    self._kstr_list = [_.replace(_key, _value) for _ in self._kstr_list]
+
+    def _treat_where_vari(self):
+        if 'where' in self.rctn_dict:
+            if 'vari' in self.rctn_dict['where']:
+                reversed_vari_list = self.rctn_dict['where']['vari'][::-1]
+                for _key_value in reversed_vari_list:
+                    _key = list(_key_value.items())[0][0]
+                    _value = f"({str(list(_key_value.items())[0][1])})"
+                    self._kstr = self._kstr.replace(_key, _value)
+
+    @staticmethod
+    def repl_func(x, _repl, _iter):
+        _str_expr = f"'{x}'." + '.'.join([f"replace('{k}', str({v}))" for k, v in _repl.items()])
+        # product loop
+        _iter_loop = _iter['loop']
+        if 'product' in _iter_loop:
+            _loop_dict = _iter_loop['product']
+            _loop_expr = ' '.join([f'for {key} in {value}'
+                                   for key, value in _loop_dict.items()])
+        # zip loop
+        elif 'zip' in _iter_loop:
+            _loop_dict = _iter_loop['zip']
+            _loop_expr = 'for {key} in zip({value})'.format(key=', '.join(_loop_dict.keys()),
+                                                            value=', '.join(_loop_dict.values()))
+        else:
+            raise Exception(f"product or zip is not in loop. {_iter}")
+        if 'condition' in _iter:
+            _expr = f"[{_str_expr} {_loop_expr} if {_iter['condition']}]"
+        else:
+            _expr = f"[{_str_expr} {_loop_expr}]"
+        # print(_expr)
+        return _expr
+
+
+class Cros_Reaction_block(Reaction_block):
+
+    def __init__(self, *, rctn_dict=None):
+        super().__init__(rctn_dict=rctn_dict)
+        if rctn_dict is not None:
+            self._threshold = self.rctn_dict["threshold"]
+        self._set_threshold_list()
+
+    def __add__(self, other):
+        result = Cros_Reaction_block()
+        result._formula_list = self._formula_list + other._formula_list
+        result._kstr_list = self._kstr_list + other._kstr_list
+        result._type_list = self._type_list + other._type_list
+        result._threshold_list = self._threshold_list + other._threshold_list
+        return result
+
+    def _set_threshold_list(self):
+        self._threshold = self.rctn_dict['threshold']
+        _iter = self.rctn_dict['iterator']
+        if 'threshold' in _iter['repl']:
+            self._threshold_list = eval(self.repl_func(self._threshold,
+                                                       _iter['repl']['threshold'],
+                                                       _iter))
+        else:
+            self._threshold_list = self._threshold
+
+    def generate_crostn_dataframe(self, *, factor=1):
+        _df = dict()
+        _df["formula"] = self._formula_list
+        _df["type"] = self._type_list
+        _df["threshold_eV"] = self._threshold_list
+        _df["cross_section"] = [np.vstack((np.loadtxt(_path, comments="#")[:, 0],
+                                           np.loadtxt(_path, comments="#")[:, 1] * factor))
+                                for _path in self._kstr_list]
+        _df = pd.DataFrame(data=_df, index=range(self.size))
+        _df = _df.astype({'threshold_eV': np.float})
+        return _df
+
+
+class Coef_Reaction_block(Reaction_block):
+
+    def __init__(self, *, rctn_dict=None):
+        super().__init__(rctn_dict=rctn_dict)
+
+    def generate_crostn_dataframe(self):
+        _df = dict()
+        _df["formula"] = self._formula_list
+
+        _df['reactant'] = [re.split(r"\s*=>\s*", _)[0] for _ in self._formula_list]
+        _df['product'] = [re.split(r"\s*=>\s*", _)[1] for _ in self._formula_list]
+
+        _df["type"] = self._type_list
+        _df["kstr"] = self._kstr_list
+        return pd.DataFrame(data=_df, index=range(self.size))
 
 # ----------------------------------------------------------------------------------------------- #
 # def __instance_from_rcnt_prdt_dH_k_str(rcnt, prdt, dH, k_str, *, pre_exec_list, class_name):
