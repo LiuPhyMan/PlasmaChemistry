@@ -60,6 +60,10 @@ class Molecule_vib_group(object):
         plt.semilogy(self.vib_energy, _ratio, marker='.')
         plt.xticks(self.vib_energy, range(len(self.vib_energy)))
 
+    def __repr__(self):
+        _str = self.view().__str__() + f"\nTotal density: {self.total_density}"
+        return _str
+
 
 class H2_vib_group(Molecule_vib_group):
     def __init__(self, *, total_density, Tvib_K, max_v=14):

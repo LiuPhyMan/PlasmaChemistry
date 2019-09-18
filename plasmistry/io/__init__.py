@@ -106,7 +106,24 @@ def split_reaction_dataframe(reaction_dataframe, *, cs_sign):
     return copy.deepcopy(cros_dataframe), copy.deepcopy(coef_dataframe)
 
 
-# %%--------------------------------------------------------------------------------------------- #
+def eval_constructor(loader, node):
+    _str = loader.construct_scalar(node)
+    return eval(_str)
+
+
+def LT_constructor(loader, node):
+    _list = loader.construct_sequence(node)
+    A, B, C = _list
+    return f"({A})*exp(({B})*Tgas**(-1/3)+({C})*Tgas**(-2/3))"
+
+
+def Arr_constructor(loader, node):
+    _list = loader.construct_sequence(node)
+    A, b, E = _list
+    return f"({A})*Tgas**({b})*exp(-({E})/Tgas)"
+
+
+# ----------------------------------------------------------------------------------------------- #
 __all__ = [s for s in dir() if not s.startswith('_')]
 
 from numpy.testing import Tester

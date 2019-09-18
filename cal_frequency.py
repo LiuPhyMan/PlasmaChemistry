@@ -13,13 +13,25 @@ F = 2e-3 / 60
 vz = F / S
 
 
-def Fd(f):
-    _Fd = math.pi * Cd * tho * D * r * f * np.sqrt((2 * math.pi * r * f) ** 2 + vz ** 2)
+def Fd_with_vz(f):
+    _Fd = math.pi * Cd * tho * D * r * f * \
+          np.sqrt((2 * math.pi * r * f) ** 2 + vz ** 2)
     return _Fd
 
 
-def Md(f):
-    _Fd = Fd(f)
+def Fd_without_vz(f):
+    _Fd = math.pi * Cd * tho * D * r * f * \
+          np.sqrt((2 * math.pi * r * f) ** 2)
+    return _Fd
+
+
+def Md_with_vz(f):
+    _Fd = Fd_with_vz(f)
+    return (_Fd * r).sum() * dr
+
+
+def Md_without_vz(f):
+    _Fd = Fd_without_vz(f)
     return (_Fd * r).sum() * dr
 
 
@@ -38,11 +50,18 @@ Md_array = r"""
 Md_array = [float(_) for _ in Md_array.split()]
 
 
-def find(_Md):
-    _f_array = np.linspace(1, 40, num=300)
-    _Md_array = np.array([Md(f) for f in _f_array])
+def find_with_vz(_Md):
+    _f_array = np.linspace(1, 40, num=3901)
+    _Md_array = np.array([Md_with_vz(f) for f in _f_array])
+    return _f_array[np.abs(_Md_array - _Md).argmin()]
+
+
+def find_without_vz(_Md):
+    _f_array = np.linspace(1, 40, num=3901)
+    _Md_array = np.array([Md_without_vz(f) for f in _f_array])
     return _f_array[np.abs(_Md_array - _Md).argmin()]
 
 
 for _ in Md_array:
-    print(find(_))
+    print(find_with_vz(_), end=' ')
+    print(find_without_vz(_))
