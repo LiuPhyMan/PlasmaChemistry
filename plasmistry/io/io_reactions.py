@@ -14,7 +14,7 @@ import pandas as pd
 number_regexp = r"[+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?"
 
 
-# ----------------------------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
 class IoReactionsError(Exception):
     pass
 
@@ -75,7 +75,7 @@ def __get_delete_dH(_str):
     return dH, _str_deleted
 
 
-# ----------------------------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
 def __read_rcnt_prdt_dH_kStr(reaction_str):
     r"""
     Read reaction string.
@@ -129,7 +129,7 @@ def __read_rcnt_prdt_dH_kStr(reaction_str):
     return rcnt_str, prdt_str, dH, k_str
 
 
-# ----------------------------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
 def __read_reactionlist_block(line, replc_input):
     r"""
     Read reactions block.
@@ -240,7 +240,7 @@ def __read_reactionlist_block(line, replc_input):
     return rcntM, prdtM, dHM, k_strM
 
 
-# ----------------------------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
 def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
     r"""
     Read a file of reactions from start_line position to end_line position
@@ -409,7 +409,7 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                     pre_exec_list=pre_exec_list)
 
 
-# ----------------------------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
 def read_reactionList(reaction_list):
     r"""
     Read list of reaction string.
@@ -453,13 +453,14 @@ def read_reactionList(reaction_list):
 
 class Reaction_block(object):
 
-    def __init__(self, *, rctn_dict=None):
+    def __init__(self, *, rctn_dict=None, vari_dict=None):
         super().__init__()
         self._formula = None
         self._kstr = None
         self._formula_list = None
         self._kstr_list = None
         self._type_list = None
+        self._vari_dict = vari_dict
         if rctn_dict is not None:
             self.rctn_dict = rctn_dict
             self._formula = rctn_dict['formula']
@@ -488,6 +489,9 @@ class Reaction_block(object):
         result._type_list = self._type_list + other._type_list
         return result
 
+    def add_variable_dict(self, *, _dict):
+        self._variable_dict = _dict
+
     def _treat_iterator(self):
         if 'iterator' not in self.rctn_dict:
             return None
@@ -496,11 +500,13 @@ class Reaction_block(object):
             if 'formula' in _iter['repl']:
                 _formula_list = eval(self.repl_func(self._formula,
                                                     _iter['repl']['formula'],
-                                                    _iter))
+                                                    _iter),
+                                     self._vari_dict)
             if 'kstr' in _iter['repl']:
                 _kstr_list = eval(self.repl_func(self._kstr,
                                                  _iter['repl']['kstr'],
-                                                 _iter))
+                                                 _iter),
+                                  self._vari_dict)
         self._formula_list = _formula_list
         self._kstr_list = _kstr_list
         self._type_list = [self.rctn_dict['type'] for _ in
@@ -558,14 +564,15 @@ class Reaction_block(object):
             _expr = f"[{_str_expr} {_loop_expr} if {_iter['condition']}]"
         else:
             _expr = f"[{_str_expr} {_loop_expr}]"
-        print(_expr)
+        # print(_expr)
         return _expr
 
 
+# --------------------------------------------------------------------------- #
 class Cros_Reaction_block(Reaction_block):
 
-    def __init__(self, *, rctn_dict=None):
-        super().__init__(rctn_dict=rctn_dict)
+    def __init__(self, *, rctn_dict=None, vari_dict=None):
+        super().__init__(rctn_dict=rctn_dict, vari_dict=vari_dict)
         if rctn_dict is not None:
             self._threshold = self.rctn_dict["threshold"]
         self._set_threshold_list()
@@ -585,8 +592,7 @@ class Cros_Reaction_block(Reaction_block):
             _eval_str = self.repl_func(self._threshold,
                                        _iter['repl']['threshold'],
                                        _iter)
-            print(_eval_str)
-            self._threshold_list = eval(_eval_str)
+            self._threshold_list = eval(_eval_str, self._vari_dict)
         else:
             self._threshold_list = self._threshold
 
@@ -604,6 +610,7 @@ class Cros_Reaction_block(Reaction_block):
         return _df
 
 
+# --------------------------------------------------------------------------- #
 class Coef_Reaction_block(Reaction_block):
 
     def __init__(self, *, rctn_dict=None):
@@ -622,101 +629,4 @@ class Coef_Reaction_block(Reaction_block):
         _df["kstr"] = self._kstr_list
         return pd.DataFrame(data=_df, index=range(self.size))
 
-# ----------------------------------------------------------------------------------------------- #
-# def __instance_from_rcnt_prdt_dH_k_str(rcnt, prdt, dH, k_str, *, pre_exec_list, class_name):
-#     r"""
-#     Instance
-#     Parameters
-#     ----------
-#     rcnt
-#
-#     prdt
-#
-#     dH
-#
-#     k_str
-#
-#     pre_exec_list
-#
-#     class_name
-#
-#     Returns
-#     -------
-#
-#     """
-#     if issubclass(class_name, CrosReactions):
-#         return class_name(reactant=rcnt, product=prdt, k_str=k_str, dH_e=dH)
-#     elif issubclass(class_name, CoefReactions):
-#         return class_name(reactant=rcnt, product=prdt, k_str=k_str, dH_g=dH)
-#     elif issubclass(class_name, MixReactions):
-#         cros_bool = k_str.str.startswith('BOLSIG')
-#         coef_bool = ~cros_bool
-#         lamb_bool_index = lambda _bool, _series: _series[_bool].reset_index(drop=True)
-#         assert (not cros_bool.all()) and (not coef_bool.all()), "MixReactions is not suited."
-#         cros_instance = CrosReactions(reactant=lamb_bool_index(cros_bool, rcnt),
-#                                       product=lamb_bool_index(cros_bool, prdt),
-#                                       k_str=lamb_bool_index(cros_bool, k_str),
-#                                       dH_e=lamb_bool_index(cros_bool, dH))
-#         coef_instance = CoefReactions(reactant=lamb_bool_index(coef_bool, rcnt),
-#                                       product=lamb_bool_index(coef_bool, prdt),
-#                                       k_str=lamb_bool_index(coef_bool, k_str),
-#                                       dH_g=lamb_bool_index(coef_bool, dH))
-#         coef_instance.set_pre_exec_list(pre_exec_list)
-#         coef_instance.compile_k_str()
-#         return dict(coef_reactions=coef_instance,
-#                     cros_reactions=cros_instance)
-#     else:
-#         raise IoReactionsError('Class name is error.')
-#
-#
-# def instance_reactionFile(*, file_path, class_name, start_line=-math.inf, end_line=math.inf):
-# r"""
-# Read reactions from file_path and instance it in a specific class.
-#
-# Parameters
-# ----------
-# file_path : str
-#     Reaction file path
-# class_name : Reactions class
-#
-# start_line
-#
-# end_line
-#
-# Returns
-# -------
-#
-# """
-# assert isinstance(file_path, str)
-# assert issubclass(class_name, Reactions)
-#
-# rcnt, prdt, dH, k_str, pre_exec_list = read_reactionFile(file_path, start_line, end_line)
-# return __instance_from_rcnt_prdt_dH_k_str(rcnt, prdt, dH, k_str,
-#                                           pre_exec_list=pre_exec_list,
-#                                           class_name=class_name)
-
-
-# ----------------------------------------------------------------------------------------------- #
-# def instance_reactionList(*, reaction_list, class_name):
-# r"""
-# Read reactions from file_path and instance it in a specific class.
-#
-# Parameters
-# ----------
-# reaction_list : list
-#     Reactions list.
-# class_name
-#
-# Returns
-# -------
-#
-# """
-# assert isinstance(reaction_list, list)
-# assert issubclass(class_name, Reactions)
-#
-# rcnt, prdt, dH, k_str = read_reactionList(reaction_list)
-# return __instance_from_rcnt_prdt_dH_k_str(rcnt, prdt, dH, k_str,
-#                                           pre_exec_list=[],
-#                                           class_name=class_name)
-
-# ----------------------------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
