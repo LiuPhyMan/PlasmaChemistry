@@ -613,8 +613,8 @@ class Cros_Reaction_block(Reaction_block):
 # --------------------------------------------------------------------------- #
 class Coef_Reaction_block(Reaction_block):
 
-    def __init__(self, *, rctn_dict=None):
-        super().__init__(rctn_dict=rctn_dict)
+    def __init__(self, *, rctn_dict=None, vari_dict=None):
+        super().__init__(rctn_dict=rctn_dict, vari_dict=vari_dict)
 
     def generate_crostn_dataframe(self):
         _df = dict()
