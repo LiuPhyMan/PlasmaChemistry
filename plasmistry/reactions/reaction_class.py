@@ -91,6 +91,7 @@ class Reactions(object):
                  'species',
                  'reactant',
                  'product',
+                 'formula',
                  'n_species',
                  'n_reactions',
                  'k_str',
@@ -134,6 +135,7 @@ class Reactions(object):
         # --------------------------------------------------------------------------------------- #
         self.reactant = self.format_cmpnds(pd.Series(reactant))
         self.product = self.format_cmpnds(pd.Series(product))
+        self.formula = self.reactant + ' => ' + self.product
         _temp = re.findall(self.specie_regexp,
                            " ".join(self.reactant + " " + self.product))
         # self.species = pd.Series(np.unique([_ for _ in _temp if _ != ""]))
@@ -529,6 +531,20 @@ class Reactions(object):
         _df['density'] = density
         _df['ratio'] = [f'{_ * 100:.1f}%' for _ in density / density.sum()]
         return _df
+
+    def view_rate_const_and_rate(self):
+        _df = pd.DataFrame(index=range(self.n_reactions))
+        _df['formula'] = self.formula.values
+        _df['rate_const'] = self.rate_const
+        _df['rate'] = self.rate
+        return _df
+
+
+    # def view_rate(self):
+    #     _df = pd.DataFrame(index=range(self.n_reactions))
+    #     _df['formula'] = self.formula
+    #     _df['rate'] = self.rate
+
 
     def view_dndt(self):
         _df = pd.DataFrame(index=self.species)

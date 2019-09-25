@@ -65,3 +65,4 @@ def find_without_vz(_Md):
 for _ in Md_array:
     print(find_with_vz(_), end=' ')
     print(find_without_vz(_))
+if __name

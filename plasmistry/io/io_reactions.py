@@ -494,6 +494,9 @@ class Reaction_block(object):
 
     def _treat_iterator(self):
         if 'iterator' not in self.rctn_dict:
+            self._formula_list = [self._formula,]
+            self._kstr_list = [self._kstr,]
+            self._type_list = [self.rctn_dict['type'],]
             return None
         else:
             _iter = self.rctn_dict['iterator']

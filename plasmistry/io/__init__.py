@@ -53,28 +53,36 @@ def combine_crostn_reaction_dataframe(*, crostn_dataframe, reactn_dataframe):
     """
     assert isinstance(crostn_dataframe, DataFrame_type)
     assert isinstance(reactn_dataframe, DataFrame_type)
-    assert set(crostn_dataframe.columns) >= {'cs_key', 'type', 'thres_info', 'cross_section'}
-    assert set(reactn_dataframe.columns) >= {'reactant', 'product', 'dH', 'k_str'}
+    assert set(crostn_dataframe.columns) >= {'cs_key', 'type', 'thres_info',
+                                             'cross_section'}
+    assert set(reactn_dataframe.columns) >= {'reactant', 'product', 'dH',
+                                             'k_str'}
 
-    _dataframe = pd.DataFrame(columns=['reaction', 'reactant', 'product', 'type',
-                                       'threshold_eV', 'cs_key', 'dH_e', 'cross_section'])
+    _dataframe = pd.DataFrame(
+        columns=['reaction', 'reactant', 'product', 'type',
+                 'threshold_eV', 'cs_key', 'dH_e', 'cross_section'])
     for i_rctn in reactn_dataframe.index:
         _temp = dict()
         _temp['cs_key'] = reactn_dataframe.at[i_rctn,
-                                              'k_str'].split(maxsplit=1)[1].replace(' ', '')
+                                              'k_str'].split(maxsplit=1)[
+            1].replace(' ', '')
         assert _temp['cs_key'] in crostn_dataframe['cs_key'].values, \
-            "The '{}' is not in cross section dataframe.".format(_temp['cs_key'])
-        crostn_series = crostn_dataframe[crostn_dataframe['cs_key'] == _temp['cs_key']]
+            "The '{}' is not in cross section dataframe.".format(
+                _temp['cs_key'])
+        crostn_series = crostn_dataframe[
+            crostn_dataframe['cs_key'] == _temp['cs_key']]
         crostn_series = crostn_series.reset_index(drop=True).loc[0]
         _temp['reactant'] = reactn_dataframe.at[i_rctn, 'reactant']
         _temp['product'] = reactn_dataframe.at[i_rctn, 'product']
-        _temp['reaction'] = '{rc} => {pr}'.format(rc=_temp['reactant'], pr=_temp['product'])
+        _temp['reaction'] = '{rc} => {pr}'.format(rc=_temp['reactant'],
+                                                  pr=_temp['product'])
         _temp['dH_e'] = reactn_dataframe.at[i_rctn, 'dH']
         _temp['type'] = crostn_series['type']
         if crostn_series['thres_info'] == '':
             _temp['threshold_eV'] = 0.0
         else:
-            _temp['threshold_eV'] = float(crostn_series['thres_info'].split(maxsplit=1)[0])
+            _temp['threshold_eV'] = float(
+                crostn_series['thres_info'].split(maxsplit=1)[0])
         _temp['cross_section'] = crostn_series['cross_section']
         _dataframe = _dataframe.append(pd.Series(_temp), ignore_index=True)
     return _dataframe
@@ -111,16 +119,59 @@ def eval_constructor(loader, node):
     return eval(_str)
 
 
+def alpha_constructor(loader, node):
+    _list = loader.construct_sequence(node)
+    E_forward, E_backward = _list
+    E_forward = float(E_forward)
+    E_backward = float(E_backward)
+    return E_forward / (E_forward + E_backward)
+
+
+def reversed_reaction_constructor(loader, node):
+    _str = loader.construct_scalar(node)
+    rcnt, prdt = _str.split('=>')
+    return f"{prdt.strip()} => {rcnt.strip()}"
+
+
 def LT_constructor(loader, node):
     _list = loader.construct_sequence(node)
     A, B, C = _list
     return f"({A})*exp(({B})*Tgas**(-1/3)+({C})*Tgas**(-2/3))"
 
 
-def Arr_constructor(loader, node):
+def standard_Arr_constructor(loader, node):
     _list = loader.construct_sequence(node)
     A, b, E = _list
     return f"({A})*Tgas**({b})*exp(-({E})/Tgas)"
+
+
+def chemkin_Arr_2_rcnts_constructor(loader, node):
+    r"""
+    Notes
+    -----
+    E: cal/mol to K :
+        * 0.5032197
+    A: cm^3 mol^-1 s^-1  to  m^3 s^-1
+        * 1.66e-30
+    """
+    _list = loader.construct_sequence(node)
+    A, b, E = _list
+    return f"({A}*1.66e-30)*Tgas**({b})*exp(-({E}*0.5032197)/Tgas)"
+
+
+def chemkin_Arr_3_rcnts_constructor(loader, node):
+    r"""
+    Notes
+    -----
+    E: cal/mol to K :
+        * 0.5032197
+    A: cm^6 mol^-2 s^-1  to  m^3 s^-1
+        * 1.66e-30
+    """
+    r""" cal/mole to K : *0.5032197"""
+    _list = loader.construct_sequence(node)
+    A, b, E = _list
+    return f"({A}*(1.66e-30)**2)*Tgas**({b})*exp(-({E}*0.5032197)/Tgas)"
 
 
 # ----------------------------------------------------------------------------------------------- #

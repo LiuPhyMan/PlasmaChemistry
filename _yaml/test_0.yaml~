@@ -1,0 +1,679 @@
+# --------------------------------------------------------------------------- #
+#   Global variables
+# --------------------------------------------------------------------------- #
+- &H2_cs_path U:/__[FileSync]__/Coding/Python/CrossSectionFile/H2
+- &CO2_cs_path E:/Coding/python/PlasmaChemistry/_cs_list/koelman2016
+- &CO_cs_path E:/Coding/python/PlasmaChemistry/_cs_list/koelman2016
+- &CO2_dis_cs_path E:/Coding/python/PlasmaChemistry/_cs_list/CO2_dis
+
+- &H2_vib_0-14
+  [ H2,      H2(v1),  H2(v2),  H2(v3),  H2(v4),
+    H2(v5),  H2(v6),  H2(v7),  H2(v8),  H2(v9),
+    H2(v10), H2(v11), H2(v12), H2(v13), H2(v14) ]
+- &H2_vib_0-13
+  [ H2,      H2(v1),  H2(v2),  H2(v3),  H2(v4),
+    H2(v5),  H2(v6),  H2(v7),  H2(v8),  H2(v9),
+    H2(v10), H2(v11), H2(v12), H2(v13) ]
+- &CO_vib_0-10
+  [ CO,     CO(v1), CO(v2), CO(v3), CO(v4),
+    CO(v5), CO(v6), CO(v7), CO(v8), CO(v9),
+    CO(v10) ]
+
+- &CO2_mass   44
+- &CO_mass    28
+
+# ============================================================================ #
+#   H2 kineticon
+# ============================================================================ #
+# ---------------------------------------------------------------------------- #
+#   H2 electron vibration
+# ---------------------------------------------------------------------------- #
+- &H2_ele_vib_forward
+    type:
+        EXCITATION
+    formula:
+        E + H2(v_A_) => E + H2(v_B_)
+    kstr:
+        cs_path/H2(X)_to_H2(X)_vibexc/H2(v_A_)_to_H2(v_B_).csv
+    threshold:
+        _thres_
+    where: # where is only supported for formula and kstr. After iterator.
+        abbr:
+            cs_path: *H2_cs_path
+            H2(v0):  H2
+    iterator: &iterator_H2_ele_vib
+        repl:
+            formula:
+                _A_: v_lower
+                _B_: v_upper
+            kstr:
+                _A_: v_lower
+                _B_: v_upper
+            threshold:
+                _thres_: H2_vib_energy_in_eV(v=v_upper)
+                         - H2_vib_energy_in_eV(v=v_lower)
+        loop:
+            product:
+                v_lower: range(15)
+                v_upper: range(15)
+        condition:
+            v_lower < v_upper
+
+- &H2_ele_vib_backward
+    <<: *H2_ele_vib_forward
+    type:
+        DEEXCITATION
+    iterator:
+        <<: *iterator_H2_ele_vib
+        condition:
+            v_lower > v_upper
+
+# ---------------------------------------------------------------------------- #
+#   H2 electron dissociation
+# ---------------------------------------------------------------------------- #
+- &_H2_ele_dis
+    type:
+        EXCITATION
+    formula:
+        E + H2(v_A_) => E + H + H
+    threshold:
+        _thres_
+    where:
+        abbr:
+            cs_path: *H2_cs_path
+            H2(v0): H2
+
+- &H2_ele_dis_via_b
+    <<: *_H2_ele_dis
+    threshold:
+      [6.58, 4.06, 3.58, 3.12, 2.70,
+       2.30, 1.94, 1.60, 1.30, 1.02,
+       0.78, 0.56, 0.38, 0.22]
+    kstr:
+        cs_path/H2(X)_to_H2(_b)_to_2H/H2(v_A_)_to_H2(b)_to_2H.csv
+    iterator:
+        repl:
+            formula:
+                _A_: v
+            kstr:
+                _A_: v
+        loop:
+            product:
+                v: range(14)
+
+- &H2_ele_dis_via_B
+    <<: *_H2_ele_dis
+    kstr:
+        cs_path/H2(X)_to_H2(B)_to_2H/H2(v_A_)_to_H2(B)_to_2H.csv
+    iterator:
+        repl:
+            formula:
+                _A_: v
+            kstr:
+                _A_: v
+            threshold:
+                _thres_: thres
+        loop:
+            zip:
+                v:     range(14)
+                thres: ''
+
+- &H2_ele_dis_via_B_1
+    <<: *_H2_ele_dis
+    kstr:
+        cs_path/H2(X)_to_H2(B')_to_2H/H2(v_A_)_to_H2(B')_to_2H.csv
+    iterator:
+        repl:
+            formula:
+                _A_: v
+            kstr:
+                _A_: v
+            threshold:
+                _thres_: thres
+        loop:
+            zip:
+                v:     range(14)
+                thres: ''
+
+- &H2_ele_dis_rctn_via_B_2
+    <<: *_H2_ele_dis
+    kstr:
+        cs_path/H2(X)_to_H2(B'')_to_2H/H2(v_A_)_to_H2(B'')_to_2H.csv
+    iterator:
+        repl:
+            formula:
+                _A_: v
+            kstr:
+                _A_: v
+            threshold:
+                _thres_: thres
+        loop:
+            zip:
+                v:     range(14)
+                thres: ''
+
+# ---------------------------------------------------------------------------- #
+- &H2_ele_dis_att
+    type:
+        ATTACHMENT
+    formula:
+        E + H2(v_A_) => H + H^-
+    kstr:
+        cs_path/H2(X)_to_H2-_to_H+H-/H2(v_A_)_to_H2-_to_H+H-.csv
+    threshold:
+        _thres_
+    iterator:
+        repl:
+            formula:
+                _A_: v
+            kstr:
+                _A_: v
+            threshold:
+                _thres_: thres
+        loop:
+            zip:
+                _v: range(6)
+
+# ============================================================================ #
+#   CO2 ele vibrational excitation
+# ============================================================================ #
+- &CO2_ele_vib_forward
+    type:
+        EXCITATION
+    formula:
+        E + CO2(v_A_) => E + CO2(v_B_)
+    kstr:
+        cs_path/cs_set/scaling/CO2/cs_CO2v_A__vibexc_CO2v_B_.lut
+    threshold:
+        _thres_
+    where:
+        abbr:
+            cs_path: *CO2_cs_path
+            CO2(v0): CO2
+    iterator: &iterator_CO2_ele_vib
+        repl:
+            formula:
+                _A_: v_lower
+                _B_: v_upper
+            kstr:
+                _A_: v_lower
+                _B_: v_upper
+            threshold:
+                _thres_: CO2_vib_energy_in_eV(v=(0,0,v_upper))
+                         -CO2_vib_energy_in_eV(v=(0,0,v_lower))
+        loop:
+            product:
+                v_lower: range(22)
+                v_upper: range(22)
+        condition:
+            v_lower < v_upper
+
+- &CO2_ele_vib_backward
+    <<: *CO2_ele_vib_forward
+    type:
+        DEEXCITATION
+    kstr:
+        cs_path/cs_set/reverse/CO2/cs_CO2v_B__vibexc_CO2v_A__reverse.lut
+    iterator:
+        <<: *iterator_CO2_ele_vib
+        condition:
+            v_lower > v_upper
+
+# ---------------------------------------------------------------------------- #
+#   CO2 electron dissociation
+# ---------------------------------------------------------------------------- #
+- &CO2_ele_diss
+    # through 10 eV channel
+    type:
+        EXCITATION
+    formula:
+        E + CO2(v_A_) => E + CO + O
+    threshold: # for the 10 eV channel, TODO
+      [12.00, 11.709, 11.421, 11.135, 10.854,
+       10.575, 10.299, 10.026, 9.7565, 9.49,
+       9.2265, 8.9662, 8.7089, 8.4548, 8.2037,
+       7.9557, 7.7109, 7.4691, 7.2304, 6.9948,
+       6.7623, 6.5328]
+    kstr:
+        cs_path/cs_CO2v_A__diss_CO_O.dat
+    where:
+        abbr:
+            cs_path: *CO2_dis_cs_path
+            CO2(v0): CO2
+    iterator:
+        repl:
+            formula:
+                _A_: v
+            kstr:
+                _A_: v
+        loop:
+            product:
+                v: range(22)
+
+# ---------------------------------------------------------------------------- #
+#   CO ele vibrational excitation
+# ---------------------------------------------------------------------------- #
+- &CO_ele_vib_forward
+    type:
+        excitation
+    formula:
+        E + CO(v_A_) => E + CO(v_B_)
+    threshold:
+        _thres_
+    kstr:
+        cs_path/cs_set/scaling/CO/cs_COv_A__vibexc_COv_B_.lut
+    where:
+        abbr:
+            cs_path: *CO_cs_path
+            CO(v0): CO
+    iterator: &iterator_CO_ele_vib
+        repl:
+            formula:
+                _A_: v_lower
+                _B_: v_upper
+            kstr:
+                _A_: v_lower
+                _B_: v_upper
+            threshold:
+                _thres_: CO_vib_energy_in_eV(v=v_upper) -
+                         CO_vib_energy_in_eV(v=v_lower)
+        loop:
+            product:
+                v_lower: range(11)
+                v_upper: range(11)
+        condition:
+            v_lower < v_upper
+
+- &CO_ele_vib_backward
+    <<: *CO_ele_vib_forward
+    type:
+        DEEXCITATION
+    kstr:
+        cs_path/cs_set/reverse/CO/cs_COv_B__vibexc_COv_A__reverse.lut
+    iterator:
+        <<: *iterator_CO_ele_vib
+        condition:
+            v_lower > v_upper
+
+
+
+# ============================================================================ #
+#   Vibrational relaxation process
+# ============================================================================ #
+-   Rctn_block: &CO
+
+# - Rctn_block: &CO2_VT_with_CO
+#     type:
+#         VT
+#     formula:
+#         CO2(v1) + M@ => CO2 + M@
+#     kstr:   k10 * F
+#     where:
+#         vari:
+#             - k10_0:  !LT [4.25e-1, -407, 824]
+#             - k10_1:  !LT [4.25e-1, -404, 1096]
+#             - k10_2:  !LT [4.25e-1, -252, 685]
+#             - k10:    k10_0 + k10_1 + k10_2
+#             - _mu:    22
+#             - _r:     4.587156
+#             - Lij:    0.32 * dE_K/_r * sqrt(_mu/Tgas)
+#             - F:      0.5 * (3 - exp(-2/3*Lij)) * exp(-2/3*Lij)
+
+
+- &CO2_VT_with_CO2_forward
+    type:
+        VT
+    formula:
+        CO2(v_A_) + _M_ => CO2(v_B_) + _M_
+    kstr:
+        k10 * F
+    where:
+        abbr:
+            CO2(v0): CO2
+        vari:
+            -   k10_0:  !LT [4.25e-1, -407, 824]
+            -   k10_1:  !LT [4.25e-1, -404, 1096]
+            -   k10_2:  !LT [4.25e-1, -252, 685]
+            -   k10:    (k10_0 + k10_1 + k10_2) * 1e-6
+            -   _mu:    22
+            -   _r:     4.587156
+            -   Lij:    0.32 * _dE_ / _r * sqrt(_mu/Tgas)
+            -   F:      0.5 * (3 - exp(-2/3*Lij)) * exp(-2/3*Lij)
+    iterator:
+        repl:
+            formula:
+                _A_: _i_
+                _B_: _i_ - 1
+                _M_: _M_
+            kstr:
+                _dE_: CO2_vib_energy_in_K(v=(0,0,_i_))
+                      - CO2_vib_energy_in_K(v=(0,0,_i_-1))
+        loop:
+            product:
+                _M_: [CO2, H2]
+                _i_: range(1, 22)
+
+-   Rctn_block: &CO2_VT_with_CO2_backward
+        <<: *CO2_VT_with_CO2_forward
+        formula:
+            CO2(v_B_) + _M_ => CO2(v_A_) + _M_
+        kstr:
+            k10 * F * exp(-_dE_/Tgas)
+
+-   Rctn_block: &CO2_VT_with_H2_forward
+        <<: *CO2_VT_with_CO2_forward
+
+    Rctn_block: &CO2_VT_with_H2_backward
+
+-   Rctn_block: &H2_VT_with_CO2
+
+-   Rctn_block: &H2_VT_with_CO
+-   Rctn_block: &H2_VT_with_H2
+-   Rctn_block: &H2_VT_with_H2O
+
+
+-   Rctn_block: &CO_VT_with_CO2
+-   Rctn_block: &CO_VT_with_H2
+-   Rctn_block: &CO_VT_with_CO
+-   Rctn_block: &CO_VT_with_H2O
+
+-   Rctn_block: &H2O_VT_with_CO2
+-   Rctn_block: &H2O_VT_with_H2
+-   Rctn_block: &H2O_VT_with_CO
+-   Rctn_block: &H2O_VT_with_H2O
+
+
+
+# ---------------------------------------------------------------------------- #
+-   Rctn_block: &OH_VT
+        type: VT
+        formula:
+              OH(v1) + M@ => OH + M@
+        kstr:
+              A@ * exp( 39.3 - 210 * Tgas**(-1/3) )
+        zip:
+            M@: [N2,  O2,  CO,  CO2, H2O]
+            A@: [1.0, 3.0, 1.0, 7.0, 60.0]
+# ============================================================================ #
+# ====  CO2_
+# ============================================================================ #
+- &CO2_vib_chemical_reaction
+    type:    CR
+    kstr:    k_v0 * exp(min(_a_*_Ev_, Ea)/Tgas)
+    iterator:
+        repl:
+            formula:
+                _A_: _i_
+            kstr:
+                _Ev_:  CO2_vib_energy_in_K(v=(0,0,_i_))
+        loop:
+            product:
+                _i_: range(22)
+
+- &CO2_O_to_CO_O2
+    <<:     *CO2_vib_chemical_reaction
+    formula: CO2(v_A_) + O => CO + O2
+    where:
+        abbr:
+            CO2(v0): CO2
+        vari:
+            -   _a_: 0.5
+            -   Ea: 26500
+            -   k_v0: !StandardArr [2.8e-11*1e-6, 0, Ea]
+
+- &CO2_M_to_CO_O_M
+    <<:     *CO2_vib_chemical_reaction
+    formula: CO2(v_A_) + M => CO + O + M
+    where:
+        abbr:
+            CO2(v0): CO2
+        vari:
+            -   _a_: 0.8
+            -   Ea: 49430
+            -   k_v0: !StandardArr [3.91e-10*1e-6, 0, Ea]
+
+
+
+
+
+- &H_O2_to_O_OH
+    type:       CR
+    formula:    H + O2 => O + OH
+    kstr:       !ChemKinArr_2_rcnt [1.73e-16, 0, 7692]
+
+- &O_OH_to_H_O2
+    type:            CR
+    formula:    !rev H + O2 => O + OH
+    kstr:       !ChemKinArr_2_rcnt [6.25E-19, 0.3628, -720]
+
+- &O_H2_to_H_OH
+    type:       CR
+    formula:    O + H2 => H + OH
+    kstr:       !ChemKinArr_2_rcnt [8.43E-26, 2.67, 3166]
+
+-   Rctn_block: &H_OH_to_O_H2
+        # reversed
+        type:       CR
+        formula:    H + OH => O + H2
+        kstr:       !ChemKinArr_2_rcnt [4.59322E-26, 2.6421, 2454.81088]
+
+# -   Rctn_block: &OH_H2_to_H_H2O
+#         type: CR
+#         formula:
+#             OH + H2 => H + H2O
+#         kstr:
+#             !Arr [7.27E-17, 0, 3517.368]
+
+# -   Rctn_block: &H_H2O_to_OH_H2
+#         # reversed
+#         type: CR
+#         formula:
+#             H + H2O => OH + H2
+#         kstr:
+#             !Arr [6.3578E-16, -0.0845, 10997.83856]
+
+# -   Rctn_block: &O_H2O_to_OH_OH
+#         type: CR
+#         formula:
+#             O + H2O => OH + OH
+#         kstr:
+#             !Arr [4.93E-24, 2.02, 6742.88]
+
+# -   Rctn_block: &OH_OH_to_O_H2O
+#         # reversed
+#         type: CR
+#         formula:
+#              OH + OH => O + H2O
+#         kstr:
+#             !Arr [3.071E-25, 2.0767, -1448.91408]
+
+# -   Rctn_block: &H2_CO2_to_H_H_CO2
+#         type: CR
+#         formula:
+#             H2 + CO2 => H + H + CO2
+#         kstr:
+#             !Arr [7.59782E-11*3.8, -1.4, 52534.08]
+- # -   Rctn_block: &H_H_CO2_to_H2_CO2
+  #         # reversed
+  #         type: CR
+  #         formula:
+  #             H + H + CO2 => H2 + CO2
+  #         kstr:
+  #             !Arr [1.24251E-10*3.8, -1.6199, 391.43928]
+
+  # -   Rctn_block: &O_O_CO2_to_O2_CO2
+  #         type: CR
+  #         formula:
+  #             O + O + CO2 => O2 + CO2
+  #         kstr:
+  #             !Arr [1.02339E-14*3.8, -0.5 ,0]
+
+  # -   Rctn_block: &O2_CO2_to_O_O_CO2
+  #         # reversed
+  #         type: CR
+  #         formula:
+  #             O2 + CO2 =>O + O + CO2
+  #         kstr:
+  #             !Arr [9.41054E-13*3.8,-0.6707,59843.46256]
+
+  # -   Rctn_block: &O_H_CO2_to_OH_CO2
+  #         type: CR
+  #         formula:
+  #             O + H + CO2 => OH + CO2
+  #         kstr:
+  #             !Arr [7.82524E-12*2, -1, 0]
+
+  # -   Rctn_block: &OH_CO2_to_O_H_CO2
+  #         # reversed
+  #         type: CR
+  #         formula:
+  #             OH + CO2 => O + H + CO2
+  #         kstr:
+  #             !Arr [2.6062E-12*2, -0.808, 51431.26688]
+
+  # -   Rctn_block: &H_OH_CO2_to_H2O_CO2
+  #         type: CR
+  #         formula:
+  #             H + OH + CO2 => H2O + CO2
+  #         kstr:
+  #             !Arr [5.81E-08, -2, 0]
+
+  # -   Rctn_block: &H2O_CO2_to_H_OH_CO2
+  #         # reversed
+  #         type: CR
+  #         formula:
+  #             H2O + CO2 => H + OH + CO2
+  #         kstr:
+  #             !Arr [3.10586E-07, -1.8646, 59623]
+
+  # -   Rctn_block: &CO_O_CO2_to_CO2_CO2
+  #         type: CR
+  #         formula:
+  #             CO + O + CO2 => CO2 + CO2
+  #         kstr:
+  #             !Arr [2.26092E-20*3.6, 0, 1199.6288]
+
+  # -   Rctn_block: &CO2_CO2_to_CO_O_CO2
+  #         # reversed
+  #         type: CR
+  #         formula:
+  #             CO2 + CO2 => CO + O + CO2
+  #         kstr:
+  #             !Arr [1.06838E-14, -0.9192, 65380.12184]
+
+  # -   Rctn_block: &CO_O2_to_CO2_O
+  #         type: CR
+  #         formula:
+  #             CO + O2 => CO2 + O
+  #         kstr:
+  #             !Arr [1.85754E-18, 0, 24002.64]
+
+  # -   Rctn_block: &CO2_O_to_CO_O2
+  #         # reversed
+  #         type: CR
+  #         formula:
+  #             CO2 + O => CO + O2
+  #         kstr:
+  #             !Arr [9.54666E-15, -0.7485, 28340]
+
+  # -   Rctn_block: &CO_OH_to_CO2_H_1
+  #         type: CR
+  #         formula:
+  #             CO + OH => CO2 + H
+  #         kstr:
+  #             !Arr [1.16449E-25, 2.053, -178.973144]
+
+  # -   Rctn_block: &CO2_H_to_CO_OH_1
+  #         # reversed
+  #         type: CR
+  #         formula:
+  #             CO2 + H => CO + OH
+  #         kstr:
+  #             !Arr [1.6522E-19, 0.9417, 12570.1876]
+
+  # -   Rctn_block: &CO_OH_to_CO2_H_2
+  #         type: CR
+  #         formula:
+  #             CO + OH => CO2 + H
+  #         kstr:
+  #             !Arr [9.55662E-18, -0.664, 166.976856]
+
+  # -   Rctn_block: &CO2_H_to_CO_OH_2
+  #         # reversed
+  #         type: CR
+  #         formula:
+  #             CO2 + H => CO + OH
+  #         kstr:
+  #             !Arr [1.35589E-11, -1.7753, 12916.1376]
+
+
+  # ---------------------------------------------------------------------------- #
+  #   vib reactions
+#
+-   Rctn_block: &CO2_vib_to_CO_O
+        type: vib_rctn
+        formula:
+              CO2(vA@) + M@ => CO + O + M@
+        kstr:
+              3.91e-10 * exp(-49430) / Tgas * _factor_ * exp(_a_*_E_vib_ / Tgas)
+        where:
+            vari:
+                -   _a_: 0.5
+        iterator:
+            repl:
+                formula:
+                    A@: _i_
+                    M@: _M_[0]
+                kstr:
+                    _E_vib_:  CO2_vib_energy_in_eV(v=(0, 0, _i_))
+                              - CO2_vib_energy_in_eV(v=(0, 0, _i_-1))
+                    _factor_: _M_[1]
+            loop:
+                _M_: [[CO2, 1], [CO, 2], [H2, 10], [H2O, 60]]
+                _i_: range(1, 22)
+# ---------------------------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
+-   The reactions considered:
+        # - *CO2_VT_with_CO
+        electron reactions:
+            H2_ele_vib_forward:     *H2_ele_vib_forward
+            H2_ele_vib_backward:    *H2_ele_vib_backward
+            CO2_ele_vib_forward:    *CO2_ele_vib_forward
+            CO2_ele_vib_backward:   *CO2_ele_vib_backward
+            H2_ele_dis_via_b:       *H2_ele_dis_via_b
+            CO2_ele_diss:           *CO2_ele_diss
+            # CO_ele_vib_forward:     *CO_ele_vib_forward
+            # CO_ele_vib_backward:    *CO_ele_vib_backward
+            # CO_ele_dis
+            # CO_ele_vib_backward:    *CO_ele_vib_rctn_backward
+        relaxation reactions:
+            CO2_VT_with_CO2_forward:    *CO2_VT_with_CO2_forward
+            CO2_VT_with_CO2_backward:   *CO2_VT_with_CO2_backward
+            H_O2_to_O_OH:               *H_O2_to_O_OH
+            CO2_O_to_CO_O2:             *CO2_O_to_CO_O2
+            # O_H2_to_H_OH:               *O_H2_to_H_OH
+            # OH_H2_to_H_H2O:             *OH_H2_to_H_H2O
+            # O_H2O_to_OH_OH:             *O_H2O_to_OH_OH
+            # H2_CO2_to_H_H_CO2:          *H2_CO2_to_H_H_CO2
+            # O_O_CO2_to_O2_CO2:          *O_O_CO2_to_O2_CO2
+            # O_H_CO2_to_OH_CO2:          *O_H_CO2_to_OH_CO2
+            # H_OH_CO2_to_H2O_CO2:        *H_OH_CO2_to_H2O_CO2
+            # CO_O_CO2_to_CO2_CO2:        *CO_O_CO2_to_CO2_CO2
+            # CO_O2_to_CO2_O:             *CO_O2_to_CO2_O
+            # CO_OH_to_CO2_H_1:           *CO_OH_to_CO2_H_1
+            # CO_OH_to_CO2_H_2:           *CO_OH_to_CO2_H_2
+            # CO2_H_to_CO_OH_2:           *CO2_H_to_CO_OH_2
+            # O_OH_to_H_O2:               *O_OH_to_H_O2
+            # H_OH_to_O_H2:               *H_OH_to_O_H2
+            # H_H2O_to_OH_H2:             *H_H2O_to_OH_H2
+            # OH_OH_to_O_H2O:             *OH_OH_to_O_H2O
+            # H_H_CO2_to_H2_CO2:          *H_H_CO2_to_H2_CO2
+            # O2_CO2_to_O_O_CO2:          *O2_CO2_to_O_O_CO2
+            # OH_CO2_to_O_H_CO2:          *OH_CO2_to_O_H_CO2
+            # H2O_CO2_to_H_OH_CO2:        *H2O_CO2_to_H_OH_CO2
+            # CO2_CO2_to_CO_O_CO2:        *CO2_CO2_to_CO_O_CO2
+            # CO2_O_to_CO_O2:             *CO2_O_to_CO_O2
+            # CO2_H_to_CO_OH_1:           *CO2_H_to_CO_OH_1
+            # CO2_H_to_CO_OH_2:           *CO2_H_to_CO_OH_2
+
+# ---------------------------------------------------------------------------- #
