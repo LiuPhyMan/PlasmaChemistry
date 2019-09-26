@@ -50,9 +50,11 @@ class Molecule_vib_group(object):
         self.densities = self.total_density / _distri_factor.sum() * _distri_factor
 
     def view(self):
-        _df = pd.DataFrame(self.vib_energy, index=self.formula, columns=['vib_energy_eV'])
+        _df = pd.DataFrame(self.vib_energy, index=self.formula,
+                           columns=['vib_energy_eV'])
         _df['density'] = self.densities
-        _df['ratio'] = [f'{_ * 100:.1f}%' for _ in self.densities / self.total_density]
+        _df['ratio'] = [f'{_ * 100:.1f}%' for _ in
+                        self.densities / self.total_density]
         return _df
 
     def plot_vdf(self):
@@ -69,7 +71,8 @@ class H2_vib_group(Molecule_vib_group):
     def __init__(self, *, total_density, Tvib_K, max_v=14):
         super().__init__(total_density=total_density)
         self.formula = ['H2'] + [f'H2(v{v})' for v in range(1, max_v + 1)]
-        self.vib_energy = np.array([H2_vib_energy_in_eV(v=v) for v in range(max_v + 1)])
+        self.vib_energy = np.array(
+            [H2_vib_energy_in_eV(v=v) for v in range(max_v + 1)])
         self.set_Tvib_K(Tvib_K)
 
 
@@ -77,7 +80,8 @@ class CO_vib_group(Molecule_vib_group):
     def __init__(self, *, total_density, Tvib_K, max_v=10):
         super().__init__(total_density=total_density)
         self.formula = ['CO'] + [f'CO(v{v})' for v in range(1, max_v + 1)]
-        self.vib_energy = np.array([CO_vib_energy_in_eV(v=v) for v in range(max_v + 1)])
+        self.vib_energy = np.array(
+            [CO_vib_energy_in_eV(v=v) for v in range(max_v + 1)])
         self.set_Tvib_K(Tvib_K)
 
 
@@ -85,10 +89,11 @@ class CO2_vib_group(Molecule_vib_group):
     def __init__(self, *, total_density, Tvib_K, max_v=21):
         super().__init__(total_density=total_density)
         self.formula = ['CO2'] + [f'CO2(v{v})' for v in range(1, max_v + 1)]
-        self.vib_energy = np.array([CO2_vib_energy_in_eV(v=(0, 0, v)) for v in range(max_v + 1)])
+        self.vib_energy = np.array(
+            [CO2_vib_energy_in_eV(v=(0, 0, v)) for v in range(max_v + 1)])
         self.set_Tvib_K(Tvib_K)
 
 
-# ----------------------------------------------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
 if __name__ == '__main__':
     pass

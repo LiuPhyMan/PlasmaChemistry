@@ -21,6 +21,7 @@ from plasmistry.molecule import (CO2_vib_energy_in_K, CO2_vib_energy_in_eV)
 
 yaml.add_constructor("!StandardArr", standard_Arr_constructor)
 yaml.add_constructor("!ChemKinArr_2_rcnt", chemkin_Arr_2_rcnts_constructor)
+yaml.add_constructor("!ChemKinArr_3_rcnt", chemkin_Arr_3_rcnts_constructor)
 yaml.add_constructor("!rev", reversed_reaction_constructor)
 yaml.add_constructor("!LT", LT_constructor)
 yaml.add_constructor("!alpha", alpha_constructor)
