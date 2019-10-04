@@ -228,6 +228,34 @@
                 v: range(22)
 
 # ---------------------------------------------------------------------------- #
+- &CO2_ele_diss_via_7_eV
+    # through 7 eV channel
+    type     :
+        EXCITATION
+    formula  :
+        E + CO2(v_A_) => E + CO + O
+    threshold: # for the 7 eV channel.
+      [7.0, 6.71, 6.42, 6.14, 5.85,
+       5.57, 5.30, 5.03, 4.76, 4.49,
+       4.23, 3.97, 3.71, 3.45, 3.20,
+       2.96, 2.71, 2.47, 2.23, 1.99,
+       1.76, 1.53]
+    kstr     :
+        cs_path/CO2v_A__ele_diss_7_eV.dat
+    where    :
+        abbr:
+            cs_path: *CO2_dis_cs_path
+            CO2(v0): CO2
+    iterator :
+        repl:
+            formula:
+                _A_: v
+            kstr   :
+                _A_: v
+        loop:
+            product:
+                v: range(22)
+# ---------------------------------------------------------------------------- #
 #   CO ele vibrational excitation
 # ---------------------------------------------------------------------------- #
 - &CO_ele_vib_forward
@@ -838,15 +866,16 @@
 # ============================================================================ #
 -   The reactions considered:
         # - *CO2_VT_with_CO
-        electron reactions  :
-            H2_ele_vib_forward  : *H2_ele_vib_forward
-            H2_ele_vib_backward : *H2_ele_vib_backward
-            CO2_ele_vib_forward : *CO2_ele_vib_forward
-            CO2_ele_vib_backward: *CO2_ele_vib_backward
-            H2_ele_dis_via_b    : *H2_ele_dis_via_b
-            CO2_ele_diss        : *CO2_ele_diss
+        electron reactions   :
+            H2_ele_vib_forward   : *H2_ele_vib_forward
+            H2_ele_vib_backward  : *H2_ele_vib_backward
+            CO2_ele_vib_forward  : *CO2_ele_vib_forward
+            CO2_ele_vib_backward : *CO2_ele_vib_backward
+            H2_ele_dis_via_b     : *H2_ele_dis_via_b
+            CO2_ele_diss         : *CO2_ele_diss
+            CO2_ele_diss_via_7_eV: *CO2_ele_diss_via_7_eV
 
-        relaxation reactions:
+        relaxation reactions :
             CO2_VT_with_CO2_H2_forward : *CO2_VT_with_CO2_H2_forward
             CO2_VT_with_CO2_H2_backward: *CO2_VT_with_CO2_H2_backward
             H2_VT_with_CO2_forward     : *H2_VT_with_CO2_forward
@@ -856,25 +885,25 @@
             H2_VT_with_H2O_forward     : *H2_VT_with_H2O_forward
             H2_VT_with_H2O_backward    : *H2_VT_with_H2O_backward
 
-        chemical reactions  :
+        chemical reactions   :
             # H OH O reactions
-            CO2_O_to_CO_O2     : *CO2_O_to_CO_O2
-            CO_O2_to_CO2_O     : *CO_O2_to_CO2_O
+            CO2_O_to_CO_O2: *CO2_O_to_CO_O2
+            CO_O2_to_CO2_O: *CO_O2_to_CO2_O
 
-            CO2_H_to_CO_OH     : *CO2_H_to_CO_OH
-            CO_OH_to_CO2_H     : *CO_OH_to_CO2_H
+            CO2_H_to_CO_OH: *CO2_H_to_CO_OH
+            CO_OH_to_CO2_H: *CO_OH_to_CO2_H
 
-            H2_O_to_H_OH       : *H2_O_to_H_OH
-            H_OH_to_H2_O       : *H_OH_to_H2_O
+            H2_O_to_H_OH  : *H2_O_to_H_OH
+            H_OH_to_H2_O  : *H_OH_to_H2_O
 
-            H2_OH_to_H_H2O     : *H2_OH_to_H_H2O
-            H_H2O_to_H2_OH     : *H_H2O_to_H2_OH
+            H2_OH_to_H_H2O: *H2_OH_to_H_H2O
+            H_H2O_to_H2_OH: *H_H2O_to_H2_OH
 
-            O2_H_to_O_OH       : *O2_H_to_O_OH
-            O_OH_to_O2_H       : *O_OH_to_O2_H
+            O2_H_to_O_OH  : *O2_H_to_O_OH
+            O_OH_to_O2_H  : *O_OH_to_O2_H
 
-            H2O_O_to_OH_OH     : *H2O_O_to_OH_OH
-            OH_OH_to_H2O_O     : *OH_OH_to_H2O_O
+            H2O_O_to_OH_OH: *H2O_O_to_OH_OH
+            OH_OH_to_H2O_O: *OH_OH_to_H2O_O
 
         decom_recom reactions:
             # CO2 + M <=> CO + O + M

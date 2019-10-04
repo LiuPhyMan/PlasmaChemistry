@@ -516,7 +516,7 @@ class Reactions(object):
 
     def view(self):
         output = pd.DataFrame({
-            'formula': self.reactant + ' => ' + self.product,
+            'formula': self.formula,
             'k_str': self.k_str,
             'dH_e': self.dH_e,
             'dH_g': self.dH_g,
