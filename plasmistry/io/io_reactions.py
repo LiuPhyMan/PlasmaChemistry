@@ -451,15 +451,24 @@ def read_reactionList(reaction_list):
     return dict(reaction_info=reaction_info)
 
 
+# ============================================================================ #
+#   Reaction block
+# ============================================================================ #
 class Reaction_block(object):
 
     def __init__(self, *, rctn_dict=None, vari_dict=None):
+        r"""
+        
+        """
         super().__init__()
+        self._type = None
         self._formula = None
         self._kstr = None
+
+        self._type_list = None
         self._formula_list = None
         self._kstr_list = None
-        self._type_list = None
+
         self._vari_dict = vari_dict
         if rctn_dict is not None:
             self.rctn_dict = rctn_dict
@@ -516,9 +525,13 @@ class Reaction_block(object):
                            range(len(self._kstr_list))]
 
     def _treat_where_abbr(self):
-        # --------------------------------------------------------------------------------------- #
-        #   treat 'where' part.
-        # --------------------------------------------------------------------------------------- #
+        r"""
+        Notes
+        -----
+        _formula_list to _formula_list
+        _kstr_list to _kstr_list
+
+        """
         if 'where' in self.rctn_dict:
             if 'abbr' in self.rctn_dict['where']:
                 for _key in self.rctn_dict['where']['abbr']:
@@ -529,6 +542,12 @@ class Reaction_block(object):
                                        self._kstr_list]
 
     def _treat_where_vari(self):
+        r"""
+        Notes
+        -----
+        _kstr to _kstr
+
+        """
         if 'where' in self.rctn_dict:
             if 'vari' in self.rctn_dict['where']:
                 reversed_vari_list = self.rctn_dict['where']['vari'][::-1]
@@ -541,14 +560,6 @@ class Reaction_block(object):
     def repl_func(x, _repl, _iter):
         _str_expr = f"'{x}'." + '.'.join(
             [f"replace('{k}', str({v}))" for k, v in _repl.items()])
-        # _str_expr_list = []
-        # for k, v in _repl.items():
-        #     if isinstance(v, (float, int)):
-        #         _str_expr_list.append(f"replace('{k}', str({v}))")
-        #     else:
-        #         _str_expr_list.append(f"replace('{k}', {v})")
-        # _str_expr = f"'{x}'." + '.'.join(_str_expr_list)
-
         # product loop
         _iter_loop = _iter['loop']
         if 'product' in _iter_loop:
@@ -561,13 +572,14 @@ class Reaction_block(object):
             _loop_expr = 'for {key} in zip({value})'.format(
                 key=', '.join(_loop_dict.keys()),
                 value=', '.join(_loop_dict.values()))
+        # else
         else:
             raise Exception(f"product or zip is not in loop. {_iter}")
+        # condition
         if 'condition' in _iter:
             _expr = f"[{_str_expr} {_loop_expr} if {_iter['condition']}]"
         else:
             _expr = f"[{_str_expr} {_loop_expr}]"
-        # print(_expr)
         return _expr
 
 
@@ -590,7 +602,7 @@ class Cros_Reaction_block(Reaction_block):
 
     def _set_threshold_list(self):
         self._threshold = self.rctn_dict['threshold']
-        _iter = self.rctn_dict['iterator']
+        _iter = self.rctn_dict['iterator'] 
         if 'threshold' in _iter['repl']:
             _eval_str = self.repl_func(self._threshold,
                                        _iter['repl']['threshold'],
@@ -613,7 +625,7 @@ class Cros_Reaction_block(Reaction_block):
         return _df
 
 
-# --------------------------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
 class Coef_Reaction_block(Reaction_block):
 
     def __init__(self, *, rctn_dict=None, vari_dict=None):

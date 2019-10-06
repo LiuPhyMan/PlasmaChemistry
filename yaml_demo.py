@@ -14,6 +14,7 @@ from plasmistry.io import (standard_Arr_constructor,
                            chemkin_Arr_2_rcnts_constructor,
                            chemkin_Arr_3_rcnts_constructor,
                            reversed_reaction_constructor,
+                            F_gamma_constructor,
                            alpha_constructor,
                            LT_constructor,
                            Coef_Reaction_block)
@@ -25,6 +26,7 @@ yaml.add_constructor("!ChemKinArr_3_rcnt", chemkin_Arr_3_rcnts_constructor)
 yaml.add_constructor("!rev", reversed_reaction_constructor)
 yaml.add_constructor("!LT", LT_constructor)
 yaml.add_constructor("!alpha", alpha_constructor)
+yaml.add_constructor("!F_gamma", F_gamma_constructor)
 # ---------------------------------------------------------------------------- #
 vari_dict = {'CO2_vib_energy_in_K': CO2_vib_energy_in_K}
 # ---------------------------------------------------------------------------- #

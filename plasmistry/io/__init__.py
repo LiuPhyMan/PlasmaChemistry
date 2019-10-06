@@ -119,6 +119,12 @@ def eval_constructor(loader, node):
     return eval(_str)
 
 
+def F_gamma_constructor(loader, node):
+    _str = loader.construct_scalar(node)
+    assert isinstance(_str, str)
+    return f"0.5*(3-exp(-2/3*({_str})))*exp(-2/3*({_str}))"
+
+
 def alpha_constructor(loader, node):
     _list = loader.construct_sequence(node)
     E_forward, E_backward = _list
