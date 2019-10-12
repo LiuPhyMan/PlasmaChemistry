@@ -5,6 +5,7 @@
 - &CO2_cs_path E:/Coding/python/PlasmaChemistry/_cs_list/koelman2016
 - &CO_cs_path E:/Coding/python/PlasmaChemistry/_cs_list/koelman2016
 - &CO2_dis_cs_path E:/Coding/python/PlasmaChemistry/_cs_list/CO2_dis
+- &CO2_cs_bolsigdb_path E
 
 - &H2_vib_0-14
   [ H2,      H2(v1),  H2(v2),  H2(v3),  H2(v4),
@@ -223,6 +224,33 @@
         condition:
             v_lower > v_upper > v_lower-5
 
+- &CO2_ele_vib_a-d_forward
+    type:
+        EXCITATION
+    formula :
+        E + CO2 => E + CO2(v_A_)
+    kstr:
+        cs_path/cs_set/
+    threshold:
+        []
+    where:
+        abbr:
+            cs_path:
+    iterator:
+        repl:
+            formula:
+                _A_: v_upper
+            kstr:
+                _A_: v_upper
+    loop:
+        product:
+            v_upper: [a, b, c, d]
+    
+
+
+
+    
+
 # ---------------------------------------------------------------------------- #
 #   CO2 electron dissociation
 # ---------------------------------------------------------------------------- #
@@ -253,8 +281,6 @@
         loop:
             product:
                 _v_: range(22)
-
-# ---------------------------------------------------------------------------- #
 - &CO2_ele_diss_via_10_eV
     # through 10 eV channel
     type     :
