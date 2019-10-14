@@ -14,14 +14,25 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from plasmistry.io import read_reactionFile
 from plasmistry import constants as const
-from yaml_demo import (H2_vib_energy_in_eV,
-                       CO_vib_energy_in_eV,
-                       CO2_vib_energy_in_eV)
-from plasmistry.molecule import H2_vib_group, CO2
 
+
+def get_latex_format(_str):
+    _temp = re.search("\(\(([^()]*)\)\*Tgas\*\*(.*)\*exp\(-(.*)/Tgas\)\)",
+                      _str)
+    assert _temp
+    A_str = f"{eval(_temp.groups()[0]):.2e}"
+    n_str = f"{eval(_temp.groups()[1]):.4f}"
+    E_str = f"{eval(_temp.groups()[2]):.0f}"
+    return r"\[{a} \times 10^#{b}$ #Tgas$ ^ #{c}$ \exp \left( -{d}/Tgas " \
+           "\\right)\]".format(a=A_str.split('e')[0],
+                               b=A_str.split('e')[1],
+                               c=n_str,
+                               d=E_str).replace('#', '{').replace('$',
+                                                                  '}').replace(
+        'Tgas', 'T_{\\rm gas}')
 
 
 if __name__ == "__main__":
-    H2_group = H2_vib_group(total_density=1e25, Tvib_K=2000)
-    CO2_group = CO2_vib_group(total_density=1e25, Tvib_K=2000)
-    CO_group = CO_vib_group(total_density=1e25, Tvib_K=2000)
+    index = 164
+    a = pd.read_csv("test_decom_recom.dat")
+    print(get_latex_format(a.loc[index, 'kstr']))

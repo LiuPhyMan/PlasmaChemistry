@@ -99,8 +99,10 @@ class EEDF(object):
         """
         self.energy_max_bound = max_energy_eV * const.eV2J
         self.grid_number = grid_number
-        self.energy_nodes = np.linspace(0.0, self.energy_max_bound, num=self.grid_number + 1)
-        self.energy_point = 0.5 * (self.energy_nodes[:-1] + self.energy_nodes[1:])
+        self.energy_nodes = np.linspace(0.0, self.energy_max_bound,
+                                        num=self.grid_number + 1)
+        self.energy_point = 0.5 * (
+                    self.energy_nodes[:-1] + self.energy_nodes[1:])
         self.energy_nodes.setflags(write=False)
         self.energy_point.setflags(write=False)
         self.energy_intvl = self.energy_nodes[1] - self.energy_nodes[0]
@@ -136,7 +138,8 @@ class EEDF(object):
     def electron_density(self):
         r"""Calculate the electron density in m^-3."""
         return trapz(y=np.hstack((0.0, self.density_per_J, 0.0)),
-                     x=np.hstack((0.0, self.energy_point, self.energy_max_bound)))
+                     x=np.hstack(
+                         (0.0, self.energy_point, self.energy_max_bound)))
 
     @property
     def reduced_electric_field_in_Td(self):
@@ -147,8 +150,10 @@ class EEDF(object):
     def electron_mean_energy_in_J(self):
         r"""Calculate electron mean energy in J."""
         _density = self.electron_density
-        return simps(y=np.hstack((0.0, self.energy_point * self.density_per_J, 0.0)),
-                     x=np.hstack((0.0, self.energy_point, self.energy_max_bound))) / _density
+        return simps(
+            y=np.hstack((0.0, self.energy_point * self.density_per_J, 0.0)),
+            x=np.hstack(
+                (0.0, self.energy_point, self.energy_max_bound))) / _density
 
     @property
     def electron_mean_energy_in_eV(self):
@@ -204,20 +209,24 @@ class EEDF(object):
 
     @property
     def inelas_rctn_info(self):
-        _df = self.inelas_reaction_dataframe[['formula', 'type', 'threshold_eV']].copy()
+        _df = self.inelas_reaction_dataframe[
+            ['formula', 'type', 'threshold_eV']].copy()
         _df['rate const'] = self._get_molecule_rate_const_e_inelas()
         _df['energy lose'] = _df['threshold_eV'] * _df['rate const']
         return _df
+
     # ------------------------------------------------------------------------------------------- #
     #   public functions
     # ------------------------------------------------------------------------------------------- #
-    def initialize(self, *, rctn_with_crostn_df: DataFrame_type, total_species: np.ndarray):
+    def initialize(self, *, rctn_with_crostn_df: DataFrame_type,
+                   total_species: np.ndarray):
         r"""
         Set elastic/inelastic cross section for species.
         index of background molecule
         """
         self._set_crostn_elastic(total_species=total_species)
-        self._set_crostn_inelastic(inelas_reaction_dataframe=rctn_with_crostn_df)
+        self._set_crostn_inelastic(
+            inelas_reaction_dataframe=rctn_with_crostn_df)
         self._set_index_bg_molecule(total_species=total_species)
 
     def set_density_per_J(self, value: np.ndarray):
@@ -235,8 +244,10 @@ class EEDF(object):
             self.total_bg_molecule_density = N
 
     def set_flux(self, *, total_species_density: np.ndarray):
-        self._set_flux_electric_field(total_species_density=total_species_density)
-        self._set_flux_elastic_colli(total_species_density=total_species_density)
+        self._set_flux_electric_field(
+            total_species_density=total_species_density)
+        self._set_flux_elastic_colli(
+            total_species_density=total_species_density)
         self._set_flux_ee_colli()
 
     def get_deriv_total(self, total_species_density=None):
@@ -244,7 +255,8 @@ class EEDF(object):
         if total_species_density is None:
             return dndt
         else:
-            return dndt + self._get_electron_rate_e_inelas(density=total_species_density)
+            return dndt + self._get_electron_rate_e_inelas(
+                density=total_species_density)
 
     # ------------------------------------------------------------------------------------------- #
     #   private functions
@@ -267,11 +279,14 @@ class EEDF(object):
         """
         assert isinstance(total_species, list)
         # total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'H', 'N2', 'He'}
-        total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'N2', 'Ar'}
+        total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'N2',
+                                'Ar'}
         #   bg_molecules are the total species in total_elas_moleucles
-        self.bg_molecule_elas = [_ for _ in total_species if _ in total_elas_molecules]
-        self.bg_molecule_mass_elas = np.array([species_thermal_data.loc[_, 'absolute_mass']
-                                               for _ in self.bg_molecule_elas])
+        self.bg_molecule_elas = [_ for _ in total_species if
+                                 _ in total_elas_molecules]
+        self.bg_molecule_mass_elas = np.array(
+            [species_thermal_data.loc[_, 'absolute_mass']
+             for _ in self.bg_molecule_elas])
         crostn_path = os.path.dirname(__file__) + r"\elastic_cross_section\\"
         crostn_elas = []
         for molecule in self.bg_molecule_elas:
@@ -283,7 +298,8 @@ class EEDF(object):
                                (self.energy_nodes * const.J2eV))
         self.crostn_elas = np.array(crostn_elas)
 
-    def _set_crostn_inelastic(self, *, inelas_reaction_dataframe: DataFrame_type):
+    def _set_crostn_inelastic(self, *,
+                              inelas_reaction_dataframe: DataFrame_type):
         r"""
         Set inelas_reaction_dataframe.
             columns : [set previously]
@@ -325,12 +341,14 @@ class EEDF(object):
             # ----------------------------------------------------------------------------------- #
             _temp = _get_bg_molecule.fullmatch(_dataframe.at[i_rctn, 'formula'])
             assert _temp, f"The format of {_dataframe.at[i_rctn, 'formula']} is wrong."
-            _dataframe.at[i_rctn, 'bg_molecule'] = _temp.groupdict()['bg_molecule']
+            _dataframe.at[i_rctn, 'bg_molecule'] = _temp.groupdict()[
+                'bg_molecule']
             # ----------------------------------------------------------------------------------- #
             # set low_threshold
             # ----------------------------------------------------------------------------------- #
             _threshold_eV = _dataframe.at[i_rctn, 'threshold_eV']
-            _phi, _n = math.modf(math.fabs(_threshold_eV) / (self.energy_intvl * const.J2eV))
+            _phi, _n = math.modf(
+                math.fabs(_threshold_eV) / (self.energy_intvl * const.J2eV))
             _n = int(_n)
             _dataframe.at[i_rctn, "low_threshold"] = True if _n == 0 else False
         self.inelas_reaction_dataframe = _dataframe
@@ -362,15 +380,18 @@ class EEDF(object):
         Details in CalEEDF.pdf
 
         """
-        _density_bg_molecule_elas = self._index_bg_molecule_elas.dot(total_species_density)
+        _density_bg_molecule_elas = self._index_bg_molecule_elas.dot(
+            total_species_density)
         _mole_frac = _density_bg_molecule_elas / _density_bg_molecule_elas.sum()
-        _const = const.e ** 2 / 3 * np.sqrt(2 / const.m_e / self.energy_nodes[1:-1])
+        _const = const.e ** 2 / 3 * np.sqrt(
+            2 / const.m_e / self.energy_nodes[1:-1])
         _variable = self.electric_field ** 2 / self.total_bg_molecule_density / \
                     (_mole_frac.dot(self.crostn_elas))[1:-1]
         # D F
         self.D_k_ef = np.empty_like(self.energy_nodes)
         self.D_k_ef[0] = self.D_k_ef[-1] = 0.0
-        self.D_k_ef[1:-1] = _const * _variable * (self.energy_nodes[1:-1] / self.energy_intvl)
+        self.D_k_ef[1:-1] = _const * _variable * (
+                    self.energy_nodes[1:-1] / self.energy_intvl)
         self.F_k_ef = np.empty_like(self.energy_nodes)
         self.F_k_ef[0] = self.F_k_ef[-1] = 0.0
         self.F_k_ef[1:-1] = _const * _variable * (1 / 2)
@@ -378,8 +399,10 @@ class EEDF(object):
         self.J_flux_ef = np.empty_like(self.energy_nodes)
         lam_F = self.get_lam_F(D_k=self.D_k_ef, F_k=self.F_k_ef)
         self.J_flux_ef[0] = self.J_flux_ef[-1] = 0.0
-        self.J_flux_ef[1:-1] = -(self.D_k_ef - lam_F)[1:-1] * self.density_per_J[1:] + \
-                               (self.D_k_ef + self.F_k_ef - lam_F)[1:-1] * self.density_per_J[:-1]
+        self.J_flux_ef[1:-1] = -(self.D_k_ef - lam_F)[
+                                1:-1] * self.density_per_J[1:] + \
+                               (self.D_k_ef + self.F_k_ef - lam_F)[
+                               1:-1] * self.density_per_J[:-1]
 
     def _set_flux_elastic_colli(self, *, total_species_density: np.ndarray):
         r"""
@@ -399,23 +422,30 @@ class EEDF(object):
             .J_flux_el
 
         """
-        _density_bg_molecule_elas = self._index_bg_molecule_elas.dot(total_species_density)
+        _density_bg_molecule_elas = self._index_bg_molecule_elas.dot(
+            total_species_density)
         _mole_frac = _density_bg_molecule_elas / _density_bg_molecule_elas.sum()
-        _const = 2 * const.m_e * np.sqrt(2 * self.energy_nodes[1:-1] / const.m_e)
+        _const = 2 * const.m_e * np.sqrt(
+            2 * self.energy_nodes[1:-1] / const.m_e)
         _variable = const.kB * self.gas_temperature * self.total_bg_molecule_density * \
-                    ((_mole_frac / self.bg_molecule_mass_elas).dot(self.crostn_elas))[1:-1]
+                    ((_mole_frac / self.bg_molecule_mass_elas).dot(
+                        self.crostn_elas))[1:-1]
         self.D_k_el = np.empty_like(self.energy_nodes)
         self.D_k_el[0] = self.D_k_el[-1] = 0.0
-        self.D_k_el[1:-1] = _const * _variable * (self.energy_nodes[1:-1] / self.energy_intvl)
+        self.D_k_el[1:-1] = _const * _variable * (
+                    self.energy_nodes[1:-1] / self.energy_intvl)
         self.F_k_el = np.empty_like(self.energy_nodes)
         self.F_k_el[0] = self.F_k_el[-1] = 0.0
         self.F_k_el[1:-1] = _const * _variable * \
-                            (.5 - self.energy_nodes[1:-1] / const.kB / self.gas_temperature)
+                            (.5 - self.energy_nodes[
+                                  1:-1] / const.kB / self.gas_temperature)
         self.J_flux_el = np.empty_like(self.energy_nodes)
         lam_F = self.get_lam_F(D_k=self.D_k_el, F_k=self.F_k_el)
         self.J_flux_el[0] = self.J_flux_el[-1] = 0.0
-        self.J_flux_el[1:-1] = -(self.D_k_el - lam_F)[1:-1] * self.density_per_J[1:] + \
-                               (self.D_k_el + self.F_k_el - lam_F)[1:-1] * self.density_per_J[:-1]
+        self.J_flux_el[1:-1] = -(self.D_k_el - lam_F)[
+                                1:-1] * self.density_per_J[1:] + \
+                               (self.D_k_el + self.F_k_el - lam_F)[
+                               1:-1] * self.density_per_J[:-1]
 
     def _pre_set_flux_ee_colli(self):
         r"""
@@ -439,29 +469,36 @@ class EEDF(object):
             .ee_op_b
 
         """
-        op_P1 = np.tril(np.tile(self.energy_point, (self.energy_nodes.size, 1)), -1)
+        op_P1 = np.tril(np.tile(self.energy_point, (self.energy_nodes.size, 1)),
+                        -1)
         op_P1[:, 0] = op_P1[:, 0] * 4 * sqrt(2) / 5
-        _factor = 2 / np.sqrt(self.energy_nodes[1:][np.newaxis].transpose()) * self.energy_intvl
+        _factor = 2 / np.sqrt(
+            self.energy_nodes[1:][np.newaxis].transpose()) * self.energy_intvl
         _factor = np.vstack((0.0, _factor))
         op_P1 = _factor * op_P1
 
         # --------------------------------------------------------------------------------------- #
-        op_P2 = np.triu(np.tile(1 / np.sqrt(self.energy_point), (self.energy_nodes.size, 1)), 0)
+        op_P2 = np.triu(np.tile(1 / np.sqrt(self.energy_point),
+                                (self.energy_nodes.size, 1)), 0)
         op_P2[:, 0] = op_P2[:, 0] * 1
-        _factor = 2 * self.energy_nodes[np.newaxis].transpose() * self.energy_intvl
+        _factor = 2 * self.energy_nodes[
+            np.newaxis].transpose() * self.energy_intvl
         op_P2 = _factor * op_P2
 
         # --------------------------------------------------------------------------------------- #
-        op_Q = np.tril(np.ones((self.energy_nodes.size, self.energy_point.size)), -1)
+        op_Q = np.tril(
+            np.ones((self.energy_nodes.size, self.energy_point.size)), -1)
         op_Q[:, 0] = op_Q[:, 0] * 2 * sqrt(2) / 3
-        _factor = 3 / np.sqrt(self.energy_nodes[1:][np.newaxis].transpose()) * self.energy_intvl
+        _factor = 3 / np.sqrt(
+            self.energy_nodes[1:][np.newaxis].transpose()) * self.energy_intvl
         _factor = np.vstack((0.0, _factor))
         op_Q = _factor * op_Q
 
         # --------------------------------------------------------------------------------------- #
         op_P = op_P1 + op_P2
         op_a = 1 / self.energy_intvl * (
-                (1 / self.energy_intvl + 0.25 / self.energy_nodes[1:][np.newaxis].transpose()) *
+                (1 / self.energy_intvl + 0.25 / self.energy_nodes[1:][
+                    np.newaxis].transpose()) *
                 op_P[1:, :] - 1 / 2 * op_Q[1:, :])
         # --------------------------------------------------------------------------------------- #
         #   Consider the detailed balance
@@ -502,7 +539,8 @@ class EEDF(object):
 
         assert _temp > 0, _temp
         L = 8 * pi / const.e ** 3 * sqrt(_temp)
-        _const = 2 * pi / 3 * sqrt(2 / const.m_e) * const.e ** 4 / (4 * pi * const.epsilon_0) ** 2
+        _const = 2 * pi / 3 * sqrt(2 / const.m_e) * const.e ** 4 / (
+                    4 * pi * const.epsilon_0) ** 2
         self.ee_alpha = _const * log(L)
         self.J_flux_ee = np.zeros_like(self.energy_nodes)
         ee_a = self.ee_op_a.dot(self.density_per_J)
@@ -510,7 +548,8 @@ class EEDF(object):
         positive_term = ee_a * self.density_per_J
         negative_term = ee_b * self.density_per_J
         self.J_flux_ee[1:-1] = self.ee_alpha * (positive_term[:-1]
-                                                - negative_term[1:]) * self.energy_intvl
+                                                - negative_term[
+                                                  1:]) * self.energy_intvl
 
     def _set_index_bg_molecule(self, *, total_species: list):
         r"""
@@ -531,7 +570,8 @@ class EEDF(object):
 
         def set_index(_bg_molecule, total_species):
             assert set(_bg_molecule) <= set(total_species)
-            _series = pd.Series(data=range(len(total_species)), index=total_species)
+            _series = pd.Series(data=range(len(total_species)),
+                                index=total_species)
             _index = np.zeros((len(_bg_molecule), len(total_species)))
             for i_molecule in range(len(_bg_molecule)):
                 _index[i_molecule, _series[_bg_molecule[i_molecule]]] = 1
@@ -541,8 +581,9 @@ class EEDF(object):
                                                  total_species)
         self._index_bg_molecule_inelas = set_index(self.bg_molecule_inelas,
                                                    total_species)
-        self._index_bg_molecule_inelas_in_order = set_index(self.bg_molecule_inelas_in_order,
-                                                            total_species)
+        self._index_bg_molecule_inelas_in_order = set_index(
+            self.bg_molecule_inelas_in_order,
+            total_species)
 
     def _set_rate_const_matrix_e_inelas_electron(self):
         r"""
@@ -574,12 +615,14 @@ class EEDF(object):
                                        _shape, _shape))
         for i_rctn in self.inelas_reaction_dataframe.index:
             _reaction_type = self.inelas_reaction_dataframe.at[i_rctn, 'type']
-            _threshold_eV = self.inelas_reaction_dataframe.at[i_rctn, 'threshold_eV']
+            _threshold_eV = self.inelas_reaction_dataframe.at[
+                i_rctn, 'threshold_eV']
             _crostn = self.inelas_reaction_dataframe.at[i_rctn, 'cross_section']
-            _op = self.get_rate_const_matrix_electron(reaction_type=_reaction_type,
-                                                      energy_grid_J=self.energy_point,
-                                                      threshold_eV=_threshold_eV,
-                                                      crostn_eV_m2=_crostn)
+            _op = self.get_rate_const_matrix_electron(
+                reaction_type=_reaction_type,
+                energy_grid_J=self.energy_point,
+                threshold_eV=_threshold_eV,
+                crostn_eV_m2=_crostn)
             _rate_const_matrix[i_rctn] = _op
         # --------------------------------------------------------------------------------------- #
         #   merge
@@ -587,7 +630,8 @@ class EEDF(object):
         bg_molecule = self.inelas_reaction_dataframe['bg_molecule'].values
         _matrix_new = np.empty((len(self.bg_molecule_inelas), _shape, _shape))
         for i_index, i_molecule in enumerate(self.bg_molecule_inelas):
-            _matrix_new[i_index] = _rate_const_matrix[bg_molecule == i_molecule].sum(axis=0)
+            _matrix_new[i_index] = _rate_const_matrix[
+                bg_molecule == i_molecule].sum(axis=0)
 
         # --------------------------------------------------------------------------------------- #
         #   to sparse
@@ -608,16 +652,19 @@ class EEDF(object):
 
         """
         _shape = self.grid_number
-        _rate_const_matrix = np.empty((self.inelas_reaction_dataframe.shape[0], _shape))
+        _rate_const_matrix = np.empty(
+            (self.inelas_reaction_dataframe.shape[0], _shape))
 
         for i_rctn in self.inelas_reaction_dataframe.index:
             _reaction_type = self.inelas_reaction_dataframe.at[i_rctn, 'type']
-            _threshold_eV = self.inelas_reaction_dataframe.at[i_rctn, 'threshold_eV']
+            _threshold_eV = self.inelas_reaction_dataframe.at[
+                i_rctn, 'threshold_eV']
             _crostn = self.inelas_reaction_dataframe.at[i_rctn, 'cross_section']
-            _op = self.get_rate_const_matrix_molecule(reaction_type=_reaction_type,
-                                                      energy_grid_J=self.energy_point,
-                                                      threshold_eV=_threshold_eV,
-                                                      crostn_eV_m2=_crostn)
+            _op = self.get_rate_const_matrix_molecule(
+                reaction_type=_reaction_type,
+                energy_grid_J=self.energy_point,
+                threshold_eV=_threshold_eV,
+                crostn_eV_m2=_crostn)
             _rate_const_matrix[i_rctn] = _op
         # --------------------------------------------------------------------------------------- #
         # merge
@@ -650,7 +697,7 @@ class EEDF(object):
 
     def _get_molecule_rate_const_e_inelas(self):
         _temp = self.rate_const_matrix_e_inelas_molecule.dot(self.density_per_J)
-        return _temp/self.electron_density
+        return _temp / self.electron_density
 
     def _get_molecule_rate_e_inelas(self, *, density):
         r"""
@@ -664,7 +711,8 @@ class EEDF(object):
 
         """
         # _density_bg_molecule = self._index_bg_molecule_inelas.dot(density)
-        _density_bg_molecule_in_order = self._index_bg_molecule_inelas_in_order.dot(density)
+        _density_bg_molecule_in_order = self._index_bg_molecule_inelas_in_order.dot(
+            density)
         _rate_const = self._get_molecule_rate_const_e_inelas()
         dNdt = _density_bg_molecule_in_order * _rate_const * self.electron_density
         return dNdt
@@ -696,7 +744,8 @@ class EEDF(object):
         with np.errstate(divide='ignore', invalid='ignore'):
             Pe_k = np.divide(F_k, D_k)
             Pe_k[np.isinf(Pe_k) | np.isnan(Pe_k)] = 0.0
-        return D_k + D_k * np.minimum(0.0, (0.1 * np.abs(Pe_k) - 1) ** 5) + np.minimum(0.0, F_k)
+        return D_k + D_k * np.minimum(0.0, (
+                    0.1 * np.abs(Pe_k) - 1) ** 5) + np.minimum(0.0, F_k)
 
     @staticmethod
     def get_rate_const_matrix_electron(*, reaction_type, energy_grid_J,
@@ -724,7 +773,8 @@ class EEDF(object):
         """
         #   check reaction_type
         assert reaction_type.lower() in ('excitation', 'deexcitation',
-                                         'ionization', 'attachment'), reaction_type
+                                         'ionization',
+                                         'attachment'), reaction_type
         #   check energy_grid_J
         assert isinstance(energy_grid_J, np.ndarray)
         assert energy_grid_J.ndim == 1
@@ -734,7 +784,8 @@ class EEDF(object):
         assert crostn_eV_m2.shape[0] == 2
         #   check threshold_eV
         assert isinstance(threshold_eV, (float, int, np.number))
-        assert 0 <= math.fabs(threshold_eV) * const.eV2J < energy_grid_J[-1] + energy_grid_J[0], \
+        assert 0 <= math.fabs(threshold_eV) * const.eV2J < energy_grid_J[-1] + \
+               energy_grid_J[0], \
             '{}'.format(threshold_eV)
         if reaction_type.lower() in ('excitation', 'ionization'):
             assert threshold_eV > 0.0
@@ -770,8 +821,10 @@ class EEDF(object):
         # --------------------------------------------------------------------------------------- #
         _crostn_func = interp1d(_energy, _crostn)
         _crostn_discretized = np.zeros_like(_energy_discretized)
-        _crostn_discretized[_n] = _crostn_func(_energy_discretized[_n] + 0.5 * _phi * de)
-        _crostn_discretized[_n + 1:] = _crostn_func(_energy_discretized[_n + 1:])
+        _crostn_discretized[_n] = _crostn_func(
+            _energy_discretized[_n] + 0.5 * _phi * de)
+        _crostn_discretized[_n + 1:] = _crostn_func(
+            _energy_discretized[_n + 1:])
         # print(_crostn_discretized)
         # --------------------------------------------------------------------------------------- #
         _shape = grid_number
@@ -787,20 +840,25 @@ class EEDF(object):
                 _op = sprs.spdiags(_diags, [0, 1], _shape, _shape).toarray()
                 _op[0, 0] = 1 * (1 - _phi)
                 _op[1, 0] = -1 * (1 - _phi)
-                _op = _op * _phi * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
+                _op = _op * _phi * _gamma * _crostn_discretized * np.sqrt(
+                    energy_grid_J)
             elif reaction_type.lower() == 'deexcitation':
                 _diags = np.vstack((-1 * np.ones(_shape), +1 * np.ones(_shape)))
                 _op = sprs.spdiags(_diags, [0, -1], _shape, _shape).toarray()
                 _op[-1, -1] = 0
-                _op = _op * _phi * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
+                _op = _op * _phi * _gamma * _crostn_discretized * np.sqrt(
+                    energy_grid_J)
             elif reaction_type.lower() == 'ionization':
-                raise EEDFerror('The ionization in low_threshold mode should be avoid.')
+                raise EEDFerror(
+                    'The ionization in low_threshold mode should be avoid.')
             elif reaction_type.lower() == 'attachment':
-                _op = sprs.spdiags(-1 * np.ones(_shape), [0], _shape, _shape).toarray()
+                _op = sprs.spdiags(-1 * np.ones(_shape), [0], _shape,
+                                   _shape).toarray()
                 _op = _op * _gamma * _crostn_discretized * np.sqrt(
                     energy_grid_J)  # TODO check _phi
             else:
-                raise EEDFerror('The reaction_type {} is error.'.format(reaction_type))
+                raise EEDFerror(
+                    'The reaction_type {} is error.'.format(reaction_type))
             # ----------------------------------------------------------------------------------- #
             #   high threshold case
             # ----------------------------------------------------------------------------------- #
@@ -815,11 +873,13 @@ class EEDF(object):
                 _diags = np.vstack((_diag,
                                     (1 - _phi) * np.ones(_shape),
                                     _phi * np.ones(_shape)))
-                _op = sprs.spdiags(_diags, [0, _n, _n + 1], _shape, _shape).toarray()
+                _op = sprs.spdiags(_diags, [0, _n, _n + 1], _shape,
+                                   _shape).toarray()
                 # print(_op)
                 # print(_gamma)
                 # print(_crostn_discretized)
-                _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
+                _op = _op * _gamma * _crostn_discretized * np.sqrt(
+                    energy_grid_J)
             elif reaction_type.lower() == 'ionization':
                 _diag = np.zeros(_shape)
                 _diag[:_n] = 0.0
@@ -828,23 +888,30 @@ class EEDF(object):
                 _diags = np.vstack((_diag,
                                     (1 - _phi) * np.ones(_shape),
                                     _phi * np.ones(_shape)))
-                _op = sprs.spdiags(_diags, [0, _n, _n + 1], _shape, _shape).toarray()
-                _op_extra_e = EEDF.get_rate_const_matrix_molecule(reaction_type='ionization',
-                                                                  energy_grid_J=energy_grid_J,
-                                                                  threshold_eV=threshold_eV,
-                                                                  crostn_eV_m2=crostn_eV_m2)
-                _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
+                _op = sprs.spdiags(_diags, [0, _n, _n + 1], _shape,
+                                   _shape).toarray()
+                _op_extra_e = EEDF.get_rate_const_matrix_molecule(
+                    reaction_type='ionization',
+                    energy_grid_J=energy_grid_J,
+                    threshold_eV=threshold_eV,
+                    crostn_eV_m2=crostn_eV_m2)
+                _op = _op * _gamma * _crostn_discretized * np.sqrt(
+                    energy_grid_J)
                 _op[0] = _op[0] + 3 / 2 / de * _op_extra_e
                 _op[1] = _op[1] - 1 / 2 / de * _op_extra_e
             elif reaction_type.lower() == 'deexcitation':
                 _diags = np.vstack(((-1) * np.ones(_shape - _n - 1),
                                     (1 - _phi) * np.ones(_shape - _n - 1),
                                     (_phi) * np.ones(_shape - _n - 1)))
-                _op = sprs.spdiags(_diags, [0, -_n, -_n - 1], _shape, _shape).toarray()
-                _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
+                _op = sprs.spdiags(_diags, [0, -_n, -_n - 1], _shape,
+                                   _shape).toarray()
+                _op = _op * _gamma * _crostn_discretized * np.sqrt(
+                    energy_grid_J)
             elif reaction_type.lower() == 'attachment':
-                _op = sprs.spdiags(-1 * np.ones(_shape), [0], _shape, _shape).toarray()
-                _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J)
+                _op = sprs.spdiags(-1 * np.ones(_shape), [0], _shape,
+                                   _shape).toarray()
+                _op = _op * _gamma * _crostn_discretized * np.sqrt(
+                    energy_grid_J)
             else:
                 raise EEDFerror(f"The reaction_type {reaction_type} is error.")
         return _op
@@ -870,7 +937,8 @@ class EEDF(object):
         """
         #   check reaction_type
         assert reaction_type.lower() in ('excitation', 'deexcitation',
-                                         'ionization', 'attachment'), reaction_type
+                                         'ionization',
+                                         'attachment'), reaction_type
         #   check energy_grid_J
         assert isinstance(energy_grid_J, np.ndarray)
         assert energy_grid_J.ndim == 1
@@ -880,7 +948,8 @@ class EEDF(object):
         assert crostn_eV_m2.shape[0] == 2
         #   check threshold_eV
         assert isinstance(threshold_eV, (int, float, np.number))
-        assert 0 <= math.fabs(threshold_eV) * const.eV2J < energy_grid_J[-1] + energy_grid_J[0], \
+        assert 0 <= math.fabs(threshold_eV) * const.eV2J < energy_grid_J[-1] + \
+               energy_grid_J[0], \
             '{}'.format(threshold_eV)
         if reaction_type.lower() in ('excitation', 'ionization'):
             assert threshold_eV > 0.0
@@ -891,7 +960,7 @@ class EEDF(object):
         else:
             raise EEDFerror(f"The threshold_eV {threshold_eV} is error.")
 
-        # --------------------------------------------------------------------------------------- #
+        # -------------------------------------------------------------------- #
         _gamma = math.sqrt(2 / const.m_e)
         grid_number = energy_grid_J.size
 
@@ -906,7 +975,8 @@ class EEDF(object):
         _crostn = np.hstack((0.0, crostn_eV_m2[1], 0.0))
         _energy_discretized = energy_grid_J.copy()
         _energy_discretized[_n] = _energy_discretized[_n] + 0.5 * _phi * de
-        _crostn_discretized = interp1d(_energy, _crostn)(_energy_discretized * const.J2eV)
+        _crostn_discretized = interp1d(_energy, _crostn)(
+            _energy_discretized * const.J2eV)
 
         _shape = grid_number
 
@@ -920,9 +990,11 @@ class EEDF(object):
             elif reaction_type.lower() == 'attachment':
                 _op[:] = 1.0
             elif reaction_type.lower() == 'ionization':
-                raise EEDFerror('The ionization in low_threshold mode should be avoid.')
+                raise EEDFerror(
+                    'The ionization in low_threshold mode should be avoid.')
             else:
-                raise EEDFerror('The reaction_type {} is error.'.format(reaction_type))
+                raise EEDFerror(
+                    'The reaction_type {} is error.'.format(reaction_type))
         else:
             if reaction_type.lower() in ('excitation', 'ionization'):
                 _op[:_n] = 0.0
@@ -933,7 +1005,8 @@ class EEDF(object):
             elif reaction_type.lower() == 'deexcitation':
                 _op[:(grid_number - _n - 1)] = 1.0
             else:
-                raise EEDFerror('The reaction_type {} is error.'.format(reaction_type))
+                raise EEDFerror(
+                    'The reaction_type {} is error.'.format(reaction_type))
         _op = _op * _gamma * _crostn_discretized * np.sqrt(energy_grid_J) * de
         return _op
 

@@ -456,7 +456,7 @@ def read_reactionList(reaction_list):
 # ============================================================================ #
 class Reaction_block(object):
 
-    def __init__(self, *, rctn_dict=None, vari_dict=None):
+    def __init__(self, *, rctn_dict=None, vari_dict=None, global_abbr=None):
         r"""
         
         """
@@ -477,6 +477,7 @@ class Reaction_block(object):
             self._treat_where_vari()
             self._treat_iterator()
             self._treat_where_abbr()
+            self._treat_global_abbr(global_abbr)
 
     @property
     def _reactant_str_list(self):
@@ -541,6 +542,20 @@ class Reaction_block(object):
                     self._kstr_list = [_.replace(_key, _value) for _ in
                                        self._kstr_list]
 
+    def _treat_global_abbr(self, _global_abbr):
+        if _global_abbr is None:
+            return None
+        if 'formula' in _global_abbr:
+            for _key in _global_abbr['formula']:
+                _value = _global_abbr['formula'][_key]
+                self._formula_list = [_.replace(_key, _value) for _ in
+                                      self._formula_list]
+        if 'kstr' in _global_abbr:
+            for _key in _global_abbr['kstr']:
+                _value = _global_abbr['kstr'][_key]
+            self._kstr_list = [_.replace(_key, _value) for _ in
+                               self._kstr_list]
+
     def _treat_where_vari(self):
         r"""
         Notes
@@ -586,8 +601,9 @@ class Reaction_block(object):
 # --------------------------------------------------------------------------- #
 class Cros_Reaction_block(Reaction_block):
 
-    def __init__(self, *, rctn_dict=None, vari_dict=None):
-        super().__init__(rctn_dict=rctn_dict, vari_dict=vari_dict)
+    def __init__(self, *, rctn_dict=None, vari_dict=None, global_abbr=None):
+        super().__init__(rctn_dict=rctn_dict, vari_dict=vari_dict,
+                         global_abbr=global_abbr)
         if rctn_dict is not None:
             self._threshold = self.rctn_dict["threshold"]
         self._set_threshold_list()
@@ -602,7 +618,7 @@ class Cros_Reaction_block(Reaction_block):
 
     def _set_threshold_list(self):
         self._threshold = self.rctn_dict['threshold']
-        _iter = self.rctn_dict['iterator'] 
+        _iter = self.rctn_dict['iterator']
         if 'threshold' in _iter['repl']:
             _eval_str = self.repl_func(self._threshold,
                                        _iter['repl']['threshold'],
@@ -628,8 +644,9 @@ class Cros_Reaction_block(Reaction_block):
 # ---------------------------------------------------------------------------- #
 class Coef_Reaction_block(Reaction_block):
 
-    def __init__(self, *, rctn_dict=None, vari_dict=None):
-        super().__init__(rctn_dict=rctn_dict, vari_dict=vari_dict)
+    def __init__(self, *, rctn_dict=None, vari_dict=None, global_abbr=None):
+        super().__init__(rctn_dict=rctn_dict, vari_dict=vari_dict,
+                         global_abbr=None)
 
     def generate_crostn_dataframe(self):
         _df = dict()
