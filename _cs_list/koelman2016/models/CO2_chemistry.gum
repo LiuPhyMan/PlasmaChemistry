@@ -3010,7 +3010,6 @@ Mixture	{
 				Type	Custom
 				Function	"lut[file='@PLASIMO_INPUTDATA_DIR/input/published/koelman2016/rc_set/rc_CO2[va]_elecexc_CO2e1.lut',units='eVT m^3/s',clip_low,clip_high](Temperature('e'))"
 			}
-		}
 		Reaction	{
 			Name	"X09[vb]: e + CO2[vb] -> e + CO2[e1]"
 			Format	"e + CO2[vb] -> e + CO2[e1]"

@@ -15,13 +15,13 @@ vz = F / S
 
 def Fd_with_vz(f):
     _Fd = math.pi * Cd * tho * D * r * f * \
-          np.sqrt((2 * math.pi * r * f) ** 2 + vz ** 2)
+        np.sqrt((2 * math.pi * r * f) ** 2 + vz ** 2)
     return _Fd
 
 
 def Fd_without_vz(f):
     _Fd = math.pi * Cd * tho * D * r * f * \
-          np.sqrt((2 * math.pi * r * f) ** 2)
+        np.sqrt((2 * math.pi * r * f) ** 2)
     return _Fd
 
 

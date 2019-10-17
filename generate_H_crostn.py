@@ -9,6 +9,7 @@ Created on 08:16 18-10-25
 @IDE:       PyCharm
 """
 import math
+import pandas as pd
 from math import log10, log, sqrt, exp
 import numpy as np
 from matplotlib import pyplot as plt
@@ -18,6 +19,7 @@ def generate_energy(_from, _to, _middle):
     energy = np.hstack((np.arange(_from, _middle, step=1e-2),
                         np.logspace(log10(_middle), log10(_to))))
     assert np.diff(energy).all()
+
     return energy
 
 

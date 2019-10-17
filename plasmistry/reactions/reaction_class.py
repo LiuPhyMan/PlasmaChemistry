@@ -82,8 +82,8 @@ class Reactions(object):
 
     """
     specie_regexp = r"{h}(?:{m})*(?:{t})?".format(h=r"[a-zA-Z]",
-                                                 m=r"(?<=\^)[+]|[^\+\s@]",
-                                                 t=r"\^[\+\-]")
+                                                  m=r"(?<=\^)[+]|[^\+\s@]",
+                                                  t=r"\^[\+\-]")
     cmpnds_regexp = r"{molecule}(?:{sep}{molecule})*|".format(
         molecule=r"\d*" + specie_regexp,
         sep=r"[ ][+][ ]")
@@ -204,12 +204,12 @@ class Reactions(object):
                 'mixed reactions')
         if key in ('rate_const', 'rate'):
             assert value is None or \
-                   (isinstance(value,
-                               ndarray_type) and value.size == self.n_reactions)
+                (isinstance(value,
+                            ndarray_type) and value.size == self.n_reactions)
         if key in ('dH_e', 'dH_g'):
             assert value is None or \
-                   (isinstance(value,
-                               Series_type) and value.size == self.n_reactions)
+                (isinstance(value,
+                            Series_type) and value.size == self.n_reactions)
         object.__setattr__(self, key, value)
 
     # ------------------------------------------------------------------------ #
@@ -285,7 +285,7 @@ class Reactions(object):
         """
         assert isinstance(_series, Series_type)
         regexp_check = re.compile(_regexp)
-        lamb_regexp_check = lambda _str: True if regexp_check.fullmatch(
+        def lamb_regexp_check(_str): return True if regexp_check.fullmatch(
             _str) else False
         return _series.apply(lamb_regexp_check).all()
 
@@ -332,7 +332,7 @@ class Reactions(object):
             r"(?<=\s)\d*({})(?=\s)".format(Reactions.specie_regexp),
             cmpnds_str_total)
         assert set(species) >= set(spcs_all)
-        lamb_n_cmpnds = lambda x: x.count(" + ") + 1 if x.strip() else 0
+        def lamb_n_cmpnds(x): return x.count(" + ") + 1 if x.strip() else 0
         # -------------------------------------------------------------------- #
         #   data indices indptr
         # -------------------------------------------------------------------- #

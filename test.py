@@ -33,6 +33,12 @@ def get_latex_format(_str):
 
 
 if __name__ == "__main__":
-    index = 164
-    a = pd.read_csv("test_decom_recom.dat")
-    print(get_latex_format(a.loc[index, 'kstr']))
+    # this is a test line.
+    # index = 164
+    # a = pd.read_csv("test_decom_recom.dat")
+    # print(get_latex_format(a.loc[index, 'kstr']))
+    with open("_cs_list/koelman2016/models/CO2_chemistry.gum") as f:
+        line = f.readlines()
+    line = [_ for _ in line if _.strip().startswith(('Format', 'Func'))]
+    with open('output.dat', 'w') as f:
+        f.write(''.join(line))
