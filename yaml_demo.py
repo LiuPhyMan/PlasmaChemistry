@@ -14,11 +14,13 @@ from plasmistry.io import (standard_Arr_constructor,
                            chemkin_Arr_2_rcnts_constructor,
                            chemkin_Arr_3_rcnts_constructor,
                            reversed_reaction_constructor,
-                            F_gamma_constructor,
+                           F_gamma_constructor,
                            alpha_constructor,
                            LT_constructor,
-                           Coef_Reaction_block)
-from plasmistry.molecule import (CO2_vib_energy_in_K, CO2_vib_energy_in_eV)
+                           Coef_Reaction_block,
+                           Cros_Reaction_block)
+from plasmistry.molecule import (CO2_vib_energy_in_K, CO2_vib_energy_in_eV,
+                                 H2_vib_energy_in_K, H2_vib_energy_in_eV)
 
 yaml.add_constructor("!StandardArr", standard_Arr_constructor)
 yaml.add_constructor("!ChemKinArr_2_rcnt", chemkin_Arr_2_rcnts_constructor)
@@ -28,11 +30,22 @@ yaml.add_constructor("!LT", LT_constructor)
 yaml.add_constructor("!alpha", alpha_constructor)
 yaml.add_constructor("!F_gamma", F_gamma_constructor)
 # ---------------------------------------------------------------------------- #
-vari_dict = {'CO2_vib_energy_in_K': CO2_vib_energy_in_K}
+vari_dict = {'CO2_vib_energy_in_K': CO2_vib_energy_in_K,
+             'H2_vib_energy_in_K': H2_vib_energy_in_K,
+             'H2_vib_energy_in_eV': H2_vib_energy_in_eV,
+             'CO2_vib_energy_in_eV': CO2_vib_energy_in_eV}
 # ---------------------------------------------------------------------------- #
 if __name__ == "__main__":
     with open("./_yaml/test_0.yaml") as f:
         rctn = yaml.load(f)
     rctn_rel = rctn[-1]['The reactions considered']['relaxation reactions']
-    rctn_block = Coef_Reaction_block(rctn_dict=rctn_rel['CO2_O_to_CO_O2'],
-                                     vari_dict=vari_dict)
+    rctn_ele = rctn[-1]['The reactions considered']['electron reactions']
+    global_abbr = rctn[-1]['The reactions considered']['global_abbr']
+    rctn_block = Coef_Reaction_block(rctn_dict=rctn_rel[
+        'H2_VT_with_CO2_forward'],
+                                     vari_dict=vari_dict,
+                                     global_abbr=global_abbr)
+    rctn_block_ele = Cros_Reaction_block(rctn_dict=rctn_ele[
+        'H2_ele_vib_forward'],
+                                         vari_dict=vari_dict,
+                                         global_abbr=global_abbr)

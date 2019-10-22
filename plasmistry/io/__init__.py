@@ -16,7 +16,7 @@ from .io_reactions import *
 from .pre_treat import treat_lines
 
 
-# %%--------------------------------------------------------------------------------------------- #
+# ----------------------------------------------------------------------------  #
 def combine_crostn_reaction_dataframe(*, crostn_dataframe, reactn_dataframe):
     r"""
     Combine crostn_dataframe and reactn_dataframe.
@@ -31,7 +31,8 @@ def combine_crostn_reaction_dataframe(*, crostn_dataframe, reactn_dataframe):
 
     Returns
     -------
-        reaction    reactant    product type    threshold_eV    cs_key  dH_e    cross_section
+        reaction    reactant    product type    threshold_eV    cs_key  dH_e
+        cross_section
 
     Notes
     -----
@@ -180,7 +181,7 @@ def chemkin_Arr_3_rcnts_constructor(loader, node):
     return f"({A}*(1.66e-30)**2)*Tgas**({b})*exp(-({E}*0.5032197)/Tgas)"
 
 
-# ----------------------------------------------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
 __all__ = [s for s in dir() if not s.startswith('_')]
 
 from numpy.testing import Tester

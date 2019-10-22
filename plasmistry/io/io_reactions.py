@@ -543,6 +543,8 @@ class Reaction_block(object):
                                        self._kstr_list]
 
     def _treat_global_abbr(self, _global_abbr):
+        # print("treat_global_abbr")
+        # print(_global_abbr)
         if _global_abbr is None:
             return None
         if 'formula' in _global_abbr:
@@ -553,8 +555,8 @@ class Reaction_block(object):
         if 'kstr' in _global_abbr:
             for _key in _global_abbr['kstr']:
                 _value = _global_abbr['kstr'][_key]
-            self._kstr_list = [_.replace(_key, _value) for _ in
-                               self._kstr_list]
+                self._kstr_list = [_.replace(_key, _value) for _ in
+                                   self._kstr_list]
 
     def _treat_where_vari(self):
         r"""
@@ -646,7 +648,7 @@ class Coef_Reaction_block(Reaction_block):
 
     def __init__(self, *, rctn_dict=None, vari_dict=None, global_abbr=None):
         super().__init__(rctn_dict=rctn_dict, vari_dict=vari_dict,
-                         global_abbr=None)
+                         global_abbr=global_abbr)
 
     def generate_crostn_dataframe(self):
         _df = dict()
