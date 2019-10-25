@@ -470,14 +470,23 @@ class Reaction_block(object):
         self._kstr_list = None
 
         self._vari_dict = vari_dict
-        if rctn_dict is not None:
-            self.rctn_dict = rctn_dict
+        self.rctn_dict = rctn_dict
+
+        if 'formula_kstr' in rctn_dict.keys():
+            self._formula_list = [_.split(',')[0].strip()
+                                  for _ in rctn_dict['formula_kstr']]
+            self._kstr_list = [_.split(',')[1].strip()
+                               for _ in rctn_dict['formula_kstr']]
+            self._type_list = [self.rctn_dict['type']
+                               for _ in self._formula_list]
+        else:
             self._formula = rctn_dict['formula']
             self._kstr = rctn_dict['kstr']
             self._treat_where_vari()
             self._treat_iterator()
-            self._treat_where_abbr()
-            self._treat_global_abbr(global_abbr)
+
+        self._treat_where_abbr()
+        self._treat_global_abbr(global_abbr)
 
     @property
     def _reactant_str_list(self):
@@ -606,17 +615,21 @@ class Cros_Reaction_block(Reaction_block):
     def __init__(self, *, rctn_dict=None, vari_dict=None, global_abbr=None):
         super().__init__(rctn_dict=rctn_dict, vari_dict=vari_dict,
                          global_abbr=global_abbr)
-        if rctn_dict is not None:
-            self._threshold = self.rctn_dict["threshold"]
-        self._set_threshold_list()
+        # if rctn_dict is not None:
+        self._threshold = self.rctn_dict["threshold"]
+        if 'iterator' in rctn_dict:
+            self._set_threshold_list()
+        else:
+            self._threshold_list = self._threshold
 
-    def __add__(self, other):
-        result = Cros_Reaction_block()
-        result._formula_list = self._formula_list + other._formula_list
-        result._kstr_list = self._kstr_list + other._kstr_list
-        result._type_list = self._type_list + other._type_list
-        result._threshold_list = self._threshold_list + other._threshold_list
-        return result
+
+    # def __add__(self, other):
+    #     result = Cros_Reaction_block()
+    #     result._formula_list = self._formula_list + other._formula_list
+    #     result._kstr_list = self._kstr_list + other._kstr_list
+    #     result._type_list = self._type_list + other._type_list
+    #     result._threshold_list = self._threshold_list + other._threshold_list
+    #     return result
 
     def _set_threshold_list(self):
         self._threshold = self.rctn_dict['threshold']

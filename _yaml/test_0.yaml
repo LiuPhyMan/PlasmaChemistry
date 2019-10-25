@@ -2,7 +2,7 @@
 # ==== Global variables
 # ====
 - &H2_vib_0-14 [
-    H2,      H2(v1),  H2(v2),  H2(v3),  H2(v4), 
+    H2,      H2(v1),  H2(v2),  H2(v3),  H2(v4),
     H2(v5),  H2(v6),  H2(v7),  H2(v8),  H2(v9),
     H2(v10), H2(v11), H2(v12), H2(v13), H2(v14),
 ]
@@ -62,6 +62,7 @@
         _CO2csPath_   : E:/Coding/python/PlasmaChemistry/_cs_list/koelman2016
         _COcsPath_    : E:/Coding/python/PlasmaChemistry/_cs_list/koelman2016
         _CO2disCsPath_: E:/Coding/python/PlasmaChemistry/_cs_list/CO2_dis
+        _COdisCsPath_ : E:/Coding/Python/PlasmaChemistry/_cs_list/CO_dis
 
 # ====
 # ====  Notes
@@ -104,14 +105,14 @@
             product:
                 v_lower: range(15)
                 v_upper: range(15)
-        condition: v_upper - 3 < v_lower < v_upper
+        condition: v_upper - 4 < v_lower < v_upper
 
 - &H2_ele_vib_backward
     <<      : *H2_ele_vib_forward
     type    : DEEXCITATION
     iterator:
         <<       : *iterator_H2_ele_vib
-        condition: v_lower > v_upper > v_lower - 3
+        condition: v_lower > v_upper > v_lower - 4
 
 # ====
 # ==== H2 electron dissociation
@@ -125,10 +126,13 @@
     kstr     : _H2csPath_/H2(X)_to_H2(_b)_to_2H/H2(v_A_)_to_H2(b)_to_2H.csv
     iterator :
         repl:
-            formula     : {_A_: _v_}
-            kstr   :{_A_: _v_}
+            formula:
+                _A_: _v_
+            kstr   :
+                _A_: _v_
         loop:
-            product: {_v_: range(14)}
+            product:
+                _v_: range(14)
 
 # ====
 # ==== CO2 ele vibrational excitation
@@ -159,21 +163,157 @@
 
 - &CO2_ele_vib_a-d_forward
     type        : EXCITATION
-    threshold   : [0.0828, 0.1657, 0.2485, 0.3313]
+    threshold   : [0.0828, 0.1656, 0.2485, 0.3314,
+                   0.0828, 0.1657, 0.2486,
+                   0.0829, 0.1658,
+                   0.0829]
     formula_kstr:
-        - E + CO2 => E + CO2(va), _bolsigdbPath_/[excitation][CO2_to_CO2(Va)].dat
-        - E + CO2 => E + CO2(vb), _bolsigdbPath_/[excitation][CO2_to_CO2(Vb)].dat
-        - E + CO2 => E + CO2(vc), _bolsigdbPath_/[excitation][CO2_to_CO2(Vc)].dat
-        - E + CO2 => E + CO2(vd), _bolsigdbPath_/[excitation][CO2_to_CO2(Vd)].dat
+        - E + CO2 => E + CO2(va),       _CO2csPath_/cs_set/scaling/CO2/cs_CO2_vibexc_CO2va.lut
+        - E + CO2 => E + CO2(vb),       _CO2csPath_/cs_set/scaling/CO2/cs_CO2_vibexc_CO2vb.lut
+        - E + CO2 => E + CO2(vc),       _CO2csPath_/cs_set/scaling/CO2/cs_CO2_vibexc_CO2vc.lut
+        - E + CO2 => E + CO2(vd),       _CO2csPath_/cs_set/scaling/CO2/cs_CO2_vibexc_CO2vd.lut
+        - E + CO2(va) => E + CO2(vb),   _CO2csPath_/cs_set/scaling/CO2/cs_CO2va_vibexc_CO2vb.lut
+        - E + CO2(va) => E + CO2(vc),   _CO2csPath_/cs_set/scaling/CO2/cs_CO2va_vibexc_CO2vc.lut
+        - E + CO2(va) => E + CO2(vd),   _CO2csPath_/cs_set/scaling/CO2/cs_CO2va_vibexc_CO2vd.lut
+        - E + CO2(vb) => E + CO2(vc),   _CO2csPath_/cs_set/scaling/CO2/cs_CO2vb_vibexc_CO2vc.lut
+        - E + CO2(vb) => E + CO2(vd),   _CO2csPath_/cs_set/scaling/CO2/cs_CO2vb_vibexc_CO2vd.lut
+        - E + CO2(vc) => E + CO2(vd),   _CO2csPath_/cs_set/scaling/CO2/cs_CO2vc_vibexc_CO2vd.lut
 
 - &CO2_ele_vib_a-d_backward
     type        : DEEXCITATION
-    threshold   : [-0.0828, -0.1657, -0.2485, -0.3313]
-    formula_kstr: #TODO
-        - E + CO2(va) => E + CO2, _bolsigdbPath_/[excitation][CO2_to_CO2(Va)].dat
-        - E + CO2(vb) => E + CO2, _bolsigdbPath_/[excitation][CO2_to_CO2(Vb)].dat
-        - E + CO2(vc) => E + CO2, _bolsigdbPath_/[excitation][CO2_to_CO2(Vc)].dat
-        - E + CO2(vd) => E + CO2, _bolsigdbPath_/[excitation][CO2_to_CO2(Vd)].dat
+    threshold   : [-0.0829, -0.1658, -0.2486, -0.3314,
+                   -0.0829, -0.1657, -0.2485,
+                   -0.0828, -0.1656,
+                   -0.0828]
+    formula_kstr:
+        - E + CO2(vd) => E + CO2(vc),   _CO2csPath_/cs_set/reverse/cs_CO2vc_vibexc_CO2vd_reverse.lut
+        - E + CO2(vd) => E + CO2(vb),   _CO2csPath_/cs_set/reverse/cs_CO2vb_vibexc_CO2vd_reverse.lut
+        - E + CO2(vd) => E + CO2(va),   _CO2csPath_/cs_set/reverse/cs_CO2va_vibexc_CO2vd_reverse.lut
+        - E + CO2(vd) => E + CO2,       _CO2csPath_/cs_set/reverse/cs_CO2_vibexc_CO2vd_reverse.lut
+        - E + CO2(vc) => E + CO2(vb),   _CO2csPath_/cs_set/reverse/cs_CO2vb_vibexc_CO2vc_reverse.lut
+        - E + CO2(vc) => E + CO2(va),   _CO2csPath_/cs_set/reverse/cs_CO2va_vibexc_CO2vc_reverse.lut
+        - E + CO2(vc) => E + CO2,       _CO2csPath_/cs_set/reverse/cs_CO2_vibexc_CO2vc_reverse.lut
+        - E + CO2(vb) => E + CO2(va),   _CO2csPath_/cs_set/reverse/cs_CO2va_vibexc_CO2vb_reverse.lut
+        - E + CO2(vb) => E + CO2,       _CO2csPath_/cs_set/reverse/cs_CO2_vibexc_CO2vb_reverse.lut
+        - E + CO2(va) => E + CO2,       _CO2csPath_/cs_set/reverse/cs_CO2_vibexc_CO2va_reverse.lut
+
+- &CO2_ele_vib_a_forward
+    type     : EXCITATION
+    formula  : E + CO2(va) => E + CO2(v_v_)
+    kstr     :
+        _CO2csPath_/cs_set/scaling/CO2/cs_CO2va_vibexc_CO2v_v_.lut
+    threshold:
+        _thres_
+    iterator : &iterator_CO2_ele_vib_a
+        repl:
+            formula  :
+                _v_: _i_
+            kstr     :
+                _v_: _i_
+            threshold:
+                _thres_: CO2_vib_energy_in_eV(v=(0,0,_i_)) -
+                    CO2_vib_energy_in_eV(v=(0,1,0))
+        loop:
+            product:
+                _i_: range(1, 22)
+
+- &CO2_ele_vib_a_backward
+    type     : DEEXCITATION
+    formula  : E + CO2(v_v_) => E + CO2(va)
+    kstr     :
+        _CO2csPath_/cs_set/reverse/CO2/cs_CO2va_vibexc_CO2v_v__reverse.lut
+    threshold:
+        -_thres_
+    iterator :
+        <<: *iterator_CO2_ele_vib_a
+
+- &CO2_ele_vib_b_forward
+    type     : EXCITATION
+    formula  : E + CO2(vb) => E + CO2(v_v_)
+    kstr     :
+        _CO2csPath_/cs_set/scaling/CO2/cs_CO2vb_vibexc_CO2v_v_.lut
+    threshold:
+        _thres_
+    iterator : &iterator_CO2_ele_vib_b
+        repl:
+            formula  :
+                _v_: _i_
+            kstr     :
+                _v_: _i_
+            threshold:
+                _thres_: CO2_vib_energy_in_eV(v=(0,0,_i_)) -
+                    CO2_vib_energy_in_eV(v=(0,2,0))
+        loop:
+            product:
+                _i_: range(1, 22)
+
+- &CO2_ele_vib_b_backward
+    type     : DEEXCITATION
+    formula  : E + CO2(v_v_) => E + CO2(vb)
+    kstr     :
+        _CO2csPath_/cs_set/reverse/CO2/cs_CO2vb_vibexc_CO2v_v__reverse.lut
+    threshold:
+        -_thres_
+    iterator :
+        <<: *iterator_CO2_ele_vib_b
+
+- &CO2_ele_vib_c_forward
+    type     : EXCITATION
+    formula  : E + CO2(vc) => E + CO2(v_v_)
+    kstr     :
+        _CO2csPath_/cs_set/scaling/CO2/cs_CO2vc_vibexc_CO2v_v_.lut
+    threshold:
+        _thres_
+    iterator : &iterator_CO2_ele_vib_c
+        repl:
+            formula  :
+                _v_: _i_
+            kstr     :
+                _v_: _i_
+            threshold:
+                _thres_: CO2_vib_energy_in_eV(v=(0,0,_i_)) -
+                    CO2_vib_energy_in_eV(v=(0,3,0))
+        loop:
+            product:
+                _i_: range(1, 22)
+
+- &CO2_ele_vib_c_backward
+    type     : EXCITATION
+    formula  : E + CO2(v_v_) => E + CO2(vc)
+    kstr     :
+        _CO2csPath_/cs_set/reverse/CO2/cs_CO2vc_vibexc_CO2v_v__reverse.lut
+    threshold:
+        -_thres_
+    iterator : *iterator_CO2_ele_vib_c
+
+- &CO2_ele_vib_d_forward
+    type     : EXCITATION
+    formula  : E + CO2(vd) => E + CO2(v_v_)
+    kstr     :
+        _CO2csPath_/cs_set/scaling/CO2/cs_CO2vd_vibexc_CO2v_v_.lut
+    threshold:
+        _thres_
+    iterator : &iterator_CO2_ele_vib_d
+        repl:
+            formula  :
+                _v_: _i_
+            kstr     :
+                _v_: _i_
+            threshold:
+                _thres_: CO2_vib_energy_in_eV(v=(0,0,_i_)) -
+                    CO2_vib_energy_in_eV(v=(0,4,0))
+        loop:
+            product:
+                _i_: range(2, 22)  # d level is higher than 1 level.
+
+- &CO2_ele_vib_d_backward
+    type     : DEEXCITATION
+    formula  : E + CO2(v_v_) => E + CO2(vd)
+    kstr     :
+        _CO2csPath_/cs_set/reverse/CO2/cs_CO2vd_vibexc_CO2v_v__reverse.lut
+    threshold:
+        -_thres_
+    iterator : *iterator_CO2_ele_vib_d
 
 # ====
 # ==== CO2 electron dissociation
@@ -208,72 +348,67 @@
         - E + CO2(v20) => E + CO + O,   _CO2disCsPath_/CO2v20_ele_diss_7_eV.dat
         - E + CO2(v21) => E + CO + O,   _CO2disCsPath_/CO2v21_ele_diss_7_eV.dat
     threshold   : # 0, a-d, 1-21
-      [ 7.00, #
-        6.92, 6.83, 6,75, 6,67,
+      [ 7.00, 
+        6.92, 6.83, 6.75, 6.67,
         6.71, 6.42, 6.14, 5.85, 5.57, 5.30, 5.03, 4.76, 4.49, 4.23,
         3.97, 3.71, 3.45, 3.20, 2.96, 2.71, 2.47, 2.23, 1.99, 1.76,
-        1.53,
+        1.53
       ]
-
-- &CO2_ele_diss_via_10_eV # through 10 eV channel
-    type        : EXCITATION
-    formula_kstr:
-        - E + CO2 => E + CO + O,        _CO2disCsPath_/CO2v0_ele_diss_10_eV.dat
-        - E + CO2(v1) => E + CO + O,    _CO2disCsPath_/CO2v1_ele_diss_10_eV.dat
-        - E + CO2(v2) => E + CO + O,    _CO2disCsPath_/CO2v2_ele_diss_10_eV.dat
-        - E + CO2(v3) => E + CO + O,    _CO2disCsPath_/CO2v3_ele_diss_10_eV.dat
-        - E + CO2(v4) => E + CO + O,    _CO2disCsPath_/CO2v4_ele_diss_10_eV.dat
-        - E + CO2(v5) => E + CO + O,    _CO2disCsPath_/CO2v5_ele_diss_10_eV.dat
-        - E + CO2(v6) => E + CO + O,    _CO2disCsPath_/CO2v6_ele_diss_10_eV.dat
-        - E + CO2(v7) => E + CO + O,    _CO2disCsPath_/CO2v7_ele_diss_10_eV.dat
-        - E + CO2(v8) => E + CO + O,    _CO2disCsPath_/CO2v8_ele_diss_10_eV.dat
-        - E + CO2(v9) => E + CO + O,    _CO2disCsPath_/CO2v9_ele_diss_10_eV.dat
-        - E + CO2(v10) => E + CO + O,   _CO2disCsPath_/CO2v10_ele_diss_10_eV.dat
-        - E + CO2(v11) => E + CO + O,   _CO2disCsPath_/CO2v11_ele_diss_10_eV.dat
-        - E + CO2(v12) => E + CO + O,   _CO2disCsPath_/CO2v12_ele_diss_10_eV.dat
-        - E + CO2(v13) => E + CO + O,   _CO2disCsPath_/CO2v13_ele_diss_10_eV.dat
-        - E + CO2(v14) => E + CO + O,   _CO2disCsPath_/CO2v14_ele_diss_10_eV.dat
-        - E + CO2(v15) => E + CO + O,   _CO2disCsPath_/CO2v15_ele_diss_10_eV.dat
-        - E + CO2(v16) => E + CO + O,   _CO2disCsPath_/CO2v16_ele_diss_10_eV.dat
-        - E + CO2(v17) => E + CO + O,   _CO2disCsPath_/CO2v17_ele_diss_10_eV.dat
-        - E + CO2(v18) => E + CO + O,   _CO2disCsPath_/CO2v18_ele_diss_10_eV.dat
-        - E + CO2(v19) => E + CO + O,   _CO2disCsPath_/CO2v19_ele_diss_10_eV.dat
-        - E + CO2(v20) => E + CO + O,   _CO2disCsPath_/CO2v20_ele_diss_10_eV.dat
-        - E + CO2(v21) => E + CO + O,   _CO2disCsPath_/CO2v21_ele_diss_10_eV.dat
-    threshold   : # for the 10 eV channel
-      [ 12.000, 11.709, 11.421, 11.135, 10.854, 10.575, 10.299, 10.026, 9.7565,
-        9.49, 9.2265, 8.9662, 8.7089, 8.4548, 8.2037, 7.9557, 7.7109, 7.4691,
-        7.2304, 6.9948, 6.7623, 6.5328 ]
 
 # ====
 # ==== CO ele vibrational excitation
 # ====
 - &CO_ele_vib_forward
-    type     : excitation
+    type     : EXCITATION
     formula  : E + CO(v_A_) => E + CO(v_B_)
     threshold: _thres_
-    kstr     : _COcsPath/cs_set/scaling/CO/cs_COv_A__vibexc_COv_B_.lut
+    kstr     : _COcsPath_/cs_set/scaling/CO/cs_COv_A__vibexc_COv_B_.lut
     iterator : &iterator_CO_ele_vib
         repl     :
-            formula  : {_A_: v_lower, _B_: v_upper}
-            kstr     : {_A_: v_lower, _B_: v_upper}
+            formula  : 
+                _A_: v_lower 
+                _B_: v_upper
+            kstr     : 
+                _A_: v_lower 
+                _B_: v_upper
             threshold:
                 _thres_: CO_vib_energy_in_eV(v=v_upper) -
                     CO_vib_energy_in_eV(v=v_lower)
         loop     :
             product:
-              { v_lower: range(11), v_upper: range(11)}
-        condition: v_lower < v_upper
+                v_lower: range(11)
+                v_upper: range(11)
+        condition: v_upper-4 < v_lower < v_upper
 
 - &CO_ele_vib_backward
     <<      : *CO_ele_vib_forward
     type    : DEEXCITATION
-    kstr    : _COcsPath/cs_set/reverse/CO/cs_COv_B__vibexc_COv_A__reverse.lut
+    kstr    : _COcsPath_/cs_set/reverse/CO/cs_COv_B__vibexc_COv_A__reverse.lut
     iterator:
         <<       : *iterator_CO_ele_vib
-        condition: v_lower > v_upper
+        condition: v_lower > v_upper > v_lower-4
 
-# - &CO_ele_diss #TODO
+- &CO_ele_diss
+    type: EXCITATION
+    formula: E + CO(v_A_) => E + C + O
+    kstr:
+        _COdisCsPath_/COv_v__ele_diss.dat
+    threshold:
+        _thres_
+    iterator:
+        repl:
+            formula:
+                _A_: _v_
+            kstr:
+                _v_: _v_
+            threshold:
+                _thres_: 11.16 - CO_vib_energy_in_eV(v=_v_)
+        loop:
+            product:
+                _v_: range(11)
+
+
+
 
 # ====
 # ==== O2 ele vibrational excitation
@@ -1524,7 +1659,15 @@
 -   Test                    :
         test:
             # <<: *CO2_VV_inner_forward_1
-            <<: *CO2_VV_with_CO_forward
+            # <<: *CO2_ele_vib_a_forward
+            # <<: *CO2_VV_with_CO_forward
+            # <<: *CO2_ele_vib_a-d_forward
+            # <<: *CO2_ele_vib_d_forward
+            # <<: *CO2_ele_vib_d_backward
+            # <<: *CO2_ele_diss_via_7_eV
+            # <<: *CO_ele_vib_forward
+            <<: *CO_ele_diss
+
     The reactions considered:
         global_abbr          : *Global_abbr
         electron reactions   :
@@ -1644,3 +1787,33 @@
 #             zip:
 #                 v    :     range(14)
 #                 thres: ''
+
+# - &CO2_ele_diss_via_10_eV # through 10 eV channel
+#     type        : EXCITATION
+#     formula_kstr:
+#         - E + CO2 => E + CO + O,        _CO2disCsPath_/CO2v0_ele_diss_10_eV.dat
+#         - E + CO2(v1) => E + CO + O,    _CO2disCsPath_/CO2v1_ele_diss_10_eV.dat
+#         - E + CO2(v2) => E + CO + O,    _CO2disCsPath_/CO2v2_ele_diss_10_eV.dat
+#         - E + CO2(v3) => E + CO + O,    _CO2disCsPath_/CO2v3_ele_diss_10_eV.dat
+#         - E + CO2(v4) => E + CO + O,    _CO2disCsPath_/CO2v4_ele_diss_10_eV.dat
+#         - E + CO2(v5) => E + CO + O,    _CO2disCsPath_/CO2v5_ele_diss_10_eV.dat
+#         - E + CO2(v6) => E + CO + O,    _CO2disCsPath_/CO2v6_ele_diss_10_eV.dat
+#         - E + CO2(v7) => E + CO + O,    _CO2disCsPath_/CO2v7_ele_diss_10_eV.dat
+#         - E + CO2(v8) => E + CO + O,    _CO2disCsPath_/CO2v8_ele_diss_10_eV.dat
+#         - E + CO2(v9) => E + CO + O,    _CO2disCsPath_/CO2v9_ele_diss_10_eV.dat
+#         - E + CO2(v10) => E + CO + O,   _CO2disCsPath_/CO2v10_ele_diss_10_eV.dat
+#         - E + CO2(v11) => E + CO + O,   _CO2disCsPath_/CO2v11_ele_diss_10_eV.dat
+#         - E + CO2(v12) => E + CO + O,   _CO2disCsPath_/CO2v12_ele_diss_10_eV.dat
+#         - E + CO2(v13) => E + CO + O,   _CO2disCsPath_/CO2v13_ele_diss_10_eV.dat
+#         - E + CO2(v14) => E + CO + O,   _CO2disCsPath_/CO2v14_ele_diss_10_eV.dat
+#         - E + CO2(v15) => E + CO + O,   _CO2disCsPath_/CO2v15_ele_diss_10_eV.dat
+#         - E + CO2(v16) => E + CO + O,   _CO2disCsPath_/CO2v16_ele_diss_10_eV.dat
+#         - E + CO2(v17) => E + CO + O,   _CO2disCsPath_/CO2v17_ele_diss_10_eV.dat
+#         - E + CO2(v18) => E + CO + O,   _CO2disCsPath_/CO2v18_ele_diss_10_eV.dat
+#         - E + CO2(v19) => E + CO + O,   _CO2disCsPath_/CO2v19_ele_diss_10_eV.dat
+#         - E + CO2(v20) => E + CO + O,   _CO2disCsPath_/CO2v20_ele_diss_10_eV.dat
+#         - E + CO2(v21) => E + CO + O,   _CO2disCsPath_/CO2v21_ele_diss_10_eV.dat
+#     threshold   : # for the 10 eV channel
+#       [ 12.000, 11.709, 11.421, 11.135, 10.854, 10.575, 10.299, 10.026, 9.7565,
+#         9.49, 9.2265, 8.9662, 8.7089, 8.4548, 8.2037, 7.9557, 7.7109, 7.4691,
+#         7.2304, 6.9948, 6.7623, 6.5328 ]

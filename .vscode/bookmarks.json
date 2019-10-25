@@ -1,0 +1,42 @@
+[
+	{
+		"path": "$ROOTPATH$\\_yaml\\test_0.yaml",
+		"bookmarks": [
+			{
+				"line": 81,
+				"column": 13,
+				"label": "H2 kinetic"
+			},
+			{
+				"line": 753,
+				"column": 0,
+				"label": "CO2_VV_inner"
+			}
+		]
+	},
+	{
+		"path": "$ROOTPATH$\\_rctn_list\\CO2splitT_63.inp",
+		"bookmarks": [
+			{
+				"line": 996,
+				"column": 1,
+				"label": "CO2_VT"
+			}
+		]
+	},
+	{
+		"path": "$ROOTPATH$\\_rctn_list\\CO2_chemistry.dat",
+		"bookmarks": [
+			{
+				"line": 33104,
+				"column": 0,
+				"label": "CO2_VV'"
+			},
+			{
+				"line": 36361,
+				"column": 28,
+				"label": "CO2_VV_with_CO"
+			}
+		]
+	}
+]

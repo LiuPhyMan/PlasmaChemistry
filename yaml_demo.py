@@ -44,23 +44,25 @@ if __name__ == "__main__":
     rctn_test = rctn[-1]['Test']['test']
     # rctn_ele = rctn[-1]['The reactions considered']['electron reactions']
     global_abbr = rctn[-1]['The reactions considered']['global_abbr']
-    rctn_block = Coef_Reaction_block(rctn_dict=rctn_test,
+    rctn_block = Cros_Reaction_block(rctn_dict=rctn_test,
                                      vari_dict=vari_dict,
                                      global_abbr=global_abbr)
     a = rctn_block.generate_crostn_dataframe()
+    ###################################
     # rctn_block_ele = Cros_Reaction_block(rctn_dict=rctn_ele[
     #     'H2_ele_vib_forward'],
     #                                      vari_dict=vari_dict,
     #                                      global_abbr=global_abbr)
 
 
-    for i in range(22):
-        for j in range(12):
-            energy = CO2_vib_energy_in_eV(v=(0,0,i)) + \
-                CO_vib_energy_in_eV(v=j) - \
-                CO2_vib_energy_in_eV(v=(0,0,i-1)) - \
-                CO_vib_energy_in_eV(v=j+1)
-            print(f"CO2 {i}->{i-1}   CO {j}->{j+1} energy {energy}")
+    # for i in range(22):
+    #     for j in range(12):
+    #         energy = CO2_vib_energy_in_eV(v=(0,0,i)) + \
+    #             CO_vib_energy_in_eV(v=j) - \
+    #             CO2_vib_energy_in_eV(v=(0,0,i-1)) - \
+    #             CO_vib_energy_in_eV(v=j+1)
+    #         print(f"CO2 {i}->{i-1}   CO {j}->{j+1} energy {energy}")
+
 
 
 
