@@ -3,14 +3,9 @@
 		"path": "$ROOTPATH$\\_yaml\\test_0.yaml",
 		"bookmarks": [
 			{
-				"line": 81,
+				"line": 85,
 				"column": 13,
 				"label": "H2 kinetic"
-			},
-			{
-				"line": 753,
-				"column": 0,
-				"label": "CO2_VV_inner"
 			}
 		]
 	},

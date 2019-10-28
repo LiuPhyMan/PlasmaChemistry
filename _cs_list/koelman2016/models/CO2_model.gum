@@ -1,38 +1,27 @@
 Annotation	"Chemistry adopted from Kozak and Bogaerts work: Splitting of CO2 by vibrational excitation in non-equilibrium plasmas: a reaction kinetics model, http://stacks.iop.org/0963-0252/23/i=4/a=045004"
-Include	@PLASIMO_INPUTDATA_DIR/input/gmplugins.cnf	Plugins
+Include 	@PLASIMO_INPUTDATA_DIR/plplugins/globalmodel/input/model_global.cnf	Plugins
 InitViews	{
 	ViewList	{
 		Context	wx
 	}
 }
-Include	@PLASIMO_INPUTDATA_DIR/input/published/koelman2016/models/CO2_chemistry.gum:!Mixture	Mixture
+Include	@PLASIMO_INPUTDATA_DIR/input/published/koelman2016/models/CO2_chemistry.gum	Mixture
 Declarations	{
-	Include	@PLASIMO_INPUTDATA_DIR/input/published/koelman2016/models/CO2_chemistry.gum:!Declarations
-	Declare	{
-		Type	Constant
-		Name	L
-		Value	90*mm
-	}
-	Declare	{
-		Type	Constant
-		Name	Length
-		Value	90*mm
-	}
-	Declare	{
-		Type	Constant
-		Name	R_inner
-		Value	22/2*mm
-	}
-	Declare	{
-		Type	Constant
-		Name	R_outer
-		Value	26/2*mm
-	}
-	Declare	{
-		Type	Constant
-		Name	Volume
-		Value	"`pi*Length*(R_outer^2 - R_inner^2)"
-	}
+	Declare	L=90*mm
+	Declare	Length=90*mm
+	Declare R_inner=22/2*mm
+	Declare	R_outer=26/2*mm
+	Declare	Volume=`pi*Length*(R_outer^2-R_inner^2)
+}
+Declarations	{
+	Declare	Te_eV()=Temperature('e')/eVT
+	Declare	Te_K()=Temperature('e')/K
+	Declare	Tg_eV()=Temperature('CO2')/eVT
+	Declare	Tg_K()=Temperature('CO2')/K
+	Declare n_neutral()=Density('CO2')+Density('CO')+Density('C2O')+Density('C')+Density('C2')+Density('O')+Density('O2')+Density('O3')+Density('CO2[e1]')+Density('CO2[e2]')+Density('CO2[va]')+Density('CO2[vb]')+Density('CO2[vc]')+Density('CO2[vd]')+Density('CO2[v01]')+Density('CO2[v02]')+Density('CO2[v03]')+Density('CO2[v04]')+Density('CO2[v05]')+Density('CO2[v06]')+Density('CO2[v07]')+Density('CO2[v08]')+Density('CO2[v09]')+Density('CO2[v10]')+Density('CO2[v11]')+Density('CO2[v12]')+Density('CO2[v13]')+Density('CO2[v14]')+Density('CO2[v15]')+Density('CO2[v16]')+Density('CO2[v17]')+Density('CO2[v18]')+Density('CO2[v19]')+Density('CO2[v20]')+Density('CO2[v21]')+Density('CO[e1]')+Density('CO[e2]')+Density('CO[e3]')+Density('CO[e4]')+Density('CO[v01]')+Density('CO[v02]')+Density('CO[v03]')+Density('CO[v04]')+Density('CO[v05]')+Density('CO[v06]')+Density('CO[v07]')+Density('CO[v08]')+Density('CO[v09]')+Density('CO[v10]')+Density('O2[e1]')+Density('O2[e2]')+Density('O2[v01]')+Density('O2[v02]')+Density('O2[v03]')
+	Declare	n_CO2()=(Density('CO2')+Density('CO2[e1]')+Density('CO2[e2]')+Density('CO2[va]')+Density('CO2[vb]')+Density('CO2[vc]')+Density('CO2[vd]')+Density('CO2[v01]')+Density('CO2[v02]')+Density('CO2[v03]')+Density('CO2[v04]')+Density('CO2[v05]')+Density('CO2[v06]')+Density('CO2[v07]')+Density('CO2[v08]')+Density('CO2[v09]')+Density('CO2[v10]')+Density('CO2[v11]')+Density('CO2[v12]')+Density('CO2[v13]')+Density('CO2[v14]')+Density('CO2[v15]')+Density('CO2[v16]')+Density('CO2[v17]')+Density('CO2[v18]')+Density('CO2[v19]')+Density('CO2[v20]')+Density('CO2[v21]'))
+	Declare	n_CO()=(Density('CO')+Density('CO[e1]')+Density('CO[e2]')+Density('CO[e3]')+Density('CO[e4]')+Density('CO[v01]')+Density('CO[v02]')+Density('CO[v03]')+Density('CO[v04]')+Density('CO[v05]')+Density('CO[v06]')+Density('CO[v07]')+Density('CO[v08]')+Density('CO[v09]')+Density('CO[v10]'))
+	Declare	n_O2()=(Density('O2')+Density('O2[e1]')+Density('O2[e2]')+Density('O2[v01]')+Density('O2[v02]')+Density('O2[v03]'))
 }
 InputPowerDensity	{
 	Function	"lut[file='@PLASIMO_INPUTDATA_DIR/input/published/koelman2016/models/power_pulse_single.lut',units='s W',clip_low,clip_high](time)*20e10/(m^3)"
@@ -61,14 +50,21 @@ Options	{
 	ConstantDensity	{
 	}
 	UseQuasiNeutrality	yes
-	UseTeFloor	yes
+}
+Temperature	{
+	Type	2T
+	ElectronTemperature	{
+		Type	Calculated
+		InitialValue	300*K
+		UseTeFloor	yes
+	}
+	GasTemperature	{
+		Type	Constant
+		Value	300*K
+	}
 }
 InitialValues	{
 	Type	Values
-	Temperatures	{
-		Heavy	300*K
-		Electron	300*K
-	}
 	Densities	{
 		Species	CO2	2.47926940594502574e+25/m^3
 		Species	CO	60278566313321.742e+6/m^3
@@ -151,9 +147,15 @@ Schedule	{
 }
 Output	{
 	Directory	data/
-	data_ext	.out
 	Prefix	co2
 	SaveRates	Yes
+	DataSet {
+		Name density
+		Expression	n_neutral n_neutral()
+		Expression	n_CO2 n_CO2()
+		Expression	n_CO n_CO()
+		Expression	n_O2 n_O2()
+	}
 }
 Stepper	{
 	Type	ODEPack_LSODA

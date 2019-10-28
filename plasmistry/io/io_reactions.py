@@ -529,6 +529,8 @@ class Reaction_block(object):
                                                  _iter['repl']['kstr'],
                                                  _iter),
                                   self._vari_dict)
+            # print(_iter['repl']['kstr'])
+        # print(self.rctn_dict['formula'])
         self._formula_list = _formula_list
         self._kstr_list = _kstr_list
         self._type_list = [self.rctn_dict['type'] for _ in

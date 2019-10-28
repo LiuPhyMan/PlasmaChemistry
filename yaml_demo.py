@@ -19,6 +19,7 @@ from plasmistry.io import (standard_Arr_constructor,
                            LT_constructor,
                            Coef_Reaction_block,
                            Cros_Reaction_block)
+from plasmistry.molecule import get_vib_energy
 from plasmistry.molecule import (CO2_vib_energy_in_K, CO2_vib_energy_in_eV,
                                  H2_vib_energy_in_K, H2_vib_energy_in_eV,
                                  CO_vib_energy_in_K, CO_vib_energy_in_eV)
@@ -63,6 +64,21 @@ if __name__ == "__main__":
     #             CO_vib_energy_in_eV(v=j+1)
     #         print(f"CO2 {i}->{i-1}   CO {j}->{j+1} energy {energy}")
 
+    # import numpy as np
+    # a = np.loadtxt(r"E:\Coding\Python\PlasmaChemistry\_cs_list\koelman2016"
+    #               r"\cs_set"
+    #            r"\cs_O2_diss.lut")
+    #
+    #
+    # i=3
+    # _energy = a[:,0]
+    # _crostn = a[:,1]
+    # _crostn_to_save = np.vstack((_energy - get_vib_energy('O2',
+    #                                                       quantum_number=i,
+    #                                                       minimum_is_zero=True), _crostn)).transpose()
+    # np.savetxt(f'O2v{i}_ele_diss.dat', _crostn_to_save, fmt='%.4e')
+    from scipy.integrate import trapz
+    trapz()
 
 
 

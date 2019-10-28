@@ -145,7 +145,8 @@ class Reactions(object):
         _species_from_cmpnds = np.unique([_ for _ in _temp if _ !=
                                           ""])
         assert len(set(self.species)) == len(self.species)
-        assert set(self.species) >= set(_species_from_cmpnds)
+        assert set(self.species) >= set(_species_from_cmpnds), \
+            set(_species_from_cmpnds) - set(self.species)
         # del _temp
         assert self._regexp_check(self.species, self.specie_regexp)
         assert self._regexp_check(self.reactant, self.cmpnds_regexp)
@@ -204,12 +205,12 @@ class Reactions(object):
                 'mixed reactions')
         if key in ('rate_const', 'rate'):
             assert value is None or \
-                (isinstance(value,
-                            ndarray_type) and value.size == self.n_reactions)
+                   (isinstance(value,
+                               ndarray_type) and value.size == self.n_reactions)
         if key in ('dH_e', 'dH_g'):
             assert value is None or \
-                (isinstance(value,
-                            Series_type) and value.size == self.n_reactions)
+                   (isinstance(value,
+                               Series_type) and value.size == self.n_reactions)
         object.__setattr__(self, key, value)
 
     # ------------------------------------------------------------------------ #
@@ -285,8 +286,10 @@ class Reactions(object):
         """
         assert isinstance(_series, Series_type)
         regexp_check = re.compile(_regexp)
+
         def lamb_regexp_check(_str): return True if regexp_check.fullmatch(
             _str) else False
+
         return _series.apply(lamb_regexp_check).all()
 
     @staticmethod
@@ -332,7 +335,9 @@ class Reactions(object):
             r"(?<=\s)\d*({})(?=\s)".format(Reactions.specie_regexp),
             cmpnds_str_total)
         assert set(species) >= set(spcs_all)
+
         def lamb_n_cmpnds(x): return x.count(" + ") + 1 if x.strip() else 0
+
         # -------------------------------------------------------------------- #
         #   data indices indptr
         # -------------------------------------------------------------------- #
@@ -776,6 +781,7 @@ class CrosReactions(Reactions):
         _rate_const_matrix = np.empty(
             (crostn_dataframe.shape[0], electron_energy_grid.size))
         for i_rctn, cs_key in enumerate(self.formula):
+            print(cs_key)
             if cs_key not in crostn_dataframe['formula'].tolist():
                 raise ReactionClassError(
                     '"{}" is not in the cs_frame.'.format(cs_key))

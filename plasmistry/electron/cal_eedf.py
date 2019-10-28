@@ -952,7 +952,7 @@ class EEDF(object):
                energy_grid_J[0], \
             '{}'.format(threshold_eV)
         if reaction_type.lower() in ('excitation', 'ionization'):
-            assert threshold_eV > 0.0
+            assert threshold_eV > 0.0, threshold_eV
         elif reaction_type.lower() in ('deexcitation',):
             assert threshold_eV < 0.0
         elif reaction_type.lower() in ('attachment',):

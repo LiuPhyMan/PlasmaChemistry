@@ -37,8 +37,12 @@ if __name__ == "__main__":
     # index = 164
     # a = pd.read_csv("test_decom_recom.dat")
     # print(get_latex_format(a.loc[index, 'kstr']))
-    with open("_cs_list/koelman2016/models/CO2_chemistry.gum") as f:
-        line = f.readlines()
-    line = [_ for _ in line if _.strip().startswith(('Format', 'Func'))]
-    with open('output.dat', 'w') as f:
-        f.write(''.join(line))
+    # with open("_cs_list\koelman2016\models\CO2_chemistry_v2.gum") as f:
+    #     line = f.readlines()
+    # line = [_.strip() for _ in line if _.strip().startswith(('Name',))]
+    # with open('output.dat', 'w') as f:
+    #     f.write('\n'.join(line))
+    path = f'_cs_list/H2/H2(X)_to_H2(_b)_to_2H/H2_to_H2(b)_to_2H.csv'
+    data = np.loadtxt(path)
+    data[:, 1] = data[:, 1] * 1e-20
+    np.savetxt(f"H2_to_H2(b)_to_2H.csv", data, fmt='%.2e')
