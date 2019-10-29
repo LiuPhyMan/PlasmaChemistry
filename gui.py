@@ -10,7 +10,6 @@ Created on 15:05 2019/10/29
 """
 import sys
 import math
-import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image
@@ -23,9 +22,8 @@ from PyQt5.QtWidgets import QApplication, QAction
 from BetterQWidgets import (QPlot, ReadFileQWidget, BetterQPushButton,
                             BetterQLabel)
 
-_DEFAULT_TOOLBAR_FONT = QFont("Helvetica", 10)
-_DEFAULT_TEXT_FONT = QFont("Helvetica", 11)
-
+_DEFAULT_TOOLBAR_FONT = QFont("Arial", 10)
+_DEFAULT_TEXT_FONT = QFont("Arial", 11)
 
 
 class TheReadFileQWidget(ReadFileQWidget):
@@ -285,10 +283,6 @@ class PlasmistryGui(QW.QMainWindow):
 #             _.set_color('white')
 #         self.AO_line, = self._imag_show.axes.plot([0, 0], [0, 0], linestyle='--')
 #         self.BO_line, = self._imag_show.axes.plot([0, 0], [0, 0], linestyle='--')
-
-
-
-
 
 
 #         def clear_marks():
