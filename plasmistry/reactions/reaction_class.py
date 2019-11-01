@@ -410,6 +410,44 @@ class Reactions(object):
                               dtype=np.int64)
         return rcnt_index, rcnt_expnt
 
+    def _set_species_group(self, group_dict):
+        r"""
+
+        Parameters
+        ----------
+        group_dict
+
+        Returns
+        -------
+
+        """
+        for _group_specie in group_dict:
+            assert _group_specie in self.species.values, _group_specie
+            for _specie in group_dict[_group_specie]:
+                assert _specie in self.species.values, _specie
+        # -------------------------------------------------------------------- #
+        #   sij
+        # -------------------------------------------------------------------- #
+        _df = pd.DataFrame(self.__sij.toarray(), index=self.species)
+        for _group_specie in group_dict:
+            assert not _df.loc[_group_specie].any()
+            _df.loc[_group_specie] = _df.loc[group_dict[_group_specie]].sum()
+        self.__sij = spr.csr_matrix(_df.values)
+        # -------------------------------------------------------------------- #
+        #   rcntsij
+        # -------------------------------------------------------------------- #
+        _df = pd.DataFrame(self.__rcntsij.toarray(), index=self.species)
+        for _group_specie in group_dict:
+            _df.loc[_group_specie] = _df.loc[group_dict[_group_specie]].sum()
+        self.__rcntsij = spr.csc_matrix(_df.values)
+        # -------------------------------------------------------------------- #
+        #   prdtsij
+        # -------------------------------------------------------------------- #
+        _df = pd.DataFrame(self.__prdtsij.toarray(), index=self.species)
+        for _group_specie in group_dict:
+            _df.loc[_group_specie] = _df.loc[group_dict[_group_specie]].sum()
+        self.__prdtsij = spr.csc_matrix(_df.values)
+
     # ------------------------------------------------------------------------ #
     #   rate, dn, dH_e, dH_g
     # ------------------------------------------------------------------------ #

@@ -131,7 +131,7 @@ def alpha_constructor(loader, node):
     E_forward, E_backward = _list
     E_forward = float(E_forward)
     E_backward = float(E_backward)
-    return E_forward / (E_forward + E_backward)
+    return f"{E_forward / (E_forward + E_backward):.2f}"
 
 
 def reversed_reaction_constructor(loader, node):
@@ -163,7 +163,8 @@ def chemkin_Arr_2_rcnts_constructor(loader, node):
     """
     _list = loader.construct_sequence(node)
     A, b, E = _list
-    return f"({A}*1.66e-30)*Tgas**({b})*exp(-({E}*0.5032197)/Tgas)"
+    E_value = float(E) * 0.5032197
+    return f"({float(A):.2e}*1.66e-30)*Tgas**({b})*exp(-{E_value:.0f}/Tgas)"
 
 
 def chemkin_Arr_3_rcnts_constructor(loader, node):
