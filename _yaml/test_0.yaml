@@ -84,6 +84,15 @@
     H2(all) : *H2_vib_all
     CO(all) : *CO_vib_all
 
+- &species
+    [E, 
+    H2(v0-14), 
+    CO2(va-d), CO2(v0-21),
+    CO(v0-10),
+    O2, H2O,
+    H2(all), CO2(all), CO(all), H2O(all), O2(all),
+    H, O, C, OH]
+
 
 # ====
 # ====  Notes
@@ -518,119 +527,118 @@
     formula_kstr:
         # a-0
         - CO2(va) + CO2(all) => CO2 + CO2(all)  , _ka0CO2_
-        - CO2(va) + O2  => CO2 + O2             , _ka0CO2_ * 0.7
+        - CO2(va) + O2(all)  => CO2 + O2(all)   , _ka0CO2_ * 0.7
         - CO2(va) + CO(all)  => CO2 + CO(all)   , _ka0CO2_ * 0.7
         - CO2(va) + H2(all)  => CO2 + H2(all)   , _ka0H2_
-        - CO2(va) + H2O => CO2 + H2O            , _ka0H2O_
+        - CO2(va) + H2O(all) => CO2 + H2O(all)  , _ka0H2O_
         # 0-a 
         - CO2 + CO2(all) => CO2(va) + CO2(all)  , 1.0 * exp(-960.5/Tgas) * _ka0CO2_
-        - CO2 + O2  => CO2(va) + O2             , 1.0 * exp(-960.5/Tgas) * _ka0CO2_ * 0.7
+        - CO2 + O2(all)  => CO2(va) + O2(all)   , 1.0 * exp(-960.5/Tgas) * _ka0CO2_ * 0.7
         - CO2 + CO(all)  => CO2(va) + CO(all)   , 1.0 * exp(-960.5/Tgas) * _ka0CO2_ * 0.7
         - CO2 + H2(all)  => CO2(va) + H2(all)   , 1.0 * exp(-960.5/Tgas) * _ka0H2_
-        - CO2 + H2O => CO2(va) + H2O            , 1.0 * exp(-960.5/Tgas) * _ka0H2O_
+        - CO2 + H2O(all) => CO2(va) + H2O(all)  , 1.0 * exp(-960.5/Tgas) * _ka0H2O_
         # b-a
         - CO2(vb) + CO2(all) => CO2(va) + CO2(all)  , _kbaCO2_
-        - CO2(vb) + O2  => CO2(va) + O2,            _kbaCO2_ * 0.7
-        - CO2(vb) + CO(all)  => CO2(va) + CO(all),            _kbaCO2_ * 0.7
-        - CO2(vb) + H2(all)  => CO2(va) + H2(all),            _kbaH2_
-        - CO2(vb) + H2O => CO2(va) + H2O,           _kbaH2O_
+        - CO2(vb) + O2(all)  => CO2(va) + O2(all)   , _kbaCO2_ * 0.7
+        - CO2(vb) + CO(all)  => CO2(va) + CO(all)   , _kbaCO2_ * 0.7
+        - CO2(vb) + H2(all)  => CO2(va) + H2(all)   , _kbaH2_
+        - CO2(vb) + H2O(all) => CO2(va) + H2O(all)  , _kbaH2O_
         # a-b
-        - CO2(va) + CO2(all) => CO2(vb) + CO2(all),           3.0 * exp(-961.1/Tgas) * _kbaCO2_
-        - CO2(va) + O2  => CO2(vb) + O2,            3.0 * exp(-961.1/Tgas) * _kbaCO2_ * 0.7
-        - CO2(va) + CO(all)  => CO2(vb) + CO(all),            3.0 * exp(-961.1/Tgas) * _kbaCO2_ * 0.7
-        - CO2(va) + H2(all)  => CO2(vb) + H2(all),            3.0 * exp(-961.1/Tgas) * _kbaH2_
-        - CO2(va) + H2O => CO2(vb) + H2O,           3.0 * exp(-961.1/Tgas) * _kbaH2O_
+        - CO2(va) + CO2(all) => CO2(vb) + CO2(all)  , 3.0 * exp(-961.1/Tgas) * _kbaCO2_
+        - CO2(va) + O2(all)  => CO2(vb) + O2(all)   , 3.0 * exp(-961.1/Tgas) * _kbaCO2_ * 0.7
+        - CO2(va) + CO(all)  => CO2(vb) + CO(all)   , 3.0 * exp(-961.1/Tgas) * _kbaCO2_ * 0.7
+        - CO2(va) + H2(all)  => CO2(vb) + H2(all)   , 3.0 * exp(-961.1/Tgas) * _kbaH2_
+        - CO2(va) + H2O(all) => CO2(vb) + H2O(all)  , 3.0 * exp(-961.1/Tgas) * _kbaH2O_
         # c-b
-        - CO2(vc) + CO2(all) => CO2(vb) + CO2(all),           _kcbCO2_
-        - CO2(vc) + O2  => CO2(vb) + O2,            _kcbCO2_ * 0.7
-        - CO2(vc) + CO(all)  => CO2(vb) + CO(all),            _kcbCO2_ * 0.7
-        - CO2(vc) + H2(all)  => CO2(vb) + H2(all),            _kcbH2_
-        - CO2(vc) + H2O => CO2(vb) + H2O,           _kcbH2O_
+        - CO2(vc) + CO2(all) => CO2(vb) + CO2(all)  , _kcbCO2_
+        - CO2(vc) + O2(all)  => CO2(vb) + O2(all)   , _kcbCO2_ * 0.7
+        - CO2(vc) + CO(all)  => CO2(vb) + CO(all)   , _kcbCO2_ * 0.7
+        - CO2(vc) + H2(all)  => CO2(vb) + H2(all)   , _kcbH2_
+        - CO2(vc) + H2O(all) => CO2(vb) + H2O(all)  , _kcbH2O_
         # b-c
-        - CO2(vb) + CO2(all) => CO2(vc) + CO2(all),           1.0 * exp(-961.8/Tgas) * _kcbCO2_
-        - CO2(vb) + O2  => CO2(vc) + O2,            1.0 * exp(-961.8/Tgas) * _kcbCO2_ * 0.7
-        - CO2(vb) + CO  => CO2(vc) + CO(all),            1.0 * exp(-961.8/Tgas) * _kcbCO2_ * 0.7
-        - CO2(vb) + H2(all)  => CO2(vc) + H2(all),            1.0 * exp(-961.8/Tgas) * _kcbH2_
-        - CO2(vb) + H2O(all) => CO2(vc) + H2O(all),           1.0 * exp(-961.8/Tgas) * _kcbH2O_
+        - CO2(vb) + CO2(all) => CO2(vc) + CO2(all)  , 1.0 * exp(-961.8/Tgas) * _kcbCO2_
+        - CO2(vb) + O2(all)  => CO2(vc) + O2(all)   , 1.0 * exp(-961.8/Tgas) * _kcbCO2_ * 0.7
+        - CO2(vb) + CO(all)  => CO2(vc) + CO(all)   , 1.0 * exp(-961.8/Tgas) * _kcbCO2_ * 0.7
+        - CO2(vb) + H2(all)  => CO2(vc) + H2(all)   , 1.0 * exp(-961.8/Tgas) * _kcbH2_
+        - CO2(vb) + H2O(all) => CO2(vc) + H2O(all)  , 1.0 * exp(-961.8/Tgas) * _kcbH2O_
         # d-c
-        - CO2(vd) + CO2(all) => CO2(vc) + CO2(all),           _kdcCO2_
-        - CO2(vd) + O2  => CO2(vc) + O2,            _kdcCO2_ * 0.7
-        - CO2(vd) + CO(all)  => CO2(vc) + CO(all),            _kdcCO2_ * 0.7
-        - CO2(vd) + H2(all)  => CO2(vc) + H2(all),            _kdcH2_
-        - CO2(vd) + H2O => CO2(vc) + H2O,           _kdcH2O_
+        - CO2(vd) + CO2(all) => CO2(vc) + CO2(all)  , _kdcCO2_
+        - CO2(vd) + O2(all)  => CO2(vc) + O2(all)   , _kdcCO2_ * 0.7
+        - CO2(vd) + CO(all)  => CO2(vc) + CO(all)   , _kdcCO2_ * 0.7
+        - CO2(vd) + H2(all)  => CO2(vc) + H2(all)   , _kdcH2_
+        - CO2(vd) + H2O(all) => CO2(vc) + H2O(all)  , _kdcH2O_
         # c-d
-        - CO2(vc) + CO2(all) => CO2(vd) + CO2(all),           2.0 * exp(-962.4/Tgas) * _kdcCO2_
-        - CO2(vc) + O2  => CO2(vd) + O2,            2.0 * exp(-962.4/Tgas) * _kdcCO2_ * 0.7
-        - CO2(vc) + CO(all)  => CO2(vd) + CO(all),            2.0 * exp(-962.4/Tgas) * _kdcCO2_ * 0.7
-        - CO2(vc) + H2(all)  => CO2(vd) + H2(all),            2.0 * exp(-962.4/Tgas) * _kdcH2_
-        - CO2(vc) + H2O => CO2(vd) + H2O,           2.0 * exp(-962.4/Tgas) * _kdcH2O_
+        - CO2(vc) + CO2(all) => CO2(vd) + CO2(all)  , 2.0 * exp(-962.4/Tgas) * _kdcCO2_
+        - CO2(vc) + O2(all)  => CO2(vd) + O2(all)   , 2.0 * exp(-962.4/Tgas) * _kdcCO2_ * 0.7
+        - CO2(vc) + CO(all)  => CO2(vd) + CO(all)   , 2.0 * exp(-962.4/Tgas) * _kdcCO2_ * 0.7
+        - CO2(vc) + H2(all)  => CO2(vd) + H2(all)   , 2.0 * exp(-962.4/Tgas) * _kdcH2_
+        - CO2(vc) + H2O(all) => CO2(vd) + H2O(all)  , 2.0 * exp(-962.4/Tgas) * _kdcH2O_
         # 1-a
-        - CO2(v1) + CO2(all) => CO2(va) + CO2(all) ,          _k1aCO2_
-        - CO2(v1) + O2  => CO2(va) + O2  ,          0.4 * _k1aCO2_
-        - CO2(v1) + CO(all)  => CO2(va) + CO(all)  ,          0.3 * _k1aCO2_
-        - CO2(v1) + H2(all)  => CO2(va) + H2(all)  ,          _k1aH2_
-        - CO2(v1) + H2O => CO2(va) + H2O ,          _k1aH2O_
+        - CO2(v1) + CO2(all) => CO2(va) + CO2(all)  , _k1aCO2_
+        - CO2(v1) + O2(all)  => CO2(va) + O2(all)   , 0.4 * _k1aCO2_
+        - CO2(v1) + CO(all)  => CO2(va) + CO(all)   , 0.3 * _k1aCO2_
+        - CO2(v1) + H2(all)  => CO2(va) + H2(all)   , _k1aH2_
+        - CO2(v1) + H2O(all) => CO2(va) + H2O(all)  , _k1aH2O_
         # a-1
-        - CO2(va) + CO2(all) => CO2(v1) + CO2(all) ,          1.0 * exp(-2419.4/Tgas) * _k1aCO2_
-        - CO2(va) + O2  => CO2(v1) + O2  ,          1.0 * exp(-2419.4/Tgas) * _k1aCO2_ * 0.4
-        - CO2(va) + CO(all)  => CO2(v1) + CO(all)  ,          1.0 * exp(-2419.4/Tgas) * _k1aCO2_ * 0.3
-        - CO2(va) + H2(all)  => CO2(v1) + H2(all)  ,          1.0 * exp(-2419.4/Tgas) * _k1aH2_
-        - CO2(va) + H2O => CO2(v1) + H2O ,          1.0 * exp(-2419.4/Tgas) * _k1aH2O_
+        - CO2(va) + CO2(all) => CO2(v1) + CO2(all)  , 1.0 * exp(-2419.4/Tgas) * _k1aCO2_
+        - CO2(va) + O2(all)  => CO2(v1) + O2(all)   , 1.0 * exp(-2419.4/Tgas) * _k1aCO2_ * 0.4
+        - CO2(va) + CO(all)  => CO2(v1) + CO(all)   , 1.0 * exp(-2419.4/Tgas) * _k1aCO2_ * 0.3
+        - CO2(va) + H2(all)  => CO2(v1) + H2(all)   , 1.0 * exp(-2419.4/Tgas) * _k1aH2_
+        - CO2(va) + H2O(all) => CO2(v1) + H2O(all)  , 1.0 * exp(-2419.4/Tgas) * _k1aH2O_
         # 1-b
-        - CO2(v1) + CO2(all) => CO2(vb) + CO2 ,          _k1bCO2_
-        - CO2(v1) + O2  => CO2(vb) + O2  ,          _k1bCO2_ * 0.4
-        - CO2(v1) + CO(all)  => CO2(vb) + CO(all)  ,          _k1bCO2_ * 0.3
-        - CO2(v1) + H2(all)  => CO2(vb) + H2(all)  ,          _k1bH2_
-        - CO2(v1) + H2O => CO2(vb) + H2O ,          _k1bH2O_
+        - CO2(v1) + CO2(all) => CO2(vb) + CO2(all)  , _k1bCO2_
+        - CO2(v1) + O2(all)  => CO2(vb) + O2(all)   , _k1bCO2_ * 0.4
+        - CO2(v1) + CO(all)  => CO2(vb) + CO(all)   , _k1bCO2_ * 0.3
+        - CO2(v1) + H2(all)  => CO2(vb) + H2(all)   , _k1bH2_
+        - CO2(v1) + H2O(all) => CO2(vb) + H2O(all)  , _k1bH2O_
         # b-1
-        - CO2(vb) + CO2(all) => CO2(v1) + CO2(all) ,          3.0 * exp(-1458.3/Tgas) * _k1bCO2_
-        - CO2(vb) + O2  => CO2(v1) + O2  ,          3.0 * exp(-1458.3/Tgas) * _k1bCO2_ * 0.4
-        - CO2(vb) + CO(all)  => CO2(v1) + CO(all)  ,          3.0 * exp(-1458.3/Tgas) * _k1bCO2_ * 0.3
-        - CO2(vb) + H2(all)  => CO2(v1) + H2(all)  ,          3.0 * exp(-1458.3/Tgas) * _k1bH2_
-        - CO2(vb) + H2O => CO2(v1) + H2O ,          3.0 * exp(-1458.3/Tgas) * _k1bH2O_
+        - CO2(vb) + CO2(all) => CO2(v1) + CO2(all)  , 3.0 * exp(-1458.3/Tgas) * _k1bCO2_
+        - CO2(vb) + O2(all)  => CO2(v1) + O2(all)   , 3.0 * exp(-1458.3/Tgas) * _k1bCO2_ * 0.4
+        - CO2(vb) + CO(all)  => CO2(v1) + CO(all)   , 3.0 * exp(-1458.3/Tgas) * _k1bCO2_ * 0.3
+        - CO2(vb) + H2(all)  => CO2(v1) + H2(all)   , 3.0 * exp(-1458.3/Tgas) * _k1bH2_
+        - CO2(vb) + H2O(all) => CO2(v1) + H2O(all)  , 3.0 * exp(-1458.3/Tgas) * _k1bH2O_
         # 1-c
-        - CO2(v1) + CO2(all) => CO2(vc) + CO2(all) ,          _k1cCO2_
-        - CO2(v1) + O2  => CO2(vc) + O2  ,          _k1cCO2_ * 0.4
-        - CO2(v1) + CO(all)  => CO2(vc) + CO(all)  ,          _k1cCO2_ * 0.3
-        - CO2(v1) + H2(all)  => CO2(vc) + H2(all)  ,          _k1cH2_
-        - CO2(v1) + H2O => CO2(vc) + H2O ,          _k1cH2O_
+        - CO2(v1) + CO2(all) => CO2(vc) + CO2(all)  , _k1cCO2_
+        - CO2(v1) + O2(all)  => CO2(vc) + O2(all)   , _k1cCO2_ * 0.4
+        - CO2(v1) + CO(all)  => CO2(vc) + CO(all)   , _k1cCO2_ * 0.3
+        - CO2(v1) + H2(all)  => CO2(vc) + H2(all)   , _k1cH2_
+        - CO2(v1) + H2O(all) => CO2(vc) + H2O(all)  , _k1cH2O_
         # c-1
-        - CO2(vc) + CO2(all) => CO2(v1) + CO2(all) ,          6.0 * exp(-496.5/Tgas) * _k1cCO2_
-        - CO2(vc) + O2  => CO2(v1) + O2  ,          6.0 * exp(-496.5/Tgas) * _k1cCO2_ * 0.4
-        - CO2(vc) + CO(all)  => CO2(v1) + CO(all)  ,          6.0 * exp(-496.5/Tgas) * _k1cCO2_ * 0.3
-        - CO2(vc) + H2(all)  => CO2(v1) + H2(all)  ,          6.0 * exp(-496.5/Tgas) * _k1cH2_
-        - CO2(vc) + H2O => CO2(v1) + H2O ,          6.0 * exp(-496.5/Tgas) * _k1cH2O_
-
+        - CO2(vc) + CO2(all) => CO2(v1) + CO2(all)  , 6.0 * exp(-496.5/Tgas) * _k1cCO2_
+        - CO2(vc) + O2(all)  => CO2(v1) + O2(all)   , 6.0 * exp(-496.5/Tgas) * _k1cCO2_ * 0.4
+        - CO2(vc) + CO(all)  => CO2(v1) + CO(all)   , 6.0 * exp(-496.5/Tgas) * _k1cCO2_ * 0.3
+        - CO2(vc) + H2(all)  => CO2(v1) + H2(all)   , 6.0 * exp(-496.5/Tgas) * _k1cH2_
+        - CO2(vc) + H2O(all) => CO2(v1) + H2O(all)  , 6.0 * exp(-496.5/Tgas) * _k1cH2O_
     where       :
         abbr:
             # vari:
             # a-0
             _ka0CO2_: !LT [7.14e-14,  -177,  451]          # 38.3,  -177, 451
-            _ka0H2_ :  !LT [3.56e-16, -83.0,  345]          # 33.0, -83.0, 345
+            _ka0H2_ : !LT [3.56e-16, -83.0,  345]          # 33.0, -83.0, 345
             _ka0H2O_: !LT [4.82e-17, -44.4,  242]          # 31.0, -44.4, 242
             # b-a
             _kbaCO2_: !LT [1.77e-13,  -177,  451]
-            _kbaH2_ :  !LT [4.77e-16, -83.0,  345]
+            _kbaH2_ : !LT [4.77e-16, -83.0,  345]
             _kbaH2O_: !LT [9.71e-17, -44.4,  242]
             # c-b
             _kcbCO2_: !LT [4.08e-13,  -177,  451]
-            _kcbH2_ :  !LT [2.03e-15, -83.0,  345]
+            _kcbH2_ : !LT [2.03e-15, -83.0,  345]
             _kcbH2O_: !LT [2.75e-16, -44.4,  242]
             # d-c
             _kdcCO2_: !LT [2.90e-13,  -177,  451]
-            _kdcH2_ :  !LT [1.45e-15, -83.0,  345]
+            _kdcH2_ : !LT [1.45e-15, -83.0,  345]
             _kdcH2O_: !LT [1.96e-16, -44.4,  242]
             # 1-a
             _k1aCO2_: !LT [4.25e-07,  -407,  824]
-            _k1aH2_ :  !LT [1.05e-09,  -324, 1053]
+            _k1aH2_ : !LT [1.05e-09,  -324, 1053]
             _k1aH2O_: !LT [3.57e-17, -54.7,-36.0]
             # 1-b
             _k1bCO2_: !LT [8.57e-07,  -404, 1096]
-            _k1bH2_ :  !LT [2.60e-10,  -279,  892]
+            _k1bH2_ : !LT [2.60e-10,  -279,  892]
             _k1bH2O_: !LT [2.17e-18,  18.5, -211]
             # 1-c
             _k1cCO2_: !LT [1.43e-11,  -252,  685]
-            _k1cH2_ :  !LT [2.61e-11,  -293,  914]
+            _k1cH2_ : !LT [2.61e-11,  -293,  914]
             _k1cH2O_: !LT [4.00e-22,   108, -397]
 
 - &CO2_VT_with_CO2_forward
@@ -1022,9 +1030,6 @@
                 _B_: _w_ + 1
                 _a_: _v_ + 1
                 _b_: _w_
-                # _part0_: (_v_-_w_)
-                # _part1_: (_v_-_w_)
-                # _part2_: (_v_-_w_)**2
         loop:
             product:
                 _v_: range(14)
@@ -1879,7 +1884,7 @@
 
     The reactions considered:
         global_abbr          : *Global_abbr
-        # species              : ["E"]
+        species              : *species
         electron reactions   :
             <<: *H2_ele_kinetic
             <<: *CO2_ele_kinetic
