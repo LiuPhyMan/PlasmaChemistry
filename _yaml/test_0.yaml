@@ -1032,8 +1032,8 @@
                 _b_: _w_
         loop:
             product:
-                _v_: range(14)
                 _w_: range(14)
+                _v_: range(14)
         condition:
             _v_ > _w_
 
@@ -1066,7 +1066,7 @@
 # ---- H2 VT
 # ---------------------------------------------------------------------------- #
 - &_H2_VT_with_M_forward
-    type    : VTH2
+    type    : VT_H2
     formula : H2(v_A_) + _M_ => H2(v_B_) + _M_
     kstr    : _factor_ * k10 * _n_
     where   :
@@ -1130,7 +1130,7 @@
     <<   : *_H2_VT_with_M_forward
     where:
         abbr:
-            _M_: H2O
+            _M_: H2O(all)
         vari:
             -   _factor_: 0.23
             -   k10: !LT [7.35e-25, -11.6, 0]
@@ -1139,7 +1139,7 @@
     <<   : *_H2_VT_with_M_backward
     where:
         abbr:
-            _M_: H2O
+            _M_: H2O(all)
         vari:
             -   _factor_: 0.23
             -   k10: !LT [7.35e-25, -11.6, 0]
@@ -1166,7 +1166,7 @@
     <<   : *_H2_VT_with_M_forward
     where:
         abbr:
-            _M_: O2
+            _M_: O2(all)
         vari:
             -   _factor_: 0.08
             -   k10: !LT [5.83e-13, -227, 529]
@@ -1175,7 +1175,7 @@
     <<   : *_H2_VT_with_M_backward
     where:
         abbr:
-            _M_: O2
+            _M_: O2(all)
         vari:
             -   _factor_: 0.08
             -   k10: !LT [5.83e-13, -227, 529]
@@ -1192,7 +1192,7 @@
     kstr   : !LT [5.24e-10, -229, 821]
 
 - &H2O_VT_with_H2O
-    formula: H2O(v1) + H2O => H2O + H2O
+    formula: H2O(v1) + H2O(all) => H2O + H2O(all)
     kstr   : !LT [4.68e-05, -541, 2084]
 
 - &H2O_VT_with_CO
@@ -1200,7 +1200,7 @@
     kstr   : !LT [1.72e-06, -435, 1079]
 
 - &H2O_VT_with_O2
-    formula: H2O(v1) + O2 => H2O + O2
+    formula: H2O(v1) + O2(all) => H2O + O2(all)
     kstr   : !LT [1.72e-06, -435, 1079]
 
 # ============================================================================ #
@@ -1429,7 +1429,7 @@
 
 - &CO2_H2O_to_CO_O_H2O
     <<     : *CO2_vib_chemical_reaction
-    formula: CO2(v_A_) + H2O => CO + O + H2O
+    formula: CO2(v_A_) + H2O(all) => CO + O + H2O(all)
     where  :
         vari:
             -   _factor_: 3.33
@@ -1439,7 +1439,7 @@
 
 - &CO_O_H2O_to_CO2_H2O
     type   : CR
-    formula: CO + O + H2O => CO2 + H2O
+    formula: CO + O + H2O(all) => CO2 + H2O(all)
     kstr   : !StandardArr [8.2e-46 * 3.33, 0.00, 1510]
 
 # ---------------------------------------------------------------------------- #
@@ -1567,7 +1567,7 @@
 
 - &H_H_H2O_to_H2_H2O
     type   : CR
-    formula: H + H + H2O => H2 + H2O
+    formula: H + H + H2O(all) => H2 + H2O(all)
     kstr   : !ChemKinArr_3_rcnt [7.485E+19 * 12, -1.6199, 777.9]
 
 - &H2_CO_to_H_H_CO

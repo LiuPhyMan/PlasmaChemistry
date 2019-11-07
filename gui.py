@@ -42,13 +42,17 @@ from plasmistry.electron import get_maxwell_eedf
 # ---------------------------------------------------------------------------- #
 import yaml
 
-yaml.add_constructor("!StandardArr", standard_Arr_constructor)
-yaml.add_constructor("!ChemKinArr_2_rcnt", chemkin_Arr_2_rcnts_constructor)
-yaml.add_constructor("!ChemKinArr_3_rcnt", chemkin_Arr_3_rcnts_constructor)
-yaml.add_constructor("!rev", reversed_reaction_constructor)
-yaml.add_constructor("!LT", LT_constructor)
-yaml.add_constructor("!alpha", alpha_constructor)
-yaml.add_constructor("!F_gamma", F_gamma_constructor)
+yaml.add_constructor("!StandardArr", standard_Arr_constructor,
+                     Loader=yaml.FullLoader)
+yaml.add_constructor("!ChemKinArr_2_rcnt", chemkin_Arr_2_rcnts_constructor,
+                     Loader=yaml.FullLoader)
+yaml.add_constructor("!ChemKinArr_3_rcnt", chemkin_Arr_3_rcnts_constructor,
+                     Loader=yaml.FullLoader)
+yaml.add_constructor("!rev", reversed_reaction_constructor,
+                     Loader=yaml.FullLoader)
+yaml.add_constructor("!LT", LT_constructor, Loader=yaml.FullLoader)
+yaml.add_constructor("!alpha", alpha_constructor, Loader=yaml.FullLoader)
+yaml.add_constructor("!F_gamma", F_gamma_constructor, Loader=yaml.FullLoader)
 
 # ---------------------------------------------------------------------------- #
 _DEFAULT_TOOLBAR_FONT = QFont("Arial", 10)
@@ -390,7 +394,7 @@ class PlasmistryGui(QW.QMainWindow):
 
     def load_rctn_dict_from_yaml(self):
         with open(self._read_yaml._entry.text()) as f:
-            rctn_block = yaml.load(f)
+            rctn_block = yaml.load(f, Loader=yaml.FullLoader)
         rctn_all = rctn_block[-1]["The reactions considered"]
         self._rctn_dict_view.clear()
         self._rctn_dict_view._set_species(rctn_all["species"])
@@ -477,30 +481,29 @@ class PlasmistryGui(QW.QMainWindow):
         self._coef_rctn_df_list._kstr.append(_kstr)
 
     def _evolve_rateconst(self):
-    def _set_connect(self):
-        def _evolve_rateconst():
-            wb = xw.Book("_output/output.xlsx")
-            sht = wb.sheets[0]
-            sht.clear()
-            self.rctn_instances["coef reactions"].set_rate_const(
-                Tgas_K=self._plasma_paras.value()["Tgas_K"],
-                Te_eV=self._plasma_paras.value()["Te_eV"],
-                EN_Td=self._plasma_paras.value()["EN_Td"])
+        wb = xw.Book("_output/output.xlsx")
+        sht = wb.sheets[0]
+        sht.clear_contents()
+        self.rctn_instances["coef reactions"].set_rate_const(
+            Tgas_K=self._plasma_paras.value()["Tgas_K"],
+            Te_eV=self._plasma_paras.value()["Te_eV"],
+            EN_Td=self._plasma_paras.value()["EN_Td"])
 
-            _df_to_show = pd.DataFrame(columns=["formula", "type",
-                                                "rate const"])
-            _df_to_show["formula"] = self.rctn_df_all["coef reactions"][
-                "formula"]
-            _df_to_show["type"] = self.rctn_df_all["coef reactions"]["type"]
-            _df_to_show["rate const"] = self.rctn_instances["coef " \
-                                                            "reactions"].rate_const
-            sht.range("a1").value = _df_to_show
+        _df_to_show = pd.DataFrame(columns=["formula", "type", "rate const"])
+        _df_to_show["formula"] = self.rctn_df_all["coef reactions"]["formula"]
+        _df_to_show["type"] = self.rctn_df_all["coef reactions"]["type"]
+        _df_to_show["rate const"] = self.rctn_instances["coef " \
+                                                        "reactions"].rate_const
+        sht.range("a1").value = _df_to_show
+        sht.autofit()
+
+    def _set_connect(self):
 
         self._read_yaml.toReadFile.connect(self.load_rctn_dict_from_yaml)
         self._buttons["DictToDf"].clicked.connect(self.rctn_all_to_rctn_df)
         self._buttons["InstanceToDf"].clicked.connect(
             self.rctn_df_to_rctn_instance)
-        self._buttons["EvolveRateConst"].clicked.connect(_evolve_rateconst)
+        self._buttons["EvolveRateConst"].clicked.connect(self._evolve_rateconst)
         self._cros_rctn_df_list._rctn.currentItemChanged.connect(
             self._show_selected_rctn_cross_section)
         self._coef_rctn_df_list._rctn.currentItemChanged.connect(
