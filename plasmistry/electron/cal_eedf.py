@@ -281,8 +281,8 @@ class EEDF(object):
         """
         assert isinstance(total_species, list)
         # total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'H', 'N2', 'He'}
-        total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'N2',
-                                'Ar'}
+        total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O',
+                                'H2', 'CH4', 'N2', 'Ar'}
         #   bg_molecules are the total species in total_elas_moleucles
         self.bg_molecule_elas = [_ for _ in total_species if
                                  _ in total_elas_molecules]
