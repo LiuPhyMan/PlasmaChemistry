@@ -1,3 +1,29 @@
+- COMMENTS: 
+    CO2(e1)     1   
+    CO2(e2)     1   
+    CO2(va)     1
+    CO2(vb)     3
+    CO2(vc)     3
+    CO2(vd)     6
+
+    CO(e1)      1
+    CO(e2)      1
+    CO(e3)      1
+    CO(e4)      1
+
+    O2(e1)      1
+    O2(e2)      1
+    O2(v1)      1
+    O2(v2)      1
+    O2(v3)      1
+
+
+
+
+
+
+
+
 # ====
 # ==== Global variables
 # ====
@@ -392,6 +418,68 @@
         1.53
       ]
 
+
+# ====
+# ==== CO2 electron attachment
+# ====
+- &CO2_ele_atta
+    type    : ATTACHMENT
+    formula_kstr:
+        - E + CO2 => O^- + CO
+        - E + CO2(va) => O^- + CO
+        - E + CO2(vb) => O^- + CO
+        - E + CO2(vc) => O^- + CO
+        - E + CO2(vd) => O^- + CO
+        - E + CO2(v1) => O^- + CO
+        - E + CO2(v2) => O^- + CO
+        - E + CO2(v3) => O^- + CO
+        - E + CO2(v4) => O^- + CO
+        - E + CO2(v5) => O^- + CO
+        - E + CO2(v6) => O^- + CO
+        - E + CO2(v7) => O^- + CO
+        - E + CO2(v8) => O^- + CO
+        - E + CO2(v9) => O^- + CO
+        - E + CO2(v10) => O^- + CO
+        - E + CO2(v11) => O^- + CO
+        - E + CO2(v12) => O^- + CO
+        - E + CO2(v13) => O^- + CO
+        - E + CO2(v14) => O^- + CO
+        - E + CO2(v15) => O^- + CO
+        - E + CO2(v16) => O^- + CO
+        - E + CO2(v17) => O^- + CO
+        - E + CO2(v18) => O^- + CO
+        - E + CO2(v19) => O^- + CO
+        - E + CO2(v20) => O^- + CO
+        - E + CO2(v21) => O^- + CO
+- &CO2_ele_exci
+    type:   EXCITATION
+    formula_kstr:
+        - E + CO2     => E + CO2(e2)
+        - E + CO2(va) => E + CO2(e2) 
+        - E + CO2(vb) => E + CO2(e2)
+        - E + CO2(vc) => E + CO2(e2)
+        - E + CO2(vd) => E + CO2(e2)
+        - E + CO2(v1) => E + CO2(e2)
+        - E + CO2(v2) => E + CO2(e2)
+        - E + CO2(v3) => E + CO2(e2)
+        - E + CO2(v4) => E + CO2(e2)
+        - E + CO2(v5) => E + CO2(e2) 
+        - E + CO2(v6) => E + CO2(e2) 
+        - E + CO2(v7) => E + CO2(e2) 
+        - E + CO2(v8) => E + CO2(e2) 
+        - E + CO2(v9) => E + CO2(e2) 
+        - E + CO2(v10) => E + CO2(e2)
+        - E + CO2(v11) => E + CO2(e2) 
+        - E + CO2(v12) => E + CO2(e2) 
+        - E + CO2(v13) => E + CO2(e2) 
+        - E + CO2(v14) => E + CO2(e2) 
+        - E + CO2(v15) => E + CO2(e2) 
+        - E + CO2(v16) => E + CO2(e2) 
+        - E + CO2(v17) => E + CO2(e2) 
+        - E + CO2(v18) => E + CO2(e2) 
+        - E + CO2(v19) => E + CO2(e2) 
+        - E + CO2(v20) => E + CO2(e2) 
+        - E + CO2(v21) => E + CO2(e2) 
 # ============================================================================ #
 #   CO kinetic
 # ============================================================================ #

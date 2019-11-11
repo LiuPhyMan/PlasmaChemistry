@@ -11,6 +11,7 @@ Created on 15:05 2019/10/29
 import sys
 import math
 import numpy as np
+from scipy.integrate import solve_ivp
 import pandas as pd
 import xlwings as xw
 from matplotlib import pyplot as plt
@@ -58,12 +59,12 @@ yaml.add_constructor("!F_gamma", F_gamma_constructor, Loader=yaml.FullLoader)
 _DEFAULT_TOOLBAR_FONT = QFont("Arial", 10)
 _DEFAULT_TEXT_FONT = QFont("Arial", 11)
 
-_VARI_DICT = {"H2_vib_energy_in_eV": H2_vib_energy_in_eV,
-              "H2_vib_energy_in_K": H2_vib_energy_in_K,
-              "CO_vib_energy_in_eV": CO_vib_energy_in_eV,
-              "CO_vib_energy_in_K": CO_vib_energy_in_K,
+_VARI_DICT = {"H2_vib_energy_in_eV" : H2_vib_energy_in_eV,
+              "H2_vib_energy_in_K"  : H2_vib_energy_in_K,
+              "CO_vib_energy_in_eV" : CO_vib_energy_in_eV,
+              "CO_vib_energy_in_K"  : CO_vib_energy_in_K,
               "CO2_vib_energy_in_eV": CO2_vib_energy_in_eV,
-              "CO2_vib_energy_in_K": CO2_vib_energy_in_K}
+              "CO2_vib_energy_in_K" : CO2_vib_energy_in_K}
 
 
 class TheReadFileQWidget(ReadFileQWidget):
@@ -96,7 +97,7 @@ class RctnDictView(QW.QWidget):
                   "decom_recom", "relaxation"):
             self._groups[_] = QW.QListWidget()
             self._groups[_].setSelectionMode(
-                QW.QAbstractItemView.ExtendedSelection)
+                    QW.QAbstractItemView.ExtendedSelection)
             self._groups[_].setFixedHeight(600)
             if _ == "species":
                 self._groups[_].setFixedWidth(100)
@@ -122,12 +123,14 @@ class RctnDictView(QW.QWidget):
             self._groups["electron"].addItem(_)
         for _ in self.rctn_dict["chemical reactions"]:
             # _rcnt, _prdt = _.split("_to_")
-            # _rcnt, _prdt = _rcnt.replace("_", " + "), _prdt.replace("_", " + ")
+            # _rcnt, _prdt = _rcnt.replace("_", " + "), _prdt.replace("_",
+            # " + ")
             # _str = f"{_rcnt:>9} => {_prdt:<9}"
             self._groups["chemical"].addItem(_)
         for _ in self.rctn_dict["decom_recom reactions"]:
             # _rcnt, _prdt = _.split("_to_")
-            # _rcnt, _prdt = _rcnt.replace("_", " + "), _prdt.replace("_", " + ")
+            # _rcnt, _prdt = _rcnt.replace("_", " + "), _prdt.replace("_",
+            # " + ")
             # _str = f"{_rcnt:>12} => {_prdt:<12}"
             self._groups["decom_recom"].addItem(_)
         for _ in self.rctn_dict["relaxation reactions"]:
@@ -322,17 +325,17 @@ class _PlasmistryGui(QW.QMainWindow):
         # -------------------------------------------------------------------- #
         #   Data
         # -------------------------------------------------------------------- #
-        self.rctn_dict_all = {"species": None,
-                              "electron reactions": None,
-                              "relaxation reactions": None,
-                              "chemical reactions": None,
+        self.rctn_dict_all = {"species"              : None,
+                              "electron reactions"   : None,
+                              "relaxation reactions" : None,
+                              "chemical reactions"   : None,
                               "decom_recom reactions": None}
-        self.rctn_df = {"species": None,
-                        "electron": None,
-                        "chemical": None,
+        self.rctn_df = {"species"    : None,
+                        "electron"   : None,
+                        "chemical"   : None,
                         "decom_recom": None,
-                        "relaxation": None}
-        self.rctn_df_all = {"species": None,
+                        "relaxation" : None}
+        self.rctn_df_all = {"species"       : None,
                             "cros reactions": None,
                             "coef reactions": None}
         self.rctn_instances = {"cros reactions": None,
@@ -412,10 +415,10 @@ class _PlasmistryGui(QW.QMainWindow):
         self.rctn_df_all["species"] = self.rctn_df["species"]
         self.rctn_df_all["cros reactions"] = self.rctn_df["electron"]
         self.rctn_df_all["coef reactions"] = pd.concat(
-            [self.rctn_df["chemical"], self.rctn_df["decom_recom"],
-             self.rctn_df["relaxation"]],
-            ignore_index=True,
-            sort=False)
+                [self.rctn_df["chemical"], self.rctn_df["decom_recom"],
+                 self.rctn_df["relaxation"]],
+                ignore_index=True,
+                sort=False)
         # -------------------------------------------------------------------- #
         #   Show rctn_df
         # -------------------------------------------------------------------- #
@@ -445,15 +448,15 @@ class _PlasmistryGui(QW.QMainWindow):
         #   Set cros reactions instance
         # -------------------------------------------------------------------- #
         split_df = self.rctn_df_all["cros reactions"]["formula"].str.split(
-            "\s*=>\s*",
-            expand=True)
+                "\s*=>\s*",
+                expand=True)
         reactant = split_df[0]
         product = split_df[1]
         self.rctn_instances["cros reactions"] = CrosReactions(
-            species=self.rctn_df["species"],
-            reactant=reactant,
-            product=product,
-            k_str=None)
+                species=self.rctn_df["species"],
+                reactant=reactant,
+                product=product,
+                k_str=None)
         # -------------------------------------------------------------------- #
         #   Set coef reactions instance
         # -------------------------------------------------------------------- #
@@ -461,8 +464,8 @@ class _PlasmistryGui(QW.QMainWindow):
         product = self.rctn_df_all["coef reactions"]["product"]
         kstr = self.rctn_df_all["coef reactions"]["kstr"]
         self.rctn_instances["coef reactions"] = CoefReactions(
-            species=self.rctn_df["species"],
-            reactant=reactant, product=product, k_str=kstr)
+                species=self.rctn_df["species"],
+                reactant=reactant, product=product, k_str=kstr)
         self.rctn_instances["coef reactions"].compile_k_str()
         # -------------------------------------------------------------------- #
         print("DONE!")
@@ -473,7 +476,7 @@ class _PlasmistryGui(QW.QMainWindow):
                                                "cross_section"]
         self._cros_rctn_df_list._kstr.clear()
         _str = "\n".join(
-            [f"{_[0]:.4e} {_[1]:.4e}" for _ in _crostn.transpose()])
+                [f"{_[0]:.4e} {_[1]:.4e}" for _ in _crostn.transpose()])
         self._cros_rctn_df_list._kstr.append(_str)
 
     def _show_selected_rctn_kstr(self):
@@ -488,9 +491,9 @@ class _PlasmistryGui(QW.QMainWindow):
         sht = wb.sheets[0]
         sht.clear_contents()
         self.rctn_instances["coef reactions"].set_rate_const(
-            Tgas_K=self._plasma_paras.value()["Tgas_K"],
-            Te_eV=self._plasma_paras.value()["Te_eV"],
-            EN_Td=self._plasma_paras.value()["EN_Td"])
+                Tgas_K=self._plasma_paras.value()["Tgas_K"],
+                Te_eV=self._plasma_paras.value()["Te_eV"],
+                EN_Td=self._plasma_paras.value()["EN_Td"])
 
         _df_to_show = pd.DataFrame(columns=["formula", "type", "rate const"])
         _df_to_show["formula"] = self.rctn_df_all["coef reactions"]["formula"]
@@ -503,22 +506,22 @@ class _PlasmistryGui(QW.QMainWindow):
     def _save_reactions(self):
         self.rctn_df_all["species"].to_pickle("_output/species.pkl")
         self.rctn_df_all["cros reactions"].to_pickle(
-            "_output/cros_reactions.pkl")
+                "_output/cros_reactions.pkl")
         self.rctn_df_all["coef reactions"].to_pickle(
-            "_output/coef_reactions.pkl")
+                "_output/coef_reactions.pkl")
 
     def _set_connect(self):
 
         self._read_yaml.toReadFile.connect(self.load_rctn_dict_from_yaml)
         self._buttons["DictToDf"].clicked.connect(self.rctn_all_to_rctn_df)
         self._buttons["InstanceToDf"].clicked.connect(
-            self.rctn_df_to_rctn_instance)
+                self.rctn_df_to_rctn_instance)
         self._buttons["EvolveRateConst"].clicked.connect(self._evolve_rateconst)
         self._buttons["SaveReactions"].clicked.connect(self._save_reactions)
         self._cros_rctn_df_list._rctn.currentItemChanged.connect(
-            self._show_selected_rctn_cross_section)
+                self._show_selected_rctn_cross_section)
         self._coef_rctn_df_list._rctn.currentItemChanged.connect(
-            self._show_selected_rctn_kstr)
+                self._show_selected_rctn_kstr)
 
     def _set_layout(self):
         # _parameters_layout = QW.QHBoxLayout()
@@ -539,7 +542,8 @@ class _PlasmistryGui(QW.QMainWindow):
         self.cenWidget.setLayout(_layout)
 
     def _set_dockwidget(self):
-        _default_features = QW.QDockWidget.DockWidgetClosable | QW.QDockWidget.DockWidgetFloatable
+        _default_features = QW.QDockWidget.DockWidgetClosable | \
+                            QW.QDockWidget.DockWidgetFloatable
         _list = ["View", ]
         _widgets_to_dock = [self._evolution_plot, ]
         _dock_dict = dict()
@@ -571,8 +575,8 @@ class _PlasmistryLogic(object):
                              Tgas_cold=300):
         if t > time_end:
             return (Tgas_arc - Tgas_cold) * math.exp(
-                -(t - time_end) ** 2 / 2 / (
-                        time_cold - time_end) ** 2) + Tgas_cold
+                    -(t - time_end) ** 2 / 2 / (
+                            time_cold - time_end) ** 2) + Tgas_cold
         else:
             return Tgas_arc
 
@@ -592,11 +596,19 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
     def __init__(self):
         super(ThePlasmistryGui, self).__init__()
 
-    def dndt_cros(self, density_without_e, _electron_density):
+    def dndt_cros(self, t, density_without_e, _electron_density):
         _instance = self.rctn_instances["cros reactions"]
         _instance.set_rate_const(eedf_normalized=normalized_eedf)
-        _instance.set_rate(den)
+        _instance.set_rate(density=np.hstack([_electron_density,
+                                              density_without_e]))
+        return _instance.get_dn()
 
+    def dndt_coef(self, t, density_without_e, _electron_density, Tgas_K):
+        _instance = self.rctn_instances["coef reactions"]
+        _instance.set_rate_const(Tgas_K=Tgas_K)
+        _instance.set_rate(density=np.hstack([_electron_density,
+                                              density_without_e]))
+        return _instance.get_dn()
 
     def dndt_all(self, t, y):
         _e_density = self._electron_density_func(t, self._PARAS[
@@ -604,8 +616,20 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
         _Tgas_K = self._Tgas_func_slow_down(t, self._PARAS["time_end"],
                                             self._PARAS["time_cold"],
                                             self._PARAS["Tgas_arc"])
-        dydt = dndt_cros(t, y, _e_density) + dndt_coef(t, y, _e_density, _Tgas_K)
+        dydt = self.dndt_cros(t, y, _e_density) + \
+               self.dndt_coef(t, y, _e_density, _Tgas_K)
         return dydt[1:]
+
+    def _solve(self):
+        time_span = ()
+        y_0 =
+        atol =
+        rtol =
+        sol = solve_ivp(self.dndt_all, time_span, y_0,
+                        method="BDF",
+                        atol=
+                        rtol=
+                        )
 
 
 # ---------------------------------------------------------------------------- #
