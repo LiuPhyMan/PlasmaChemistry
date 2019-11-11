@@ -68,16 +68,16 @@
         CO2(v0)       : CO2
         CO(v0)        : CO
         _eV2K_        : "11604.5"
-        _bolsigdbPath_: E:/Coding/Python/PlasmaChemistry/_cs_list/bolsigdb
-        _H2csPath_    : E:/Coding/Python/PlasmaChemistry/_cs_list/H2
-        _CsPath_      : E:/Coding/python/PlasmaChemistry/_cs_list/koelman2016
-        _CO2csPath_   : E:/Coding/python/PlasmaChemistry/_cs_list/koelman2016
-        _COcsPath_    : E:/Coding/python/PlasmaChemistry/_cs_list/koelman2016
-        _O2csPath_    : E:/Coding/python/PlasmaChemistry/_cs_list/koelman2016
-        _H2OcsPath_   : E:/Coding/Python/PlasmaChemistry/_cs_list/H2O
-        _CO2disCsPath_: E:/Coding/python/PlasmaChemistry/_cs_list/CO2_dis
-        _COdisCsPath_ : E:/Coding/Python/PlasmaChemistry/_cs_list/CO_dis
-        _O2disCsPath_ : E:/Coding/Python/PlasmaChemistry/_cs_list/O2_dis
+        _bolsigdbPath_: _cs_list/bolsigdb
+        _H2csPath_    : _cs_list/H2
+        _CsPath_      : _cs_list/koelman2016
+        _CO2csPath_   : _cs_list/koelman2016
+        _COcsPath_    : _cs_list/koelman2016
+        _O2csPath_    : _cs_list/koelman2016
+        _H2OcsPath_   : _cs_list/H2O
+        _CO2disCsPath_: _cs_list/CO2_dis
+        _COdisCsPath_ : _cs_list/CO_dis
+        _O2disCsPath_ : _cs_list/O2_dis
 
 - &species_group
     CO2(all): *CO2_vib_all

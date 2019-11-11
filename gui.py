@@ -302,7 +302,7 @@ class EvolveParas(QW.QWidget):
 
 
 # ---------------------------------------------------------------------------- #
-class PlasmistryGui(QW.QMainWindow):
+class _PlasmistryGui(QW.QMainWindow):
     _help_str = ""
     _NAME = "Plasmistry"
     _VERSION = "1.0"
@@ -332,7 +332,8 @@ class PlasmistryGui(QW.QMainWindow):
                         "chemical": None,
                         "decom_recom": None,
                         "relaxation": None}
-        self.rctn_df_all = {"cros reactions": None,
+        self.rctn_df_all = {"species": None,
+                            "cros reactions": None,
                             "coef reactions": None}
         self.rctn_instances = {"cros reactions": None,
                                "coef reactions": None}
@@ -366,10 +367,11 @@ class PlasmistryGui(QW.QMainWindow):
     def _set_buttons(self):
         self._buttons["DictToDf"] = BetterQPushButton("rctn_all => rctn_df")
         self._buttons["InstanceToDf"] = BetterQPushButton("=> rctn_instances")
-        self._buttons["DictToDf"].setMaximumWidth(150)
-        self._buttons["InstanceToDf"].setMaximumWidth(150)
         self._buttons["EvolveRateConst"] = BetterQPushButton("evolve rateconst")
-        self._buttons["EvolveRateConst"].setMaximumWidth(150)
+        self._buttons["SaveReactions"] = BetterQPushButton("save reactions")
+        for _ in ("DictToDf", "InstanceToDf",
+                  "EvolveRateConst", "SaveReactions"):
+            self._buttons[_].setMaximumWidth(150)
 
     def _set_status_tip(self):
         self._buttons["DictToDf"].setStatusTip("Load reaction_block from "
@@ -407,6 +409,7 @@ class PlasmistryGui(QW.QMainWindow):
         #   Set rctn_df rctn_df_all
         # -------------------------------------------------------------------- #
         self.rctn_df = self._rctn_dict_view.get_df_from_dict()
+        self.rctn_df_all["species"] = self.rctn_df["species"]
         self.rctn_df_all["cros reactions"] = self.rctn_df["electron"]
         self.rctn_df_all["coef reactions"] = pd.concat(
             [self.rctn_df["chemical"], self.rctn_df["decom_recom"],
@@ -497,6 +500,13 @@ class PlasmistryGui(QW.QMainWindow):
         sht.range("a1").value = _df_to_show
         sht.autofit()
 
+    def _save_reactions(self):
+        self.rctn_df_all["species"].to_pickle("_output/species.pkl")
+        self.rctn_df_all["cros reactions"].to_pickle(
+            "_output/cros_reactions.pkl")
+        self.rctn_df_all["coef reactions"].to_pickle(
+            "_output/coef_reactions.pkl")
+
     def _set_connect(self):
 
         self._read_yaml.toReadFile.connect(self.load_rctn_dict_from_yaml)
@@ -504,6 +514,7 @@ class PlasmistryGui(QW.QMainWindow):
         self._buttons["InstanceToDf"].clicked.connect(
             self.rctn_df_to_rctn_instance)
         self._buttons["EvolveRateConst"].clicked.connect(self._evolve_rateconst)
+        self._buttons["SaveReactions"].clicked.connect(self._save_reactions)
         self._cros_rctn_df_list._rctn.currentItemChanged.connect(
             self._show_selected_rctn_cross_section)
         self._coef_rctn_df_list._rctn.currentItemChanged.connect(
@@ -520,6 +531,7 @@ class PlasmistryGui(QW.QMainWindow):
         _buttons_layout.addWidget(self._buttons["DictToDf"], 0, 0)
         _buttons_layout.addWidget(self._buttons["InstanceToDf"], 1, 0)
         _buttons_layout.addWidget(self._buttons["EvolveRateConst"], 0, 1)
+        _buttons_layout.addWidget(self._buttons["SaveReactions"], 1, 1)
         _buttons_layout.setColumnStretch(2, 1)
         _layout.addLayout(_buttons_layout)
         _layout.addWidget(self._tab_widget)
@@ -545,6 +557,57 @@ class PlasmistryGui(QW.QMainWindow):
             self._menubar["view"].addAction(_action)
 
 
+class _PlasmistryLogic(object):
+    def __init__(self):
+        super().__init__()
+
+    def _Tgas_func_sharp_down(self, t, time_end, Tgas_arc, Tgas_cold=300):
+        if t > time_end:
+            return Tgas_cold
+        else:
+            return Tgas_arc
+
+    def _Tgas_func_slow_down(self, t, time_end, time_cold, Tgas_arc,
+                             Tgas_cold=300):
+        if t > time_end:
+            return (Tgas_arc - Tgas_cold) * math.exp(
+                -(t - time_end) ** 2 / 2 / (
+                        time_cold - time_end) ** 2) + Tgas_cold
+        else:
+            return Tgas_arc
+
+    def _electron_density_func(self, t, time_end, _density):
+        if t > time_end:
+            return 0
+        else:
+            return _density
+
+
+class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
+    _PARAS = dict(time_end=1e-3,
+                  time_cold=1e-3 + 1e-2,
+                  Tgas_arc=3000,
+                  ne_0=1e20)
+
+    def __init__(self):
+        super(ThePlasmistryGui, self).__init__()
+
+    def dndt_cros(self, density_without_e, _electron_density):
+        _instance = self.rctn_instances["cros reactions"]
+        _instance.set_rate_const(eedf_normalized=normalized_eedf)
+        _instance.set_rate(den)
+
+
+    def dndt_all(self, t, y):
+        _e_density = self._electron_density_func(t, self._PARAS[
+            "time_end"], self._PARAS["ne_0"])
+        _Tgas_K = self._Tgas_func_slow_down(t, self._PARAS["time_end"],
+                                            self._PARAS["time_cold"],
+                                            self._PARAS["Tgas_arc"])
+        dydt = dndt_cros(t, y, _e_density) + dndt_coef(t, y, _e_density, _Tgas_K)
+        return dydt[1:]
+
+
 # ---------------------------------------------------------------------------- #
 if __name__ == "__main__":
     if not QW.QApplication.instance():
@@ -553,7 +616,7 @@ if __name__ == "__main__":
         app = QW.QApplication.instance()
     app.setStyle(QW.QStyleFactory.create("Fusion"))
     # window = TheWindow()
-    window = PlasmistryGui()
+    window = ThePlasmistryGui()
     window.show()
     # app.exec_()
     # app.aboutToQuit.connect(app.deleteLater)
