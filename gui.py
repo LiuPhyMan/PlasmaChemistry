@@ -97,7 +97,7 @@ class RctnDictView(QW.QWidget):
                   "decom_recom", "relaxation"):
             self._groups[_] = QW.QListWidget()
             self._groups[_].setSelectionMode(
-                    QW.QAbstractItemView.ExtendedSelection)
+                QW.QAbstractItemView.ExtendedSelection)
             self._groups[_].setFixedHeight(600)
             if _ == "species":
                 self._groups[_].setFixedWidth(100)
@@ -218,6 +218,7 @@ class RctnListView(QW.QWidget):
         super().__init__()
         self._rctn = QW.QListWidget()
         self._kstr = QW.QTextEdit()
+        self._output = QW.QTableWidget()
         self._rctn.setFont(self._LIST_FONT)
         self._kstr.setFont(self._LIST_FONT)
         self._set_layout()
@@ -228,9 +229,10 @@ class RctnListView(QW.QWidget):
             self._rctn.addItem(f"[{_i:_>4}]{_}")
 
     def _set_layout(self):
-        _layout = QW.QHBoxLayout()
-        _layout.addWidget(self._rctn)
-        _layout.addWidget(self._kstr)
+        _layout = QW.QGridLayout()
+        _layout.addWidget(self._rctn, 0, 0, 2,1)
+        _layout.addWidget(self._kstr, 0, 1)
+        _layout.addWidget(self._output, 1, 1)
         self.setLayout(_layout)
 
 
@@ -270,7 +272,7 @@ class PlasmaParas(QW.QWidget):
 
 # ---------------------------------------------------------------------------- #
 class EvolveParas(QW.QWidget):
-    _PARAMETERS = ("Te", "Tgas", "ne", "atol", "rtol")
+    _PARAMETERS = ("Te", "Tgas", "ne", "atol", "rtol", "time_span")
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -288,19 +290,34 @@ class EvolveParas(QW.QWidget):
         self._parameters["ne"].setText("1e19")
         self._parameters["atol"].setText("1e12")
         self._parameters["rtol"].setText("0.01")
+        self._parameters["time_span"].setText("0 1e-1")
 
     def value(self):
-        return {_: float(self._parameters[_].text()) for _ in self._PARAMETERS}
+        _value_dict = dict()
+        for _ in self._PARAMETERS:
+            if _ == "time_span":
+                _str = self._parameters[_].text()
+                _value_dict[_] = (float(_str.split()[0]),
+                                  float(_str.split()[1]))
+            else:
+                _value_dict[_] = float(self._parameters[_].text())
+        return _value_dict
 
     def _set_layout(self):
         _layout = QW.QGridLayout()
-        for i, _ in enumerate(self._PARAMETERS):
+        for i, _ in enumerate(("Te", "Tgas", "ne")):
             _label = BetterQLabel(_)
             _label.setFont(QFont("Consolas", 15))
-            _layout.addWidget(_label, i, 0)
+            _layout.addWidget(_label, i, 0, Qt.AlignRight)
             _layout.addWidget(self._parameters[_], i, 1)
+        _layout.addWidget(BetterQLabel(""), 3, 0)
+        for i, _ in enumerate(("time_span", "atol", "rtol")):
+            _label = BetterQLabel(_)
+            _label.setFont(QFont("Consolas", 15))
+            _layout.addWidget(_label, i+4, 0, Qt.AlignRight)
+            _layout.addWidget(self._parameters[_], i+4, 1)
         _layout.setColumnStretch(2, 1)
-        _layout.setRowStretch(5, 1)
+        _layout.setRowStretch(7, 1)
         self.setLayout(_layout)
 
 
@@ -377,6 +394,7 @@ class _PlasmistryGui(QW.QMainWindow):
             self._buttons[_].setMaximumWidth(150)
 
     def _set_status_tip(self):
+        self.statusBar()
         self._buttons["DictToDf"].setStatusTip("Load reaction_block from "
                                                "yaml file.")
         self._buttons["InstanceToDf"].setStatusTip("Instance rctn_df.")
@@ -415,10 +433,10 @@ class _PlasmistryGui(QW.QMainWindow):
         self.rctn_df_all["species"] = self.rctn_df["species"]
         self.rctn_df_all["cros reactions"] = self.rctn_df["electron"]
         self.rctn_df_all["coef reactions"] = pd.concat(
-                [self.rctn_df["chemical"], self.rctn_df["decom_recom"],
-                 self.rctn_df["relaxation"]],
-                ignore_index=True,
-                sort=False)
+            [self.rctn_df["chemical"], self.rctn_df["decom_recom"],
+             self.rctn_df["relaxation"]],
+            ignore_index=True,
+            sort=False)
         # -------------------------------------------------------------------- #
         #   Show rctn_df
         # -------------------------------------------------------------------- #
@@ -448,15 +466,15 @@ class _PlasmistryGui(QW.QMainWindow):
         #   Set cros reactions instance
         # -------------------------------------------------------------------- #
         split_df = self.rctn_df_all["cros reactions"]["formula"].str.split(
-                "\s*=>\s*",
-                expand=True)
+            "\s*=>\s*",
+            expand=True)
         reactant = split_df[0]
         product = split_df[1]
         self.rctn_instances["cros reactions"] = CrosReactions(
-                species=self.rctn_df["species"],
-                reactant=reactant,
-                product=product,
-                k_str=None)
+            species=self.rctn_df["species"],
+            reactant=reactant,
+            product=product,
+            k_str=None)
         # -------------------------------------------------------------------- #
         #   Set coef reactions instance
         # -------------------------------------------------------------------- #
@@ -464,8 +482,8 @@ class _PlasmistryGui(QW.QMainWindow):
         product = self.rctn_df_all["coef reactions"]["product"]
         kstr = self.rctn_df_all["coef reactions"]["kstr"]
         self.rctn_instances["coef reactions"] = CoefReactions(
-                species=self.rctn_df["species"],
-                reactant=reactant, product=product, k_str=kstr)
+            species=self.rctn_df["species"],
+            reactant=reactant, product=product, k_str=kstr)
         self.rctn_instances["coef reactions"].compile_k_str()
         # -------------------------------------------------------------------- #
         print("DONE!")
@@ -476,8 +494,16 @@ class _PlasmistryGui(QW.QMainWindow):
                                                "cross_section"]
         self._cros_rctn_df_list._kstr.clear()
         _str = "\n".join(
-                [f"{_[0]:.4e} {_[1]:.4e}" for _ in _crostn.transpose()])
+            [f"{_[0]:.4e} {_[1]:.4e}" for _ in _crostn.transpose()])
+        # _str = np.array2string(_crostn.transpose())
         self._cros_rctn_df_list._kstr.append(_str)
+        _threshold = self.rctn_df["electron"].loc[_current_index,
+                                                  "threshold_eV"]
+        # _kstr = self.rctn_df["electron"].loc[_current_index, "kstr"]
+        for _Te in (0.2, 0.5, 1.0, 1.5, 2.0, 2.5, 3, 5, 7 ):
+
+        _status_str = f"threshold: {_threshold:.4f} eV."
+        self.statusBar().showMessage(_status_str)
 
     def _show_selected_rctn_kstr(self):
         _current_index = self._coef_rctn_df_list._rctn.currentRow()
@@ -491,9 +517,9 @@ class _PlasmistryGui(QW.QMainWindow):
         sht = wb.sheets[0]
         sht.clear_contents()
         self.rctn_instances["coef reactions"].set_rate_const(
-                Tgas_K=self._plasma_paras.value()["Tgas_K"],
-                Te_eV=self._plasma_paras.value()["Te_eV"],
-                EN_Td=self._plasma_paras.value()["EN_Td"])
+            Tgas_K=self._plasma_paras.value()["Tgas_K"],
+            Te_eV=self._plasma_paras.value()["Te_eV"],
+            EN_Td=self._plasma_paras.value()["EN_Td"])
 
         _df_to_show = pd.DataFrame(columns=["formula", "type", "rate const"])
         _df_to_show["formula"] = self.rctn_df_all["coef reactions"]["formula"]
@@ -506,22 +532,21 @@ class _PlasmistryGui(QW.QMainWindow):
     def _save_reactions(self):
         self.rctn_df_all["species"].to_pickle("_output/species.pkl")
         self.rctn_df_all["cros reactions"].to_pickle(
-                "_output/cros_reactions.pkl")
+            "_output/cros_reactions.pkl")
         self.rctn_df_all["coef reactions"].to_pickle(
-                "_output/coef_reactions.pkl")
+            "_output/coef_reactions.pkl")
 
     def _set_connect(self):
-
         self._read_yaml.toReadFile.connect(self.load_rctn_dict_from_yaml)
         self._buttons["DictToDf"].clicked.connect(self.rctn_all_to_rctn_df)
         self._buttons["InstanceToDf"].clicked.connect(
-                self.rctn_df_to_rctn_instance)
+            self.rctn_df_to_rctn_instance)
         self._buttons["EvolveRateConst"].clicked.connect(self._evolve_rateconst)
         self._buttons["SaveReactions"].clicked.connect(self._save_reactions)
         self._cros_rctn_df_list._rctn.currentItemChanged.connect(
-                self._show_selected_rctn_cross_section)
+            self._show_selected_rctn_cross_section)
         self._coef_rctn_df_list._rctn.currentItemChanged.connect(
-                self._show_selected_rctn_kstr)
+            self._show_selected_rctn_kstr)
 
     def _set_layout(self):
         # _parameters_layout = QW.QHBoxLayout()
@@ -562,41 +587,62 @@ class _PlasmistryGui(QW.QMainWindow):
 
 
 class _PlasmistryLogic(object):
+    _PARAS = dict(time_out_plasma=None,
+                  time_cold=None,
+                  Tgas_arc=None,
+                  Tgas_cold=None,
+                  ne_0=None)
+
+    _SOLVE_PARAS = dict(atol=None,
+                        rtol=None,
+                        time_span=None)
+
     def __init__(self):
         super().__init__()
 
-    def _Tgas_func_sharp_down(self, t, time_end, Tgas_arc, Tgas_cold=300):
-        if t > time_end:
-            return Tgas_cold
-        else:
-            return Tgas_arc
+    def _set_assumed_paras(self, *, time_out_plasma, time_cold, Tgas_arc,
+                           Tgas_cold, ne_0):
+        self._PARAS["time_out_plasma"] = time_out_plasma
+        self._PARAS["time_cold"] = time_cold
+        self._PARAS["Tgas_arc"] = Tgas_arc
+        self._PARAS["Tgas_cold"] = Tgas_cold
+        self._PARAS["ne_0"] = ne_0
 
-    def _Tgas_func_slow_down(self, t, time_end, time_cold, Tgas_arc,
-                             Tgas_cold=300):
-        if t > time_end:
-            return (Tgas_arc - Tgas_cold) * math.exp(
-                    -(t - time_end) ** 2 / 2 / (
-                            time_cold - time_end) ** 2) + Tgas_cold
-        else:
-            return Tgas_arc
+    def _set_solve_paras(self, *, time_span, atol, rtol):
+        self._SOLVE_PARAS["time_span"] = time_span
+        self._SOLVE_PARAS["atol"] = atol
+        self._SOLVE_PARAS["rtol"] = rtol
 
-    def _electron_density_func(self, t, time_end, _density):
-        if t > time_end:
+    def _Tgas_func_sharp_down(self, t):
+        if t > self._PARAS["time_out_plasma"]:
+            return self._PARAS["Tgas_cold"]
+        else:
+            return self._PARAS["Tgas_arc"]
+
+    def _Tgas_func_slow_down(self, t):
+        if t <= self._PARAS["time_out_plasma"]:
+            return self._PARAS["Tgas_arc"]
+        else:
+            return (self._PARAS["Tgas_arc"] - self._PARAS["Tgas_cold"]) * \
+                   math.exp(-(t - self._PARAS["time_out_plasma"]) ** 2 / 2 / \
+                            (self._PARAS["time_cold"] - \
+                             self._PARAS["time_out_plasma"]) ** 2) + \
+                   self._PARAS["Tgas_cold"]
+
+    def _electron_density_func(self, t):
+        if t > self._PARAS["time_out_plasma"]:
             return 0
         else:
-            return _density
+            return self._PARAS["ne_0"]
 
 
 class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
-    _PARAS = dict(time_end=1e-3,
-                  time_cold=1e-3 + 1e-2,
-                  Tgas_arc=3000,
-                  ne_0=1e20)
 
     def __init__(self):
         super(ThePlasmistryGui, self).__init__()
 
-    def dndt_cros(self, t, density_without_e, _electron_density):
+    def dndt_cros(self, t, density_without_e, _electron_density,
+                  normalized_eedf):
         _instance = self.rctn_instances["cros reactions"]
         _instance.set_rate_const(eedf_normalized=normalized_eedf)
         _instance.set_rate(density=np.hstack([_electron_density,
@@ -611,25 +657,22 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
         return _instance.get_dn()
 
     def dndt_all(self, t, y):
-        _e_density = self._electron_density_func(t, self._PARAS[
-            "time_end"], self._PARAS["ne_0"])
-        _Tgas_K = self._Tgas_func_slow_down(t, self._PARAS["time_end"],
-                                            self._PARAS["time_cold"],
-                                            self._PARAS["Tgas_arc"])
+        _e_density = self._electron_density_func(t)
+        _Tgas_K = self._Tgas_func_slow_down(t)
         dydt = self.dndt_cros(t, y, _e_density) + \
                self.dndt_coef(t, y, _e_density, _Tgas_K)
         return dydt[1:]
 
-    def _solve(self):
-        time_span = ()
-        y_0 =
-        atol =
-        rtol =
-        sol = solve_ivp(self.dndt_all, time_span, y_0,
-                        method="BDF",
-                        atol=
-                        rtol=
-                        )
+    # def _solve(self):
+    #     time_span = ()
+    #     # y_0 =
+    #     sol = solve_ivp(self.dndt_all,
+    #                     self._SOLVE_PARAS["time_span"],
+    #                     y_0,
+    #                     method="BDF",
+    #                     atol=self._SOLVE_PARAS["atol"],
+    #                     rtol=self._SOLVE_PARAS["rtol"])
+    #     return sol
 
 
 # ---------------------------------------------------------------------------- #

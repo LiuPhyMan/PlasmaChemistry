@@ -482,7 +482,15 @@ class Reactions(object):
         # assert np.all(self.rate>=0.0)
         return self.__sij.dot(self.rate)
 
-    def get_dH_e(self):
+    def get_dH_e_loss_rate(self):
+        r"""Calculate the electron energy loss rate."""
+        return self.dH_e * self.rate
+
+    def get_dH_g_loss_rate(self):
+        r"""Calculate the translational energy loss rate."""
+        return self.dH_g * self.rate
+
+    def get_dH_e_loss_rate_total(self):
         r"""
         Calculate the total enthalpy in electron.
 
@@ -493,7 +501,7 @@ class Reactions(object):
         """
         return self.dH_e.dot(self.rate)
 
-    def get_dH_g(self):
+    def get_dH_g_loss_rate_total(self):
         r"""
         Calculate the total enthalpy in molecule and atom.
 
