@@ -37,7 +37,7 @@ from plasmistry.io import (LT_constructor, standard_Arr_constructor,
                            Cros_Reaction_block, Coef_Reaction_block)
 from plasmistry.reactions import (CrosReactions, CoefReactions)
 from plasmistry.electron import EEDF
-from plasmistry.electron import get_maxwell_eedf
+from plasmistry.electron import (get_maxwell_eedf, get_rate_const_from_crostn)
 # ---------------------------------------------------------------------------- #
 #   Set yaml
 # ---------------------------------------------------------------------------- #
@@ -211,6 +211,36 @@ class RctnDictView(QW.QWidget):
 
 
 # ---------------------------------------------------------------------------- #
+class ThePlot(QPlot):
+
+    def __init__(self, parent=None):
+        super().__init__(parent, figsize=(4, 3))
+        self.axes = self.figure.add_subplot(111)
+        self.initialize()
+
+    def initialize(self):
+        self.axes.clear()
+        self.axes.grid()
+        self.axes.set_xscale("log")
+        self.axes.set_xlabel("Energy (eV)")
+        self.axes.set_ylabel("Cross section (m2)")
+
+    def canvas_draw(self):
+        self.canvas.draw()
+
+    def clear_plot(self):
+        while len(self.axes.lines):
+            self.axes.lines.pop(0)
+        self.canvas_draw()
+
+    def plot(self, *, xdata, ydata, label=""):
+        self.clear_plot()
+        self.axes.plot(xdata, ydata, linewidth=1, marker='.', label=label)
+        self.canvas_draw()
+        self.axes.autoscale()
+
+
+# ---------------------------------------------------------------------------- #
 class RctnListView(QW.QWidget):
     _LIST_FONT = QFont("consolas", 10)
 
@@ -218,9 +248,11 @@ class RctnListView(QW.QWidget):
         super().__init__()
         self._rctn = QW.QListWidget()
         self._kstr = QW.QTextEdit()
-        self._output = QW.QTableWidget()
+        self._output = QW.QTextEdit()
+        self._plot = ThePlot()
         self._rctn.setFont(self._LIST_FONT)
         self._kstr.setFont(self._LIST_FONT)
+        self._output.setFont(self._LIST_FONT)
         self._set_layout()
 
     def _set_rctn_list_from_rctn_df(self, _list):
@@ -229,11 +261,25 @@ class RctnListView(QW.QWidget):
             self._rctn.addItem(f"[{_i:_>4}]{_}")
 
     def _set_layout(self):
-        _layout = QW.QGridLayout()
-        _layout.addWidget(self._rctn, 0, 0, 2,1)
-        _layout.addWidget(self._kstr, 0, 1)
-        _layout.addWidget(self._output, 1, 1)
+        _layout = QW.QHBoxLayout()
+        _layout_0 = QW.QVBoxLayout()
+        _layout_1 = QW.QHBoxLayout()
+        _layout_1.addWidget(self._kstr)
+        _layout_1.addWidget(self._output)
+        _layout_0.addLayout(_layout_1)
+        _layout_0.addWidget(self._plot)
+        _layout.addWidget(self._rctn)
+        _layout.addLayout(_layout_0)
+
+        # _layout = QW.QGridLayout()
+        # _layout.addWidget(self._rctn, 0, 0, 2, 2)
+        # _layout.addWidget(self._kstr, 0, 2, 1, 1)
+        # _layout.addWidget(self._output, 0, 3, 1, 1)
+        # _layout.addWidget(self._plot, 1,2,1,2)
         self.setLayout(_layout)
+
+
+# class CrosRctnListView(RctnListView):
 
 
 # ---------------------------------------------------------------------------- #
@@ -314,8 +360,8 @@ class EvolveParas(QW.QWidget):
         for i, _ in enumerate(("time_span", "atol", "rtol")):
             _label = BetterQLabel(_)
             _label.setFont(QFont("Consolas", 15))
-            _layout.addWidget(_label, i+4, 0, Qt.AlignRight)
-            _layout.addWidget(self._parameters[_], i+4, 1)
+            _layout.addWidget(_label, i + 4, 0, Qt.AlignRight)
+            _layout.addWidget(self._parameters[_], i + 4, 1)
         _layout.setColumnStretch(2, 1)
         _layout.setRowStretch(7, 1)
         self.setLayout(_layout)
@@ -368,7 +414,7 @@ class _PlasmistryGui(QW.QMainWindow):
         self._plasma_paras = PlasmaParas()
         self._parameters = EvolveParas()
         self._output = QW.QTextEdit()
-        self._evolution_plot = QPlot()
+        self._evolution_plot = ThePlot()
         self._buttons = dict()
         self._menubar = dict()
         self._tab_widget = QW.QTabWidget()
@@ -495,13 +541,25 @@ class _PlasmistryGui(QW.QMainWindow):
         self._cros_rctn_df_list._kstr.clear()
         _str = "\n".join(
             [f"{_[0]:.4e} {_[1]:.4e}" for _ in _crostn.transpose()])
-        # _str = np.array2string(_crostn.transpose())
         self._cros_rctn_df_list._kstr.append(_str)
         _threshold = self.rctn_df["electron"].loc[_current_index,
                                                   "threshold_eV"]
         # _kstr = self.rctn_df["electron"].loc[_current_index, "kstr"]
-        for _Te in (0.2, 0.5, 1.0, 1.5, 2.0, 2.5, 3, 5, 7 ):
+        self._cros_rctn_df_list._output.clear()
+        self._cros_rctn_df_list._output.append(f"Te[eV] rate_const(m3/s)")
+        for i_row, _Te in enumerate((0.2, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 5.0,
+                                     7.0)):
+            _k_str = f"{get_rate_const_from_crostn(Te_eV=_Te, crostn=_crostn):.2e}"
+            _Te_str = f"{_Te:.1f}"
+            # self._cros_rctn_df_list._output.setItem(i_row, 0,
+            #                                         QW.QTableWidgetItem(
+            #                                             _Te_str))
+            # self._cros_rctn_df_list._output.setItem(i_row, 1,
+            #                                         QW.QTableWidgetItem(
+            #                                         _k_str))
+            self._cros_rctn_df_list._output.append(f"{_Te_str:>6}\t{_k_str}")
 
+        self._cros_rctn_df_list._plot.plot(xdata=_crostn[0], ydata=_crostn[1])
         _status_str = f"threshold: {_threshold:.4f} eV."
         self.statusBar().showMessage(_status_str)
 
