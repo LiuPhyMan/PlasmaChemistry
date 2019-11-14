@@ -23,18 +23,18 @@ from PyQt5.QtGui import QIcon, QCursor, QFont
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QAction
 from BetterQWidgets import (QPlot, ReadFileQWidget, BetterQPushButton,
-                            BetterQLabel)
+    BetterQLabel)
 # ---------------------------------------------------------------------------- #
 from plasmistry.molecule import (H2_vib_group, CO_vib_group, CO2_vib_group)
 from plasmistry.molecule import (H2_vib_energy_in_eV, H2_vib_energy_in_K,
-                                 CO2_vib_energy_in_eV, CO2_vib_energy_in_K,
-                                 CO_vib_energy_in_eV, CO_vib_energy_in_K)
+    CO2_vib_energy_in_eV, CO2_vib_energy_in_K,
+    CO_vib_energy_in_eV, CO_vib_energy_in_K)
 from plasmistry.io import (LT_constructor, standard_Arr_constructor,
-                           chemkin_Arr_2_rcnts_constructor,
-                           chemkin_Arr_3_rcnts_constructor, eval_constructor,
-                           reversed_reaction_constructor, alpha_constructor,
-                           F_gamma_constructor,
-                           Cros_Reaction_block, Coef_Reaction_block)
+    chemkin_Arr_2_rcnts_constructor,
+    chemkin_Arr_3_rcnts_constructor, eval_constructor,
+    reversed_reaction_constructor, alpha_constructor,
+    F_gamma_constructor,
+    Cros_Reaction_block, Coef_Reaction_block)
 from plasmistry.reactions import (CrosReactions, CoefReactions)
 from plasmistry.electron import EEDF
 from plasmistry.electron import (get_maxwell_eedf, get_rate_const_from_crostn)
@@ -224,6 +224,7 @@ class ThePlot(QPlot):
         self.axes.set_xscale("log")
         self.axes.set_xlabel("Energy (eV)")
         self.axes.set_ylabel("Cross section (m2)")
+        self.axes.set_position([.15, .15, .7, .8])
 
     def canvas_draw(self):
         self.canvas.draw()
@@ -231,13 +232,17 @@ class ThePlot(QPlot):
     def clear_plot(self):
         while len(self.axes.lines):
             self.axes.lines.pop(0)
+        self.axes.set_prop_cycle("color", ['#1f77b4', '#ff7f0e', '#2ca02c',
+                                           '#d62728', '#9467bd'])
         self.canvas_draw()
 
     def plot(self, *, xdata, ydata, label=""):
         self.clear_plot()
-        self.axes.plot(xdata, ydata, linewidth=1, marker='.', label=label)
-        self.canvas_draw()
+        self.axes.plot(xdata, ydata, linewidth=1, marker='.',
+                       markersize=1.4, label=label)
+        self.axes.relim()
         self.axes.autoscale()
+        self.canvas_draw()
 
 
 # ---------------------------------------------------------------------------- #
@@ -318,7 +323,8 @@ class PlasmaParas(QW.QWidget):
 
 # ---------------------------------------------------------------------------- #
 class EvolveParas(QW.QWidget):
-    _PARAMETERS = ("Te", "Tgas", "ne", "atol", "rtol", "time_span")
+    _PARAMETERS = ("Te", "Tgas", "ne", "atol", "rtol", "time_span",
+                   "electron_max_energy_eV", "eedf_grid_number")
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -337,6 +343,8 @@ class EvolveParas(QW.QWidget):
         self._parameters["atol"].setText("1e12")
         self._parameters["rtol"].setText("0.01")
         self._parameters["time_span"].setText("0 1e-1")
+        self._parameters["electron_max_energy_eV"].setText("30")
+        self._parameters["eedf_grid_number"].setText("300")
 
     def value(self):
         _value_dict = dict()
@@ -362,6 +370,13 @@ class EvolveParas(QW.QWidget):
             _label.setFont(QFont("Consolas", 15))
             _layout.addWidget(_label, i + 4, 0, Qt.AlignRight)
             _layout.addWidget(self._parameters[_], i + 4, 1)
+        _layout.addWidget(BetterQLabel(""), 7, 0)
+        for i, _ in enumerate(("electron_max_energy_eV", "eedf_grid_number")):
+            _label = BetterQLabel(_)
+            _label.setFont(QFont("Consolas", 15))
+            _layout.addWidget(_label, i + 8, 0, Qt.AlignRight)
+            _layout.addWidget(self._parameters[_], i + 8, 1)
+
         _layout.setColumnStretch(2, 1)
         _layout.setRowStretch(7, 1)
         self.setLayout(_layout)
@@ -699,6 +714,15 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
     def __init__(self):
         super(ThePlasmistryGui, self).__init__()
 
+    def _init_cros_reactions(self):
+        eedf = EEDF(max_energy_eV=self._parameters.value()[
+            "electron_max_energy_eV"],
+                    grid_number=self._parameters.value()["eedf_grid_number"])
+        self.rctn_instances["cros reactions"].set_rate_const_matrix(
+            crostn_dataframe=self.rctn_df_all["cros reactions"],
+            electron_energy_grid=eedf.energy_point
+        )
+
     def dndt_cros(self, t, density_without_e, _electron_density,
                   normalized_eedf):
         _instance = self.rctn_instances["cros reactions"]
@@ -721,16 +745,22 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
                self.dndt_coef(t, y, _e_density, _Tgas_K)
         return dydt[1:]
 
-    # def _solve(self):
-    #     time_span = ()
-    #     # y_0 =
-    #     sol = solve_ivp(self.dndt_all,
-    #                     self._SOLVE_PARAS["time_span"],
-    #                     y_0,
-    #                     method="BDF",
-    #                     atol=self._SOLVE_PARAS["atol"],
-    #                     rtol=self._SOLVE_PARAS["rtol"])
-    #     return sol
+    def _solve(self):
+        density_0 = self.rctn_instances["coef reactions"].get_initial_density(
+            density_dict={"CO2"     : 1.2e24,
+                          "H2"      : 1.2e24,
+                          "E"       : 1e20,
+                          "CO2(all)": 1.2e24,
+                          "H2(all)" : 1.2e24})
+        density_without_e_0 = density_0[1:]
+        self._init_cros_reactions()
+        sol = solve_ivp(self.dndt_all,
+                        self._SOLVE_PARAS["time_span"],
+                        density_without_e_0,
+                        method="BDF",
+                        atol=self._SOLVE_PARAS["atol"],
+                        rtol=self._SOLVE_PARAS["rtol"])
+        return sol
 
 
 # ---------------------------------------------------------------------------- #
