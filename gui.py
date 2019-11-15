@@ -378,7 +378,7 @@ class EvolveParas(QW.QWidget):
             _layout.addWidget(self._parameters[_], i + 8, 1)
 
         _layout.setColumnStretch(2, 1)
-        _layout.setRowStretch(7, 1)
+        _layout.setRowStretch(10, 1)
         self.setLayout(_layout)
 
 
@@ -660,31 +660,31 @@ class _PlasmistryGui(QW.QMainWindow):
 
 
 class _PlasmistryLogic(object):
-    _PARAS = dict(time_out_plasma=None,
-                  time_cold=None,
-                  Tgas_arc=None,
-                  Tgas_cold=None,
-                  ne_0=None)
-
-    _SOLVE_PARAS = dict(atol=None,
-                        rtol=None,
-                        time_span=None)
+    # _PARAS = dict(time_out_plasma=None,
+    #               time_cold=None,
+    #               Tgas_arc=None,
+    #               Tgas_cold=None,
+    #               ne_0=None)
+    #
+    # _SOLVE_PARAS = dict(atol=None,
+    #                     rtol=None,
+    #                     time_span=None)
 
     def __init__(self):
         super().__init__()
 
-    def _set_assumed_paras(self, *, time_out_plasma, time_cold, Tgas_arc,
-                           Tgas_cold, ne_0):
-        self._PARAS["time_out_plasma"] = time_out_plasma
-        self._PARAS["time_cold"] = time_cold
-        self._PARAS["Tgas_arc"] = Tgas_arc
-        self._PARAS["Tgas_cold"] = Tgas_cold
-        self._PARAS["ne_0"] = ne_0
-
-    def _set_solve_paras(self, *, time_span, atol, rtol):
-        self._SOLVE_PARAS["time_span"] = time_span
-        self._SOLVE_PARAS["atol"] = atol
-        self._SOLVE_PARAS["rtol"] = rtol
+    # def _set_assumed_paras(self, *, time_out_plasma, time_cold, Tgas_arc,
+    #                        Tgas_cold, ne_0):
+    #     self._PARAS["time_out_plasma"] = time_out_plasma
+    #     self._PARAS["time_cold"] = time_cold
+    #     self._PARAS["Tgas_arc"] = Tgas_arc
+    #     self._PARAS["Tgas_cold"] = Tgas_cold
+    #     self._PARAS["ne_0"] = ne_0
+    #
+    # def _set_solve_paras(self, *, time_span, atol, rtol):
+    #     self._SOLVE_PARAS["time_span"] = time_span
+    #     self._SOLVE_PARAS["atol"] = atol
+    #     self._SOLVE_PARAS["rtol"] = rtol
 
     def _Tgas_func_sharp_down(self, t):
         if t > self._PARAS["time_out_plasma"]:
@@ -746,6 +746,7 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
         return dydt[1:]
 
     def _solve(self):
+        _paras_value = self._parameters.value()
         density_0 = self.rctn_instances["coef reactions"].get_initial_density(
             density_dict={"CO2"     : 1.2e24,
                           "H2"      : 1.2e24,
@@ -755,11 +756,11 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
         density_without_e_0 = density_0[1:]
         self._init_cros_reactions()
         sol = solve_ivp(self.dndt_all,
-                        self._SOLVE_PARAS["time_span"],
+                        _paras_value["time_span"],
                         density_without_e_0,
                         method="BDF",
-                        atol=self._SOLVE_PARAS["atol"],
-                        rtol=self._SOLVE_PARAS["rtol"])
+                        atol=_paras_value["atol"],
+                        rtol=_paras_value["rtol"])
         return sol
 
 
