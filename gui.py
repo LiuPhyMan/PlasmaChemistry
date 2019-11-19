@@ -23,18 +23,18 @@ from PyQt5.QtGui import QIcon, QCursor, QFont
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QAction
 from BetterQWidgets import (QPlot, ReadFileQWidget, BetterQPushButton,
-    BetterQLabel)
+                            BetterQLabel)
 # ---------------------------------------------------------------------------- #
 from plasmistry.molecule import (H2_vib_group, CO_vib_group, CO2_vib_group)
 from plasmistry.molecule import (H2_vib_energy_in_eV, H2_vib_energy_in_K,
-    CO2_vib_energy_in_eV, CO2_vib_energy_in_K,
-    CO_vib_energy_in_eV, CO_vib_energy_in_K)
+                                 CO2_vib_energy_in_eV, CO2_vib_energy_in_K,
+                                 CO_vib_energy_in_eV, CO_vib_energy_in_K)
 from plasmistry.io import (LT_constructor, standard_Arr_constructor,
-    chemkin_Arr_2_rcnts_constructor,
-    chemkin_Arr_3_rcnts_constructor, eval_constructor,
-    reversed_reaction_constructor, alpha_constructor,
-    F_gamma_constructor,
-    Cros_Reaction_block, Coef_Reaction_block)
+                           chemkin_Arr_2_rcnts_constructor,
+                           chemkin_Arr_3_rcnts_constructor, eval_constructor,
+                           reversed_reaction_constructor, alpha_constructor,
+                           F_gamma_constructor,
+                           Cros_Reaction_block, Coef_Reaction_block)
 from plasmistry.reactions import (CrosReactions, CoefReactions)
 from plasmistry.electron import EEDF
 from plasmistry.electron import (get_maxwell_eedf, get_rate_const_from_crostn)
@@ -59,12 +59,12 @@ yaml.add_constructor("!F_gamma", F_gamma_constructor, Loader=yaml.FullLoader)
 _DEFAULT_TOOLBAR_FONT = QFont("Arial", 10)
 _DEFAULT_TEXT_FONT = QFont("Arial", 11)
 
-_VARI_DICT = {"H2_vib_energy_in_eV" : H2_vib_energy_in_eV,
-              "H2_vib_energy_in_K"  : H2_vib_energy_in_K,
-              "CO_vib_energy_in_eV" : CO_vib_energy_in_eV,
-              "CO_vib_energy_in_K"  : CO_vib_energy_in_K,
+_VARI_DICT = {"H2_vib_energy_in_eV": H2_vib_energy_in_eV,
+              "H2_vib_energy_in_K": H2_vib_energy_in_K,
+              "CO_vib_energy_in_eV": CO_vib_energy_in_eV,
+              "CO_vib_energy_in_K": CO_vib_energy_in_K,
               "CO2_vib_energy_in_eV": CO2_vib_energy_in_eV,
-              "CO2_vib_energy_in_K" : CO2_vib_energy_in_K}
+              "CO2_vib_energy_in_K": CO2_vib_energy_in_K}
 
 
 class TheReadFileQWidget(ReadFileQWidget):
@@ -323,8 +323,11 @@ class PlasmaParas(QW.QWidget):
 
 # ---------------------------------------------------------------------------- #
 class EvolveParas(QW.QWidget):
-    _PARAMETERS = ("Te", "Tgas", "ne", "atol", "rtol", "time_span",
-                   "electron_max_energy_eV", "eedf_grid_number")
+    _PARAMETERS = ("Te", "ne",
+                   "Tgas_arc", "Tgas_cold",
+                   "atol", "rtol",
+                   "electron_max_energy_eV", "eedf_grid_number",
+                   "time_span", "time_out_plasma", "time_cold")
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -338,47 +341,44 @@ class EvolveParas(QW.QWidget):
             self._parameters[_].setFont(QFont("Consolas", 12))
             self._parameters[_].setAlignment(Qt.AlignRight)
         self._parameters["Te"].setText("1.5")
-        self._parameters["Tgas"].setText("3000")
         self._parameters["ne"].setText("1e19")
+        self._parameters["Tgas_arc"].setText("3000")
+        self._parameters["Tgas_cold"].setText("300")
         self._parameters["atol"].setText("1e12")
         self._parameters["rtol"].setText("0.01")
-        self._parameters["time_span"].setText("0 1e-1")
         self._parameters["electron_max_energy_eV"].setText("30")
         self._parameters["eedf_grid_number"].setText("300")
+        self._parameters["time_span"].setText("0 1e-1")
+        self._parameters["time_out_plasma"].setText("1e-3")
+        self._parameters["time_cold"].setText("1e-3 + 1e-2")
 
     def value(self):
         _value_dict = dict()
         for _ in self._PARAMETERS:
             if _ == "time_span":
                 _str = self._parameters[_].text()
-                _value_dict[_] = (float(_str.split()[0]),
-                                  float(_str.split()[1]))
+                _value_dict[_] = (eval(_str.split()[0]),
+                                  eval(_str.split()[1]))
             else:
-                _value_dict[_] = float(self._parameters[_].text())
+                _value_dict[_] = eval(self._parameters[_].text())
         return _value_dict
 
     def _set_layout(self):
         _layout = QW.QGridLayout()
-        for i, _ in enumerate(("Te", "Tgas", "ne")):
+        for i, _ in enumerate(("Te", "ne", "",
+                               "Tgas_arc", "Tgas_cold", "",
+                               "atol", "rtol", "",
+                               "electron_max_energy_eV", "eedf_grid_number", "",
+                               "time_span", "time_out_plasma", "time_cold")):
             _label = BetterQLabel(_)
             _label.setFont(QFont("Consolas", 15))
             _layout.addWidget(_label, i, 0, Qt.AlignRight)
-            _layout.addWidget(self._parameters[_], i, 1)
-        _layout.addWidget(BetterQLabel(""), 3, 0)
-        for i, _ in enumerate(("time_span", "atol", "rtol")):
-            _label = BetterQLabel(_)
-            _label.setFont(QFont("Consolas", 15))
-            _layout.addWidget(_label, i + 4, 0, Qt.AlignRight)
-            _layout.addWidget(self._parameters[_], i + 4, 1)
-        _layout.addWidget(BetterQLabel(""), 7, 0)
-        for i, _ in enumerate(("electron_max_energy_eV", "eedf_grid_number")):
-            _label = BetterQLabel(_)
-            _label.setFont(QFont("Consolas", 15))
-            _layout.addWidget(_label, i + 8, 0, Qt.AlignRight)
-            _layout.addWidget(self._parameters[_], i + 8, 1)
-
+            if _ == "":
+                _layout.addWidget(BetterQLabel(""), i, 0)
+            else:
+                _layout.addWidget(self._parameters[_], i, 1)
         _layout.setColumnStretch(2, 1)
-        _layout.setRowStretch(10, 1)
+        _layout.setRowStretch(15, 1)
         self.setLayout(_layout)
 
 
@@ -403,17 +403,17 @@ class _PlasmistryGui(QW.QMainWindow):
         # -------------------------------------------------------------------- #
         #   Data
         # -------------------------------------------------------------------- #
-        self.rctn_dict_all = {"species"              : None,
-                              "electron reactions"   : None,
-                              "relaxation reactions" : None,
-                              "chemical reactions"   : None,
+        self.rctn_dict_all = {"species": None,
+                              "electron reactions": None,
+                              "relaxation reactions": None,
+                              "chemical reactions": None,
                               "decom_recom reactions": None}
-        self.rctn_df = {"species"    : None,
-                        "electron"   : None,
-                        "chemical"   : None,
+        self.rctn_df = {"species": None,
+                        "electron": None,
+                        "chemical": None,
                         "decom_recom": None,
-                        "relaxation" : None}
-        self.rctn_df_all = {"species"       : None,
+                        "relaxation": None}
+        self.rctn_df_all = {"species": None,
                             "cros reactions": None,
                             "coef reactions": None}
         self.rctn_instances = {"cros reactions": None,
@@ -660,31 +660,15 @@ class _PlasmistryGui(QW.QMainWindow):
 
 
 class _PlasmistryLogic(object):
-    # _PARAS = dict(time_out_plasma=None,
-    #               time_cold=None,
-    #               Tgas_arc=None,
-    #               Tgas_cold=None,
-    #               ne_0=None)
-    #
-    # _SOLVE_PARAS = dict(atol=None,
-    #                     rtol=None,
-    #                     time_span=None)
+    _PARAS = None
 
     def __init__(self):
         super().__init__()
 
-    # def _set_assumed_paras(self, *, time_out_plasma, time_cold, Tgas_arc,
-    #                        Tgas_cold, ne_0):
-    #     self._PARAS["time_out_plasma"] = time_out_plasma
-    #     self._PARAS["time_cold"] = time_cold
-    #     self._PARAS["Tgas_arc"] = Tgas_arc
-    #     self._PARAS["Tgas_cold"] = Tgas_cold
-    #     self._PARAS["ne_0"] = ne_0
     #
     # def _set_solve_paras(self, *, time_span, atol, rtol):
     #     self._SOLVE_PARAS["time_span"] = time_span
     #     self._SOLVE_PARAS["atol"] = atol
-    #     self._SOLVE_PARAS["rtol"] = rtol
 
     def _Tgas_func_sharp_down(self, t):
         if t > self._PARAS["time_out_plasma"]:
@@ -706,7 +690,7 @@ class _PlasmistryLogic(object):
         if t > self._PARAS["time_out_plasma"]:
             return 0
         else:
-            return self._PARAS["ne_0"]
+            return self._PARAS["ne"]
 
 
 class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
@@ -746,21 +730,22 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
         return dydt[1:]
 
     def _solve(self):
-        _paras_value = self._parameters.value()
+        self._PARAS = self._parameters.value()
+        # _paras_value = self._parameters.value()
         density_0 = self.rctn_instances["coef reactions"].get_initial_density(
-            density_dict={"CO2"     : 1.2e24,
-                          "H2"      : 1.2e24,
-                          "E"       : 1e20,
+            density_dict={"CO2": 1.2e24,
+                          "H2": 1.2e24,
+                          "E": 1e20,
                           "CO2(all)": 1.2e24,
-                          "H2(all)" : 1.2e24})
+                          "H2(all)": 1.2e24})
         density_without_e_0 = density_0[1:]
         self._init_cros_reactions()
         sol = solve_ivp(self.dndt_all,
-                        _paras_value["time_span"],
+                        self._PARAS["time_span"],
                         density_without_e_0,
                         method="BDF",
-                        atol=_paras_value["atol"],
-                        rtol=_paras_value["rtol"])
+                        atol=self._PARAS["atol"],
+                        rtol=self._PARAS["rtol"])
         return sol
 
 
