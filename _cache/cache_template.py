@@ -12,9 +12,15 @@ Created on 19:32 2019/11/19
 from math import exp
 import numpy as np
 import numba
-from numba import float32
+from numba import float32, void
+from numba.pycc import CC
 
 
-@numba.jit(nopython=True)
-def test(Tgas, value):
+cc = CC("my_module_1")
+
+@cc.export("test", "f8[:](f8,)")
+def test(Tgas):
     """__REPLACE__"""
+
+if __name__ == "__main__":
+    cc.compile()
