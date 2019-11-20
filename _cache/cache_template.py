@@ -9,18 +9,15 @@ Created on 19:32 2019/11/19
 @IDE:       PyCharm
 """
 
-from math import exp
+from math import exp, sqrt
 import numpy as np
 import numba
-from numba import float32, void
-from numba.pycc import CC
+from numba import float64, void
 
 
-cc = CC("my_module_1")
 
-@cc.export("test", "f8[:](f8,)")
-def test(Tgas):
+
+@numba.jit("void(float64[:], float64)", nopython=True, nogil=False, parallel=True, fastmath=True)
+def test(value, Tgas):
     """__REPLACE__"""
 
-if __name__ == "__main__":
-    cc.compile()

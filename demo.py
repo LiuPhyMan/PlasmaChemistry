@@ -35,11 +35,11 @@ import numba as nb
 #                                d=E_str).replace('#', '{').replace('$',
 #                                                                   '}').replace(
 #         'Tgas', 'T_{\\rm gas}')
-@nb.njit()
-def test(Tgas):
-    a = 0.44 * math.exp(-407.0 * Tgas ** (-1 / 3) + 824.0 * Tgas ** (-2 / 3))
-    return a
-
+# @nb.njit()
+# def test(Tgas):
+#     a = 0.44 * math.exp(-407.0 * Tgas ** (-1 / 3) + 824.0 * Tgas ** (-2 / 3))
+#     return a
+#
 
 # this is a test line.
 # index = 164
@@ -79,3 +79,4 @@ def test(Tgas):
 #                      r"/cs_CO2v0_vibexc_CO2v2_reverse.lut")
 # plt.plot(_energy_new, _crostn_new, marker='.')
 # plt.plot(_crostn[:,0], _crostn[:,1], marker='.')
+windows.rctn_instan
