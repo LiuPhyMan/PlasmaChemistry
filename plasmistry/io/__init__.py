@@ -143,6 +143,7 @@ def reversed_reaction_constructor(loader, node):
 def LT_constructor(loader, node):
     _list = loader.construct_sequence(node)
     A, B, C = _list
+
     return f"({A})*exp(({B})*Tgas**(-1/3)+({C})*Tgas**(-2/3))"
 
 

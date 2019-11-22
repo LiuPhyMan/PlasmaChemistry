@@ -16,8 +16,20 @@ from numba import float64, void
 
 
 
+@numba.jit("float64(float64, float64, float64, float64)", nopython=True, nogil=False, parallel=True, fastmath=True)
+def LT(A, B, C, Tgas):
+    return A * exp(B*Tgas**(-1/3)+C*Tgas**(-2/3))
 
-@numba.jit("void(float64[:], float64)", nopython=True, nogil=False, parallel=True, fastmath=True)
-def test(value, Tgas):
+@numba.jit("float64(float64, float64, float64, float64)", nopython=True, nogil=False, parallel=True, fastmath=True)
+def Lij(dE, a, mu, Tgas):
+    return 0.32*dE*11604.5/a*sqrt(mu/Tgas)
+
+@numba.jit("float64(float64)", nopython=True, nogil=False, parallel=True, fastmath=True)
+def F(_Lij):
+    return 0.5*(3-exp(-2/3*_Lij))*exp(-2/3*_Lij)
+
+@numba.jit("float64[:](float64)", nopython=True, nogil=False, parallel=True, fastmath=True)
+def test(Tgas):
     """__REPLACE__"""
+    return value
 
