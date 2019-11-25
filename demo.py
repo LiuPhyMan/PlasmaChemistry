@@ -83,17 +83,17 @@ _number = int(1e2)
 
 with open("_cache/cache.txt") as f:
     # multi_expr = [_.strip() for i, _ in enumerate(f.readlines()) if i < _number]
-    multi_expr = [ "(((LT(1.05e-3, -324, 1053, Tgas)) * (F((Lij(0.208487, "
-                   "(5.172159), (1.9277), Tgas)))) / (F((Lij(0.2085, "
-                   "(5.172159), (1.9277), Tgas))))) + ((LT(2.60e-4, -279, 892, "
-                   "Tgas)) * (F((Lij(0.125663, (5.172159), (1.9277), Tgas)))) "
-                   "/ (F((Lij(0.1257, (5.172159), (1.9277), Tgas))))) + ((LT("
-                   "2.61e-5, -293, 914, Tgas)) * (F((Lij(0.042784, "
-                   "(5.172159), (1.9277),Tgas)))) / (F((Lij(0.0428, "
-                   "(5.172159), (1.9277), Tgas)))))) * 1 * 1e-6"] * _number
-    # multi_expr = ["(3.8)*((4.58e+19*1.66e-30)*Tgas**(-1.4)*exp("
-    #               "-52536/Tgas))*exp(min(51994*(1),(104400*0.5032))/Tgas)"] *\
-    #              _number
+    # multi_expr = ["(((LT(1.05e-3, -324, 1053, Tgas)) * (F((Lij(0.208487, "
+    #               "(5.172159), (1.9277), Tgas)))) / (F((Lij(0.2085, "
+    #               "(5.172159), (1.9277), Tgas))))) + ((LT(2.60e-4, -279, 892, "
+    #               "Tgas)) * (F((Lij(0.125663, (5.172159), (1.9277), Tgas)))) "
+    #               "/ (F((Lij(0.1257, (5.172159), (1.9277), Tgas))))) + ((LT("
+    #               "2.61e-5, -293, 914, Tgas)) * (F((Lij(0.042784, "
+    #               "(5.172159), (1.9277),Tgas)))) / (F((Lij(0.0428, "
+    #               "(5.172159), (1.9277), Tgas)))))) * 1 * 1e-6"] * _number
+    multi_expr = ["(3.8)*((4.58e+19*1.66e-30)*Tgas**(-1.4)*exp("
+                  "-52536/Tgas))*exp(min(51994*(1),(104400*0.5032))/Tgas)"] *\
+                 _number
     # multi_expr = ["exp(1)"] * _number
 
 multi_expr_compiled = compile(f"[{','.join(multi_expr)}]", '<string>', 'eval')
@@ -101,7 +101,7 @@ multi_expr_compiled = compile(f"[{','.join(multi_expr)}]", '<string>', 'eval')
 with open(r"_cache/cache_template.py") as f:
     _str = f.readlines()
 _str = "".join(_str)
-_list = [f"value.append({_})" for i, _ in enumerate(multi_expr)]
+_list = [f"value[{i}] = {_}" for i, _ in enumerate(multi_expr)]
 _multi_expr_str = "\n    ".join(_list)
 
 _str_to_write = _str.replace('"""__REPLACE__"""', f"{_multi_expr_str}")

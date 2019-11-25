@@ -15,8 +15,6 @@ from scipy.integrate import solve_ivp
 import pandas as pd
 import xlwings as xw
 from matplotlib import pyplot as plt
-from PIL import Image
-from PIL.ExifTags import TAGS
 from PyQt5 import QtWidgets as QW
 from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon, QCursor, QFont
