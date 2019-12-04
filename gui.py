@@ -211,9 +211,30 @@ class RctnDictView(QW.QWidget):
 # ---------------------------------------------------------------------------- #
 class ThePlot(QPlot):
 
-    def __init__(self, parent=None):
-        super().__init__(parent, figsize=(4, 3))
+    def __init__(self, parent=None, figsize=(4, 3)):
+        super().__init__(parent, figsize=figsize)
         self.axes = self.figure.add_subplot(111)
+
+    #
+    # def initialize(self):
+    #     self.axes.clear()
+    #     self.axes.grid()
+
+    def canvas_draw(self):
+        self.canvas.draw()
+
+    def clear_plot(self):
+        while len(self.axes.lines):
+            self.axes.lines.pop(0)
+        # self.axes.set_prop_cycle("color", ['#1f77b4', '#ff7f0e', '#2ca02c',
+        #                                    '#d62728', '#9467bd'])
+        self.canvas_draw()
+
+
+class TheCrostnPlot(ThePlot):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.initialize()
 
     def initialize(self):
@@ -222,17 +243,7 @@ class ThePlot(QPlot):
         self.axes.set_xscale("log")
         self.axes.set_xlabel("Energy (eV)")
         self.axes.set_ylabel("Cross section (m2)")
-        self.axes.set_position([.15, .15, .7, .8])
-
-    def canvas_draw(self):
-        self.canvas.draw()
-
-    def clear_plot(self):
-        while len(self.axes.lines):
-            self.axes.lines.pop(0)
-        self.axes.set_prop_cycle("color", ['#1f77b4', '#ff7f0e', '#2ca02c',
-                                           '#d62728', '#9467bd'])
-        self.canvas_draw()
+        # self.axes.set_position([.15, .15, .7, .8])
 
     def plot(self, *, xdata, ydata, label=""):
         self.clear_plot()
@@ -240,6 +251,27 @@ class ThePlot(QPlot):
                        markersize=1.4, label=label)
         self.axes.relim()
         self.axes.autoscale()
+        self.canvas_draw()
+
+
+class TheDensitiesPlot(ThePlot):
+
+    def __init__(self, parent=None):
+        super().__init__(parent, figsize=(8, 6))
+        self.initialize()
+
+    def initialize(self):
+        self.axes.clear()
+        self.axes.grid()
+
+    def plot(self, *, xdata, ydata, labels=[]):
+        self.clear_plot()
+        for _density, _label in zip(ydata, labels):
+            self.axes.plot(xdata, _density, linewidth=1, marker=".",
+                           markersize=1.4, label=_label)
+        self.axes.relim()
+        self.axes.autoscale()
+        self.figure.legend()
         self.canvas_draw()
 
 
@@ -252,7 +284,7 @@ class RctnListView(QW.QWidget):
         self._rctn = QW.QListWidget()
         self._kstr = QW.QTextEdit()
         self._output = QW.QTextEdit()
-        self._plot = ThePlot()
+        self._plot = TheCrostnPlot()
         self._rctn.setFont(self._LIST_FONT)
         self._kstr.setFont(self._LIST_FONT)
         self._output.setFont(self._LIST_FONT)
@@ -427,7 +459,7 @@ class _PlasmistryGui(QW.QMainWindow):
         self._plasma_paras = PlasmaParas()
         self._parameters = EvolveParas()
         self._output = QW.QTextEdit()
-        self._evolution_plot = ThePlot()
+        self._evolution_plot = TheDensitiesPlot()
         self._buttons = dict()
         self._menubar = dict()
         self._tab_widget = QW.QTabWidget()
@@ -561,7 +593,7 @@ class _PlasmistryGui(QW.QMainWindow):
         self._cros_rctn_df_list._output.clear()
         self._cros_rctn_df_list._output.append(f"Te[eV] rate_const(m3/s)")
         for i_row, _Te in enumerate((0.2, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 5.0,
-                                     7.0)):
+                                     7.0, 10.0, 20.0, 50.0, 100.0)):
             _k_str = f"{get_rate_const_from_crostn(Te_eV=_Te, crostn=_crostn):.2e}"
             _Te_str = f"{_Te:.1f}"
             # self._cros_rctn_df_list._output.setItem(i_row, 0,
@@ -720,10 +752,10 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
                                               density_without_e]))
         return _instance.get_dn()
 
-    def dndt_all(self, t, y):
+    def dndt_all(self, t, y, normalized_eedf):
         _e_density = self._electron_density_func(t)
         _Tgas_K = self._Tgas_func_slow_down(t)
-        dydt = self.dndt_cros(t, y, _e_density) + \
+        dydt = self.dndt_cros(t, y, _e_density, normalized_eedf) + \
                self.dndt_coef(t, y, _e_density, _Tgas_K)
         return dydt[1:]
 
@@ -738,13 +770,22 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
                           "H2(all)": 1.2e24})
         density_without_e_0 = density_0[1:]
         self._init_cros_reactions()
-        sol = solve_ivp(self.dndt_all,
-                        self._PARAS["time_span"],
-                        density_without_e_0,
-                        method="BDF",
-                        atol=self._PARAS["atol"],
-                        rtol=self._PARAS["rtol"])
-        return sol
+        ####
+        eedf = EEDF(max_energy_eV=self._PARAS["electron_max_energy_eV"],
+                    grid_number=self._PARAS["eedf_grid_number"])
+        normalized_eedf = get_maxwell_eedf(eedf.energy_point,
+                                           Te_eV=self._PARAS["Te"])
+
+        def dndt(t, y):
+            print(f"time: {t:.6e} s")
+            return self.dndt_all(t, y, normalized_eedf)
+
+        self.sol = solve_ivp(dndt,
+                             self._PARAS["time_span"],
+                             density_without_e_0,
+                             method="BDF",
+                             atol=self._PARAS["atol"],
+                             rtol=self._PARAS["rtol"])
 
 
 # ---------------------------------------------------------------------------- #
@@ -754,8 +795,5 @@ if __name__ == "__main__":
     else:
         app = QW.QApplication.instance()
     app.setStyle(QW.QStyleFactory.create("Fusion"))
-    # window = TheWindow()
     window = ThePlasmistryGui()
     window.show()
-    # app.exec_()
-    # app.aboutToQuit.connect(app.deleteLater)
