@@ -102,6 +102,9 @@ class RctnDictView(QW.QWidget):
             else:
                 self._groups[_].setFixedWidth(200)
             self._groups[_].setFont(self._GROUP_FONT)
+            self._groups[_].setStyleSheet("QListWidget::item:selected{"
+                                          "background: "
+                                          "lightGray;color:darkBlue}")
 
     def _set_layout(self):
         _list_layout = QW.QGridLayout()
@@ -504,7 +507,7 @@ class _PlasmistryGui(QW.QMainWindow):
         self._tab_widget.addTab(self._parameters, "EvolveParas")
         self._tab_widget.addTab(self._output, "Output")
         self._tab_widget.setStyleSheet("QTabBar::tab {font-size: "
-                                       "12pt; width:150px;}")
+                                       "10pt; width:200px;}")
 
     def load_rctn_dict_from_yaml(self):
         with open(self._read_yaml._entry.text()) as f:

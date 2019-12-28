@@ -1355,23 +1355,33 @@
 
 # ---------------------------------------------------------------------------- #
 # ---- CO2 + O
+#   W. Tsang and R. F. Hampson, J. Phys. Chem. Ref. Data 15 (3), 1087-1279 (1986).
 # ---------------------------------------------------------------------------- #
+- &CO_O2_to_CO2_O
+    #   W. Tsang and R. F. Hampson, J. Phys. Chem. Ref. Data 15 (3), 1087-1279 (1986).
+    #   Range: 1500-3000 K
+    type   : CR
+    formula: CO + O2 => CO2 + O
+    # kstr   : !ChemKinArr_2_rcnt [1.12e12, 0.000, 47700]
+    kstr   : "4.2e-12*exp(-24000/Tgas)"
+
 - &CO2_O_to_CO_O2
+    #   W. Tsang and R. F. Hampson, J. Phys. Chem. Ref. Data 15 (3), 1087-1279 (1986).
+    #   Range: 1500-3000 K
+
     #   CO+O2<=>CO2+O 1.119E+12 0.0000 47700.0
     # REV/ 5.751E+15 -0.7485 56318.9 !Trange(K) = [ 300 -  5000] ; S= 2.5E-02
+
     <<     : *CO2_vib_chemical_reaction
     formula: CO2(v_A_) + O => CO + O2
     where  :
         vari:
             -   _factor_: 1
-            -   _a_: !alpha [56319, 47700]
-            -   Ea: 56319*0.5032
-            -   k_v0: !ChemKinArr_2_rcnt [5.75e15, -0.7485, 56319]
-
-- &CO_O2_to_CO2_O
-    type   : CR
-    formula: CO + O2 => CO2 + O
-    kstr   : !ChemKinArr_2_rcnt [1.12e12, 0, 47700]
+            -   _a_: !alpha [26500, 24000]
+            # -   Ea: 56319*0.5032
+            -   Ea: 26500
+            # -   k_v0: !ChemKinArr_2_rcnt [5.75e15, -0.7485, 56319]
+            -   k_v0: "2.8e-11*exp(-26500/T)"
 
 # ---------------------------------------------------------------------------- #
 # ---- CO2 + C
@@ -1394,21 +1404,29 @@
 # ---- CO2 + H
 # ---------------------------------------------------------------------------- #
 - &CO2_H_to_CO_OH
+    #   W. Tsang and R. F. Hampson, J. Phys. Chem. Ref. Data 15 (3), 1087-1279 (1986).
+    #   Range: 1000-3000 K
+
     # CO+OH<=>CO2+H 7.015E+04 2.0530 -355.7
     #          REV/ 9.953E+10 0.9417 24980.5 !Trange(K) = [ 300 -  5000]
+
     <<     : *CO2_vib_chemical_reaction
     formula: CO2(v_A_) + H => CO + OH
     where  :
         vari:
             -   _factor_: 1
             -   _a_: 1
-            -   Ea: 24980.5 * 0.5032
-            -   k_v0: !ChemKinArr_2_rcnt [9.953E+10, 0.9417, 24980.5]
+            -   Ea: 13300
+            # -   k_v0: !ChemKinArr_2_rcnt [9.953E+10, 0.9417, 24980.5]
+            -   k_v0: "2.5e-10*exp(-13300/T)"
 
 - &CO_OH_to_CO2_H
+    #   W. Tsang and R. F. Hampson, J. Phys. Chem. Ref. Data 15 (3), 1087-1279 (1986).
+    #   Range: 250-2000 K
     type   : CR
     formula: CO + OH => CO2 + H
-    kstr   : !ChemKinArr_2_rcnt [7.015E+04, 2.0530, -355.7]
+    # kstr   : !ChemKinArr_2_rcnt [7.015E+04, 2.0530, -355.7]
+    kstr   : "1.12e-13*exp(0.000907*Tgas)"
 
 # ============================================================================ #
 # ==== H2
@@ -1430,41 +1448,56 @@
 # ---- H2 + O
 # ---------------------------------------------------------------------------- #
 - &H2_O_to_H_OH
+
     # O+H2<=>H+OH 5.080E+04 2.6700 6292.0
     #        REV/ 2.767E+04 2.6421 4878.4 !Trange(K) = [ 300 -  5000]
+
+    #   unit:  cm3/mol/s    1   cal/mol
+    #       1 cal/mol = 0.5032 K
+    #   Range: 300-2500 K
     <<     : *H2_vib_chemical_reaction
     formula: H2(v_A_) + O => H + OH
     where  :
         vari:
             -   _factor_: 1
-            -   _a_: !alpha [6292, 4878]
-            -   Ea: 6292*0.5032
-            -   k_v0: !ChemKinArr_2_rcnt [5.080E+04, 2.6700, 6292.0]
+            -   _a_: !alpha [2980, 1950]
+            # -   Ea: 6292*0.5032
+            -   Ea:  2980
+            # -   k_v0: !ChemKinArr_2_rcnt [5.080E+04, 2.6700, 6292.0]
+            -   k_v0: "1.8e-20*Tgas**2.8*exp(-2980/Tgas)"
 
 - &H_OH_to_H2_O
+    #   Range: 300-2500 K
     type   : CR
     formula: H + OH => H2 + O
-    kstr   : !ChemKinArr_2_rcnt [2.767E+04, 2.6421, 4878.4]
+    # kstr   : !ChemKinArr_2_rcnt [2.767E+04, 2.6421, 4878.4]
+    kstr   : 8.1e-21*Tgas**2.8*exp(-1950/Tgas)
 
 # ---------------------------------------------------------------------------- #
 # ---- H2 + OH
 # ---------------------------------------------------------------------------- #
 - &H2_OH_to_H_H2O
+    #   N. Cohen and K. Westberg, J. Phys. Chem. 83 (1), 46-50 (1979).
+
     # OH+H2<=>H+H2O 4.380E+13 0.0000 6990.0
     # REV/ 3.830E+14 -0.0845 21855.8 !Trange(K) = [ 300 -  5000] ; S= 3.5E-02
+
     <<     : *H2_vib_chemical_reaction
     formula: H2(v_A_) + OH => H + H2O
     where  :
         vari:
             -   _factor_: 1
-            -   _a_: !alpha [6990, 21856]
-            -   Ea: 6990*0.5032
-            -   k_v0: !ChemKinArr_2_rcnt [4.380E+13, 0.0000, 6990.0]
+            -   _a_: !alpha [1840, 9610]
+            -   Ea: 1840
+            # -   k_v0: !ChemKinArr_2_rcnt [4.380E+13, 0.0000, 6990.0]
+            -   k_v0: "1.83e-15*Tgas**1.30*exp(-1840/Tgas)"
 
 - &H_H2O_to_H2_OH
+    #   N. Cohen and K. Westberg, J. Phys. Chem. 83 (1), 46-50 (1979).
     type   : CR
     formula: H + H2O => H2 + OH
-    kstr   : !ChemKinArr_2_rcnt [3.830E+14, -0.0845, 21855.8]
+    # kstr   : !ChemKinArr_2_rcnt [3.830E+14, -0.0845, 21855.8]
+    kstr   : "1.70e-14*Tgas**1.20*exp(-9610/Tgas)"
 
 # ============================================================================ #
 # ==== O2
@@ -1473,6 +1506,7 @@
 # ---- O2 + H
 # ---------------------------------------------------------------------------- #
 - &O2_H_to_O_OH
+    #   
     # H+O2<=>O+OH 1.040E+14 0.0000 15286.0
     #        REV/ 3.767E+11 0.3628 -1431.4 !Trange(K) = [ 300 -  5000]
     type   : CR
