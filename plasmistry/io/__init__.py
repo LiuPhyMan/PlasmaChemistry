@@ -10,6 +10,7 @@ Created on 2:11 2017/7/4
 """
 from __future__ import division, print_function, absolute_import
 import copy
+from scipy import constants as const
 from pandas.core.frame import DataFrame as DataFrame_type
 from .io_cross_section import *
 from .io_reactions import *
@@ -140,11 +141,18 @@ def reversed_reaction_constructor(loader, node):
     return f"{prdt.strip()} => {rcnt.strip()}"
 
 
-def LT_constructor(loader, node):
+def LT_ln_constructor(loader, node):
     _list = loader.construct_sequence(node)
-    A, B, C = _list
-
-    return f"({A})*exp(({B})*Tgas**(-1/3)+({C})*Tgas**(-2/3))"
+    if len(_list) == 3:
+        A, B, C = _list
+        factor = 1
+    elif len(_list) == 4:
+        A, B, C, factor = _list
+    else:
+        raise Exception(f"LT constructor is not a {len(_list)} list")
+    _exp_A = math.exp(A)/const.N_A
+    return f"{factor:.1f}*({_exp_A:.2e})*exp(({B})*Tgas**(-1/3)+({C})*Tgas**(" \
+           f"-2/3))"
 
 
 def standard_Arr_constructor(loader, node):

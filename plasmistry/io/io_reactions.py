@@ -458,7 +458,28 @@ class Reaction_block(object):
 
     def __init__(self, *, rctn_dict=None, vari_dict=None, global_abbr=None):
         r"""
-        
+
+        Parameters
+        ----------
+        rctn_dict:
+            type
+            formula
+            kstr
+        vari_dict
+        global_abbr
+
+        Notes
+        -----
+        Steps:
+            1. _treat_where_vari
+                self._kstr => self._kstr
+                    where:
+                        vari:
+                            - key0: value0
+                            - key1: value1
+            2. _treat_iterator
+            3. _treat_where_abbr
+
         """
         super().__init__()
         self._type = None
@@ -510,6 +531,21 @@ class Reaction_block(object):
 
     def add_variable_dict(self, *, _dict):
         self._variable_dict = _dict
+
+    def _treat_where_vari(self):
+        r"""
+        Notes
+        -----
+        self._kstr to self._kstr
+
+        """
+        if 'where' in self.rctn_dict:
+            if 'vari' in self.rctn_dict['where']:
+                reversed_vari_list = self.rctn_dict['where']['vari'][::-1]
+                for _key_value in reversed_vari_list:
+                    _key = list(_key_value.items())[0][0]
+                    _value = f"({str(list(_key_value.items())[0][1])})"
+                    self._kstr = self._kstr.replace(_key, _value)
 
     def _treat_iterator(self):
         if 'iterator' not in self.rctn_dict:
@@ -569,21 +605,6 @@ class Reaction_block(object):
                 self._kstr_list = [_.replace(_key, _value) for _ in
                                    self._kstr_list]
 
-    def _treat_where_vari(self):
-        r"""
-        Notes
-        -----
-        _kstr to _kstr
-
-        """
-        if 'where' in self.rctn_dict:
-            if 'vari' in self.rctn_dict['where']:
-                reversed_vari_list = self.rctn_dict['where']['vari'][::-1]
-                for _key_value in reversed_vari_list:
-                    _key = list(_key_value.items())[0][0]
-                    _value = f"({str(list(_key_value.items())[0][1])})"
-                    self._kstr = self._kstr.replace(_key, _value)
-
     @staticmethod
     def repl_func(x, _repl, _iter):
         _str_expr = f"'{x}'." + '.'.join(
@@ -591,15 +612,21 @@ class Reaction_block(object):
         # product loop
         _iter_loop = _iter['loop']
         if 'product' in _iter_loop:
+            print("zip")
             _loop_dict = _iter_loop['product']
+            print(_loop_dict)
             _loop_expr = ' '.join([f'for {key} in {value}'
                                    for key, value in _loop_dict.items()])
+            print(_loop_expr)
         # zip loop
         elif 'zip' in _iter_loop:
+            print("zip")
             _loop_dict = _iter_loop['zip']
+            print(_loop_dict)
             _loop_expr = 'for {key} in zip({value})'.format(
                 key=', '.join(_loop_dict.keys()),
                 value=', '.join(_loop_dict.values()))
+            print(_loop_expr)
         # else
         else:
             raise Exception(f"product or zip is not in loop. {_iter}")
@@ -608,6 +635,7 @@ class Reaction_block(object):
             _expr = f"[{_str_expr} {_loop_expr} if {_iter['condition']}]"
         else:
             _expr = f"[{_str_expr} {_loop_expr}]"
+        print(_expr)
         return _expr
 
 

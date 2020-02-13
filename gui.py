@@ -27,7 +27,7 @@ from plasmistry.molecule import (H2_vib_group, CO_vib_group, CO2_vib_group)
 from plasmistry.molecule import (H2_vib_energy_in_eV, H2_vib_energy_in_K,
                                  CO2_vib_energy_in_eV, CO2_vib_energy_in_K,
                                  CO_vib_energy_in_eV, CO_vib_energy_in_K)
-from plasmistry.io import (LT_constructor, standard_Arr_constructor,
+from plasmistry.io import (LT_ln_constructor, standard_Arr_constructor,
                            chemkin_Arr_2_rcnts_constructor,
                            chemkin_Arr_3_rcnts_constructor, eval_constructor,
                            reversed_reaction_constructor, alpha_constructor,
@@ -49,7 +49,7 @@ yaml.add_constructor("!ChemKinArr_3_rcnt", chemkin_Arr_3_rcnts_constructor,
                      Loader=yaml.FullLoader)
 yaml.add_constructor("!rev", reversed_reaction_constructor,
                      Loader=yaml.FullLoader)
-yaml.add_constructor("!LT", LT_constructor, Loader=yaml.FullLoader)
+yaml.add_constructor("!LT", LT_ln_constructor, Loader=yaml.FullLoader)
 yaml.add_constructor("!alpha", alpha_constructor, Loader=yaml.FullLoader)
 yaml.add_constructor("!F_gamma", F_gamma_constructor, Loader=yaml.FullLoader)
 
