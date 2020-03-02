@@ -17,7 +17,7 @@ from .io_reactions import *
 from .pre_treat import treat_lines
 
 
-# ----------------------------------------------------------------------------  #
+# ---------------------------------------------------------------------------  #
 def combine_crostn_reaction_dataframe(*, crostn_dataframe, reactn_dataframe):
     r"""
     Combine crostn_dataframe and reactn_dataframe.
@@ -61,8 +61,8 @@ def combine_crostn_reaction_dataframe(*, crostn_dataframe, reactn_dataframe):
                                              'k_str'}
 
     _dataframe = pd.DataFrame(
-        columns=['reaction', 'reactant', 'product', 'type',
-                 'threshold_eV', 'cs_key', 'dH_e', 'cross_section'])
+            columns=['reaction', 'reactant', 'product', 'type',
+                     'threshold_eV', 'cs_key', 'dH_e', 'cross_section'])
     for i_rctn in reactn_dataframe.index:
         _temp = dict()
         _temp['cs_key'] = reactn_dataframe.at[i_rctn,
@@ -70,7 +70,7 @@ def combine_crostn_reaction_dataframe(*, crostn_dataframe, reactn_dataframe):
             1].replace(' ', '')
         assert _temp['cs_key'] in crostn_dataframe['cs_key'].values, \
             "The '{}' is not in cross section dataframe.".format(
-                _temp['cs_key'])
+                    _temp['cs_key'])
         crostn_series = crostn_dataframe[
             crostn_dataframe['cs_key'] == _temp['cs_key']]
         crostn_series = crostn_series.reset_index(drop=True).loc[0]
@@ -84,7 +84,7 @@ def combine_crostn_reaction_dataframe(*, crostn_dataframe, reactn_dataframe):
             _temp['threshold_eV'] = 0.0
         else:
             _temp['threshold_eV'] = float(
-                crostn_series['thres_info'].split(maxsplit=1)[0])
+                    crostn_series['thres_info'].split(maxsplit=1)[0])
         _temp['cross_section'] = crostn_series['cross_section']
         _dataframe = _dataframe.append(pd.Series(_temp), ignore_index=True)
     return _dataframe
@@ -150,8 +150,8 @@ def LT_ln_constructor(loader, node):
         A, B, C, factor = _list
     else:
         raise Exception(f"LT constructor is not a {len(_list)} list")
-    _exp_A = math.exp(A)/const.N_A
-    return f"{factor:.1f}*({_exp_A:.2e})*exp(({B})*Tgas**(-1/3)+({C})*Tgas**(" \
+    _exp_A = math.exp(A) / const.N_A
+    return f"{factor:.2f}*({_exp_A:.2e})*exp(({B})*Tgas**(-1/3)+({C})*Tgas**(" \
            f"-2/3))"
 
 

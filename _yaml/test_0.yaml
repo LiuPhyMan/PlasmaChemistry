@@ -116,15 +116,24 @@
 ]
 
 - &CO2_mass 44.010
-- &CO_mass 28.010
-- &CO2_CO2_reduced_mass 22.005
-- &CO2_CO_reduced_mass 17.1164
-- &CO2_O2_reduced_mass 18.5278
-- &CO2_H2_reduced_mass 1.9277
-- &CO2_H2O_reduced_mass 12.7826
-- &H2_mass 2.016
-- &O2_mass 31.999
+- &CO_mass  28.010
+- &H2_mass  2.016
 - &H2O_mass 18.015
+- &O2_mass  31.999
+
+- &CO2_CO2_reduced_mass 22.005      # m1*m2/(m1+m2)
+- &CO2_CO_reduced_mass  17.1164
+- &CO2_O2_reduced_mass  18.5278
+- &CO2_H2_reduced_mass  1.9277
+- &CO2_H2O_reduced_mass 12.7826
+- &CO2_H_reduced_mass   0.9854
+
+- &H2_H2_reduced_mass   1.008
+- &H2_H2O_reduced_mass  1.813
+- &H2_H_reduced_mass    0.672
+- &H2_CO_reduced_mass   1.881
+- &H2_O2_reduced_mass   1.897
+
 
 - &Global_abbr
     formula:
@@ -741,12 +750,12 @@
         - CO2(v1) + H2O(all) => CO2(vb) + H2O(all)  , _k1bH2O_
         - CO2(v1) + H        => CO2(vb) + H         , _k1bH_
         # b-1
-        - CO2(vb) + CO2(all) => CO2(v1) + CO2(all)  , 1.0/3.0 * exp(-1458.3/Tgas) * _k1bCO2_
-        - CO2(vb) + O2(all)  => CO2(v1) + O2(all)   , 1.0/3.0 * exp(-1458.3/Tgas) * _k1bO2_
-        - CO2(vb) + CO(all)  => CO2(v1) + CO(all)   , 1.0/3.0 * exp(-1458.3/Tgas) * _k1bCO_
-        - CO2(vb) + H2(all)  => CO2(v1) + H2(all)   , 1.0/3.0 * exp(-1458.3/Tgas) * _k1bH2_
-        - CO2(vb) + H2O(all) => CO2(v1) + H2O(all)  , 1.0/3.0 * exp(-1458.3/Tgas) * _k1bH2O_
-        - CO2(vb) + H        => CO2(v1) + H         , 1.0/3.0 * exp(-1458.3/Tgas) * _k1bH_
+        - CO2(vb) + CO2(all) => CO2(v1) + CO2(all)  , 1.0 * exp(-1458.3/Tgas) * _k1bCO2_
+        - CO2(vb) + O2(all)  => CO2(v1) + O2(all)   , 1.0 * exp(-1458.3/Tgas) * _k1bO2_
+        - CO2(vb) + CO(all)  => CO2(v1) + CO(all)   , 1.0 * exp(-1458.3/Tgas) * _k1bCO_
+        - CO2(vb) + H2(all)  => CO2(v1) + H2(all)   , 1.0 * exp(-1458.3/Tgas) * _k1bH2_
+        - CO2(vb) + H2O(all) => CO2(v1) + H2O(all)  , 1.0 * exp(-1458.3/Tgas) * _k1bH2O_
+        - CO2(vb) + H        => CO2(v1) + H         , 1.0 * exp(-1458.3/Tgas) * _k1bH_
         # 1-c
         - CO2(v1) + CO2(all) => CO2(vc) + CO2(all)  , _k1cCO2_
         - CO2(v1) + O2(all)  => CO2(vc) + O2(all)   , _k1cO2_
@@ -755,16 +764,14 @@
         - CO2(v1) + H2O(all) => CO2(vc) + H2O(all)  , _k1cH2O_
         - CO2(v1) + H        => CO2(vc) + H         , _k1cH_
         # c-1
-        - CO2(vc) + CO2(all) => CO2(v1) + CO2(all)  , 1.0/3.0 * exp(-496.5/Tgas) * _k1cCO2_
-        - CO2(vc) + O2(all)  => CO2(v1) + O2(all)   , 1.0/3.0 * exp(-496.5/Tgas) * _k1cO2_
-        - CO2(vc) + CO(all)  => CO2(v1) + CO(all)   , 1.0/3.0 * exp(-496.5/Tgas) * _k1cCO_
-        - CO2(vc) + H2(all)  => CO2(v1) + H2(all)   , 1.0/3.0 * exp(-496.5/Tgas) * _k1cH2_
-        - CO2(vc) + H2O(all) => CO2(v1) + H2O(all)  , 1.0/3.0 * exp(-496.5/Tgas) * _k1cH2O_
-        - CO2(vc) + H        => CO2(v1) + H         , 1.0/3.0 * exp(-496.5/Tgas) * _k1cH_
+        - CO2(vc) + CO2(all) => CO2(v1) + CO2(all)  , 1.0 * exp(-496.5/Tgas) * _k1cCO2_
+        - CO2(vc) + O2(all)  => CO2(v1) + O2(all)   , 1.0 * exp(-496.5/Tgas) * _k1cO2_
+        - CO2(vc) + CO(all)  => CO2(v1) + CO(all)   , 1.0 * exp(-496.5/Tgas) * _k1cCO_
+        - CO2(vc) + H2(all)  => CO2(v1) + H2(all)   , 1.0 * exp(-496.5/Tgas) * _k1cH2_
+        - CO2(vc) + H2O(all) => CO2(v1) + H2O(all)  , 1.0 * exp(-496.5/Tgas) * _k1cH2O_
+        - CO2(vc) + H        => CO2(v1) + H         , 1.0 * exp(-496.5/Tgas) * _k1cH_
     where:
         abbr:
-            #   k = exp(A+)
-            # vari:
             # a-0       010 -> 000
             _ka0CO2_:   !LT [38.3,  -177,  451] 
             _ka0O2_:    !LT [38.3,  -177,  451, 0.7]
@@ -794,41 +801,44 @@
             _kdcH2O_:   !LT [32.8, -44.4,  242]
             _kdcH_:     !LT [34.8, -83.0,  345, 0.9]
             # 1-a       001 -> 010
-            _k1aCO2_:   !LT [53.9,  -407,  824]
-            _k1aO2_:    !LT [53.9,  -407,  824, 0.4]
-            _k1aCO_:    !LT [53.9,  -407,  824, 0.3]
-            _k1aH2_:    !LT [47.9,  -324, 1053]
-            _k1aH2O_:   !LT [30.7, -54.7,-36.0]
-            _k1aH_:     !LT [47.9,  -324, 1053, 1.9]
+            _k1aCO2_:   &k_1a_CO2 !LT [53.9,  -407,  824]
+            _k1aO2_:    &k_1a_O2  !LT [53.9,  -407,  824, 0.4]
+            _k1aCO_:    &k_1a_CO  !LT [53.9,  -407,  824, 0.3]
+            _k1aH2_:    &k_1a_H2  !LT [47.9,  -324, 1053]
+            _k1aH2O_:   &k_1a_H2O !LT [30.7, -54.7,-36.0]
+            _k1aH_:     &k_1a_H   !LT [47.9,  -324, 1053, 1.9]
             # 1-b       001 -> 020
-            _k1bCO2_:   !LT [54.6,  -404, 1096]
-            _k1bO2_:    !LT [54.6,  -404, 1096, 0.4]
-            _k1bCO_:    !LT [54.6,  -404, 1096, 0.3]
-            _k1bH2_:    !LT [46.5,  -279,  892]
-            _k1bH2O_:   !LT [27.9,  18.5, -211]
-            _k1bH_:     !LT [46.5,  -279,  892, 1.5]
+            _k1bCO2_:   &k_1b_CO2 !LT [54.6,  -404, 1096]
+            _k1bO2_:    &k_1b_O2  !LT [54.6,  -404, 1096, 0.4]
+            _k1bCO_:    &k_1b_CO  !LT [54.6,  -404, 1096, 0.3]
+            _k1bH2_:    &k_1b_H2  !LT [46.5,  -279,  892]
+            _k1bH2O_:   &k_1b_H2O !LT [27.9,  18.5, -211]
+            _k1bH_:     &k_1b_H   !LT [46.5,  -279,  892, 1.5]
             # 1-c       001 -> 030
-            _k1cCO2_:   !LT [43.6,  -252,  685]
-            _k1cO2_:    !LT [43.6,  -252,  685, 0.4]
-            _k1cCO_:    !LT [43.6,  -252,  685, 0.3]
-            _k1cH2_:    !LT [44.2,  -293,  914]
-            _k1cH2O_:   !LT [19.3,   108, -397]
-            _k1cH_:     !LT [44.2,  -293,  914, 0.8]
+            _k1cCO2_:   &k_1c_CO2 !LT [43.6,  -252,  685]
+            _k1cO2_:    &k_1c_O2  !LT [43.6,  -252,  685, 0.4]
+            _k1cCO_:    &k_1c_CO  !LT [43.6,  -252,  685, 0.3]
+            _k1cH2_:    &k_1c_H2  !LT [44.2,  -293,  914]
+            _k1cH2O_:   &k_1c_H2O !LT [19.3,   108, -397]
+            _k1cH_:     &k_1c_H   !LT [44.2,  -293,  914, 0.8]
 
+# ---------------------------------------------------------------------------- #
+#   CO2(v) + CO2 => CO2(v-1) + CO2
+# ---------------------------------------------------------------------------- #
 - &CO2_VT_with_CO2_forward
     type: VT_CO2
     formula: CO2(v_A_) + _M_ => CO2(v_B_) + _M_
     kstr: (k_010 + k_020 + k_030) * _v~upper_ 
     where:
         vari:
-            -   k10_0: !LT [53.9, -407, 824]    # 001->010
-            -   k10_1: !LT [54.6, -404, 1096]   # 001->020
-            -   k10_2: !LT [43.6, -252, 685]    # 001->030
+            -   k10_0: *k_1a_CO2
+            -   k10_1: *k_1b_CO2
+            -   k10_2: *k_1c_CO2
             -   _mu: *CO2_CO2_reduced_mass
             -   _a: 4.441624 # 17.5/(3.94+3.94)*2
             -   _Lij~010~1_: 0.32 *   0.2085 * _eV2K_ / _a * sqrt(_mu/Tgas) # 001->010
             -   _Lij~020~1_: 0.32 *   0.1257 * _eV2K_ / _a * sqrt(_mu/Tgas) # 001->020
-            -   _Lij~030~1_: 0.32 *   0.0428 * _eV2K_ / _a * sqrt(_mu/Tgas) # 001->010
+            -   _Lij~030~1_: 0.32 *   0.0428 * _eV2K_ / _a * sqrt(_mu/Tgas) # 001->030
             -   _Lij~010_: 0.32 * _dE_010_ * _eV2K_ / _a * sqrt(_mu/Tgas)
             -   _Lij~020_: 0.32 * _dE_020_ * _eV2K_ / _a * sqrt(_mu/Tgas)
             -   _Lij~030_: 0.32 * _dE_030_ * _eV2K_ / _a * sqrt(_mu/Tgas)
@@ -865,14 +875,17 @@
     formula: CO2(v_B_) + _M_ => CO2(v_A_) + _M_
     kstr: (k_010 + k_020 + k_030) * exp(-_dE_000_K_/Tgas) * _v~upper_
 
+# ---------------------------------------------------------------------------- #
+#   CO2(v) + CO => CO2(v-1) + CO
+# ---------------------------------------------------------------------------- #
 - &CO2_VT_with_CO_forward
     <<: *CO2_VT_with_CO2_forward
-    kstr: (k_010 + k_020 + k_030) * _v~upper_  # factor = 0.3
+    kstr: (k_010 + k_020 + k_030) * _v~upper_ 
     where:
         vari:
-            -   k10_0: !LT [53.9, -407, 824, 0.3]  # 001->010
-            -   k10_1: !LT [54.6, -404, 1096, 0.3] # 001->020
-            -   k10_2: !LT [43.6, -252, 685, 0.3]  # 001->030
+            -   k10_0: *k_1a_CO
+            -   k10_1: *k_1b_CO
+            -   k10_2: *k_1c_CO
             -   _mu: *CO2_CO_reduced_mass
             -   _a: 4.587156                        # 17.5/(3.94+3.69)*2
             -   _Lij~010~1_: 0.32 *   0.2085 * _eV2K_ / _a * sqrt(_mu/Tgas) # 001->010
@@ -902,14 +915,17 @@
     formula: CO2(v_B_) + _M_ => CO2(v_A_) + _M_
     kstr: (k_010 + k_020 + k_030) * exp(-_dE_000_K_/Tgas) * _v~upper_
 
+# ---------------------------------------------------------------------------- #
+#   CO2(v) + O2 => CO2(v-1) + O2
+# ---------------------------------------------------------------------------- #
 - &CO2_VT_with_O2_forward
     <<: *CO2_VT_with_CO2_forward
     kstr: (k_010 + k_020 + k_030) * _v~upper_
     where:
         vari:
-            -   k10_0: !LT [53.9, -407, 824, 0.4] # 001->010
-            -   k10_1: !LT [54.6, -404, 1096, 0.4] # 001->020
-            -   k10_2: !LT [43.6, -252, 685, 0.4] # 001->030
+            -   k10_0: *k_1a_O2
+            -   k10_1: *k_1b_O2
+            -   k10_2: *k_1c_O2
             -   _mu: *CO2_O2_reduced_mass
             -   _a: 4.725260 # 17.5/(3.94+3.467)*2
             -   _Lij~010~1_: 0.32 *   0.2085 * _eV2K_ / _a * sqrt(_mu/Tgas) # 001->010
@@ -939,14 +955,17 @@
     formula: CO2(v_B_) + _M_ => CO2(v_A_) + _M_
     kstr: (k_010 + k_020 + k_030) * exp(-_dE_000_K_/Tgas) * _v~upper_
 
+# ---------------------------------------------------------------------------- #
+#   CO2(v) + H2 => CO2(v-1) + H2
+# ---------------------------------------------------------------------------- #
 - &CO2_VT_with_H2_forward
     <<: *CO2_VT_with_CO2_forward
     kstr: (k_010 + k_020 + k_030) * _v~upper_
     where:
         vari:
-            -   k10_0: !LT [47.9, -324, 1053] # 001->010
-            -   k10_1: !LT [46.5, -279, 892]  # 001->020
-            -   k10_2: !LT [44.2, -293, 914]  # 001->030
+            -   k10_0: *k_1a_H2
+            -   k10_1: *k_1b_H2
+            -   k10_2: *k_1c_H2
             -   _mu: *CO2_H2_reduced_mass
             -   _a: 5.172159                     # 17.5/(3.94+2.827)*2
             -   _Lij~010~1_: Lij(0.2085, _a, _mu] # 001->010
@@ -975,16 +994,19 @@
 - &CO2_VT_with_H2_backward
     <<: *CO2_VT_with_H2_forward
     formula: CO2(v_B_) + _M_ => CO2(v_A_) + _M_
-    kstr: (k_010 + k_020 + k_030) * exp(-_dE_000_K_/Tgas) * _v~upper_ * 1e-6
+    kstr: (k_010 + k_020 + k_030) * exp(-_dE_000_K_/Tgas) * _v~upper_
 
+# ---------------------------------------------------------------------------- #
+#   CO2(v) + H2O => CO2(v-1) + H2O
+# ---------------------------------------------------------------------------- #
 - &CO2_VT_with_H2O_forward
     <<: *CO2_VT_with_CO2_forward
     kstr: (k_010 + k_020 + k_030) * _v~upper_ 
     where:
         vari:
-            -   k10_0: !LT [30.7, -54.7, -36.0] # 001->010
-            -   k10_1: !LT [27.9, +18.5, -211] # 001->020
-            -   k10_2: !LT [19.3, +108, -397] # 001->030
+            -   k10_0: *k_1a_H2O
+            -   k10_1: *k_1b_H2O
+            -   k10_2: *k_1c_H2O
             -   _mu: *CO2_H2O_reduced_mass
             -   _a: 5.318341 # 17.5/(3.94+2.641)*2
             -   _Lij~010~1_: 0.32 *   0.2085 * _eV2K_ / _a * sqrt(_mu/Tgas) # 001->010
@@ -1012,11 +1034,51 @@
 - &CO2_VT_with_H2O_backward
     <<: *CO2_VT_with_H2O_forward
     formula: CO2(v_B_) + _M_ => CO2(v_A_) + _M_
-    kstr: (k_010 + k_020 + k_030) * exp(-_dE_000_K_/Tgas) * _v~upper_ * 1e-6
+    kstr: (k_010 + k_020 + k_030) * exp(-_dE_000_K_/Tgas) * _v~upper_
 
-# ====
+# ---------------------------------------------------------------------------- #
+#   CO2(v) + H => CO2(v-1) + H
+# ---------------------------------------------------------------------------- #
+- &CO2_VT_with_H_forward
+    <<: *CO2_VT_with_CO2_forward
+    kstr: (k_010 + k_020 + k_030) * _v~upper_ 
+    where:
+        vari:
+            -   k10_0: *k_1a_H
+            -   k10_1: *k_1b_H
+            -   k10_2: *k_1c_H
+            -   _mu: *CO2_H_reduced_mass
+            -   _a: 8.88325 # 17.5/(3.94+0.00)*2
+            -   _Lij~010~1_: 0.32 *   0.2085 * _eV2K_ / _a * sqrt(_mu/Tgas) # 001->010
+            -   _Lij~020~1_: 0.32 *   0.1257 * _eV2K_ / _a * sqrt(_mu/Tgas) # 001->020
+            -   _Lij~030~1_: 0.32 *   0.0428 * _eV2K_ / _a * sqrt(_mu/Tgas) # 001->010
+            -   _Lij~010_: 0.32 * _dE_010_ * _eV2K_ / _a * sqrt(_mu/Tgas)
+            -   _Lij~020_: 0.32 * _dE_020_ * _eV2K_ / _a * sqrt(_mu/Tgas)
+            -   _Lij~030_: 0.32 * _dE_030_ * _eV2K_ / _a * sqrt(_mu/Tgas)
+            -   _F~010~1_: !F_gamma _Lij~010~1_
+            -   _F~020~1_: !F_gamma _Lij~020~1_
+            -   _F~030~1_: !F_gamma _Lij~030~1_
+            -   _F~010_: !F_gamma _Lij~010_
+            -   _F~020_: !F_gamma _Lij~020_
+            -   _F~030_: !F_gamma _Lij~030_
+            -   k_010: k10_0 * _F~010_ / _F~010~1_
+            -   k_020: k10_1 * _F~020_ / _F~020~1_
+            -   k_030: k10_2 * _F~030_ / _F~030~1_
+    iterator:
+        <<: *iterator_CO2_VT_with_CO2_forward
+        loop:
+            product:
+                _M_: [H]
+                _i_: range(1, 22)
+
+- &CO2_VT_with_H_backward
+    <<: *CO2_VT_with_H_forward
+    formula: CO2(v_B_) + _M_ => CO2(v_A_) + _M_
+    kstr: (k_010 + k_020 + k_030) * exp(-_dE_000_K_/Tgas) * _v~upper_
+
+# ============================================================================ #
 # ==== CO2 VV inner vibrational modes
-# ====
+# ============================================================================ #
 - &CO2_VV_inner_forward_0
     # CO2(v1) + CO2 => CO2(vb) + CO2(va)
     #   v -> v-1      0 -> a
@@ -1027,7 +1089,7 @@
         _k10ab_ * _F_ / _F~1_ * _Zm_ * _Zn_
     where:
         vari:
-            -   _k10ab_: !LT [1.06e-11, -242, 633]
+            -   _k10ab_: !LT [43.3, -242, 633]
             -   _mu_: *CO2_CO2_reduced_mass
             -   _a_: 4.441624                   # 17.5/(3.94+3.94)*2
             -   _Lij_: 0.32 * _dE_ * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
@@ -1067,7 +1129,7 @@
         _k10ab_ * _F_ / _F~1_ * _Zm_ * _Zn_
     where:
         vari:
-            -   _k10ab_: !LT [1.06e-11, -242, 633]
+            -   _k10ab_: !LT [43.3, -242, 633]
             -   _mu_: *CO2_CO2_reduced_mass
             -   _a_: 4.441624                   # 17.5/(3.94+3.94)*2
             -   _Lij_: 0.32 *     _dE_ * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
@@ -1097,10 +1159,13 @@
     kstr:
         _k10ab_ * _F_ / _F~1_ * _Zm_ * _Zn_ * exp(- _dE_*_eV2K_/Tgas)
 
+# ============================================================================ #
+# ==== CO2 VV with CO2
+# ============================================================================ #
 - &CO2_VV_with_CO2_forward
-    type: VV_CO2_CO2
+    type: VV_CO2_CO2_f
     formula: CO2(v_a_) + CO2(v_b_) => CO2(v_A_) + CO2(v_B_)
-    kstr: 1e-6 * k10 * _F_ / _F~1_ * _factor_1_ * _factor_2_
+    kstr: k10 * _F_ / _F~1_ * _factor_1_ * _factor_2_
     where:
         vari:
             -   k10: 1.32e-10*sqrt(Tgas/300)*250/Tgas
@@ -1132,17 +1197,21 @@
 
 - &CO2_VV_with_CO2_backward
     <<: *CO2_VV_with_CO2_forward
+    type: VV_CO2_CO2_b
     formula: CO2(v_A_) + CO2(v_B_) => CO2(v_a_) + CO2(v_b_)
-    kstr: 1e-6 * k10 *exp(- _dE_ * _eV2K_/Tgas)* _F_ / _F~1_ * _factor_1_ * _factor_2_
+    kstr: k10 * _F_ / _F~1_ * _factor_1_ * _factor_2_ * exp(- _dE_ * _eV2K_/Tgas)
 
+# ============================================================================ #
+# ==== CO2 VV with CO
+# ============================================================================ #
 - &CO2_VV_with_CO_forward
-    type: VV_CO2_CO
+    type: VV_CO2_CO_f
     formula: CO2(v_A_) + CO(v_a_) => CO2(v_B_) + CO(v_b_)
     kstr:
         _k10_ * _F_ / _F~1_ * _ZCO_ * _ZCO2_
     where:
         vari:
-            -   _k10_: !LT [4.8e-18, 0, -153]
+            -   _k10_: 4.8e-12*exp(-153*Tgas**(-2/3))
             -   _mu_: *CO2_CO_reduced_mass
             -   _a_: 4.587156                        # 17.5/(3.94+3.69)*2
             -   _Lij~1_: 0.32 * 0.025530 * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
@@ -1174,25 +1243,27 @@
 
 - &CO2_VV_with_CO_backward
     <<: *CO2_VV_with_CO_forward
+    type: VV_CO2_CO_b
     formula: CO2(v_B_) + CO(v_b_) => CO2(v_A_) + CO(v_a_)
     kstr:
         _k10_ * _F_ / _F~1_ * _ZCO_ * _ZCO2_ * exp(-_dE_ * _eV2K_/Tgas)
 
-# ====
-# ==== H2 VV 
-# ====
+# ============================================================================ #
+# ==== H2 VV with H2 
+# ============================================================================ #
 - &H2_VV_with_H2_forward
-    type: VV_H2_H2
+    type: VV_H2_H2_f
     formula: H2(v_A_) + H2(v_B_) => H2(v_a_) + H2(v_b_)
-    kstr:   _a_ * _B_ * _k0110_ * _part1_ * exp(_part1_-_part2_)
+    kstr:   _a_ * _B_ * _k0110_ * _part1_ * exp(_part2_ - _part3_)
     where:
         vari:
             -   _d_: 0.21*(Tgas/300)**0.5
             -   _D1_: 0.236*(Tgas/300)**0.25
             -   _D2_: 0.0572*(300/Tgas)**(1/3)
             -   _part1_: 1.5-0.5*exp(-_d_*(_A_-_b_))
-            -   _part2_: exp(_D1_*(_A_-_b_) - _D2_*(_A_-_b_)**2)
-            -   _k0110_: 4.23e-21*(300/Tgas)**(1/3)
+            -   _part2_: _D1_*(_A_-_b_)
+            -   _part3_: _D2_*(_A_-_b_)**2
+            -   _k0110_: 4.23e-15*(300/Tgas)**(1/3)
     iterator:
         repl:
             formula:
@@ -1205,6 +1276,8 @@
                 _B_: _w_ + 1
                 _a_: _v_ + 1
                 _b_: _w_
+                _dE_: f'{H2_vib_energy_in_eV(v=_v_) + H2_vib_energy_in_eV(v=_w_+1) -
+                      H2_vib_energy_in_eV(v=_v_+1) - H2_vib_energy_in_eV(v=_w_):.6f}'
         loop:
             product:
                 _w_: range(14)
@@ -1212,10 +1285,16 @@
         condition:
             _v_ > _w_
 
+- &H2_VV_with_H2_backward
+    <<: *H2_VV_with_H2_forward
+    type: VV_H2_H2_b
+    formula: H2(v_a_) + H2(v_b_) => H2(v_A_) + H2(v_B_)
+    kstr: 
+        _a_ * _B_ * _k0110_ * _part1_ * exp(_part2_ - _part3_) * exp(-_dE_ * _eV2K_/Tgas)
 
-# - &H2_VV_with_H2_backward
-
-
+# ============================================================================ #
+# ==== H2 VV with H2O
+# ============================================================================ #
 - &H2_VV_with_H2O_forward
     formula: H2(v_A_) + H2O => H2(v_B_) + H2O(v1)
     kstr:
@@ -1237,126 +1316,228 @@
 # - &H2_VV_with_H2O_backward
 #TODO
 
+# ============================================================================ #
+# ==== H2 VT
+# ============================================================================ #
 # ---------------------------------------------------------------------------- #
-# ---- H2 VT
+#   H2(v) + CO2 => H2(v-1) + CO2
 # ---------------------------------------------------------------------------- #
-- &_H2_VT_with_M_forward
-    type: VT_H2
-    formula: H2(v_A_) + _M_ => H2(v_B_) + _M_
-    kstr: _factor_ * k10 * _n_
+- &H2_VT_with_CO2_forward
+    type: VT_H2_CO2_f
+    formula: H2(v_A_) + CO2(all) => H2(v_B_) + CO2(all)
+    kstr: _k1_ * _Zn_ * _Fn_ / _F1_
     where:
         vari:
-            -   _factor_: 1
-            -   k10: !LT [5.83e-13, -227, 529]
+            -   _k1_: !LT [40.4, -227, 529, 0.07]
+            -   _xe_: 27.57e-3
+            -   _a_:  5.169867    # 17.5/(2.83+3.94)*2
+            -   _mu_: *CO2_H2_reduced_mass
+            -   _Zn_: _n_ * (1 - _xe_) / (1 - _n_*_xe_)
+            -   _Lijn_: 0.32 * _dE_ * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
+            -   _Lij1_: 0.32 * 0.515594 * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
+            -   _Fn_: !F_gamma _Lijn_
+            -   _F1_: !F_gamma _Lij1_
     iterator:
         repl:
             formula:
                 _A_: _i_
+                _n_: _i_
                 _B_: _i_ - 1
             kstr:
                 _n_: _i_
-                _dE_: H2_vib_energy_in_K(v=_i_) - H2_vib_energy_in_K(v=_i_-1)
+                _dE_: f'{H2_vib_energy_in_eV(v=_i_) - 
+                         H2_vib_energy_in_eV(v=_i_-1):.6f}'
         loop:
             product:
                 _i_: range(1, 15)
 
-- &_H2_VT_with_M_backward
-    <<: *_H2_VT_with_M_forward
-    formula: H2(v_B_) + _M_ => H2(v_A_) + _M_
-    kstr: _factor_ * k10 * _n_ * exp(-_dE_/Tgas)
-
-- &H2_VT_with_CO2_forward
-    <<: *_H2_VT_with_M_forward
-    where:
-        abbr:
-            _M_: CO2(all)
-        vari:
-            -   _factor_: 0.07
-            -   k10: !LT [5.83e-13, -227, 529]
-
 - &H2_VT_with_CO2_backward
-    <<: *_H2_VT_with_M_backward
-    where:
-        abbr:
-            _M_: CO2(all)
-        vari:
-            -   _factor_: 0.07
-            -   k10: !LT [5.83e-13, -227, 529]
+    <<: *H2_VT_with_CO2_forward
+    type: VT_H2_CO2_b
+    formula: H2(v_B_) + CO2(all) => H2(v_A_) + CO2(all)
+    kstr: _k1_ * _Zn_ * _Fn_ / _F1_ * exp(-_dE_ * _eV2K_ / Tgas)
 
+# ---------------------------------------------------------------------------- #
+#   H2(v) + H2 => H2(v-1) + H2
+# ---------------------------------------------------------------------------- #
 - &H2_VT_with_H2_forward
-    <<: *_H2_VT_with_M_forward
+    <<: *H2_VT_with_CO2_forward
+    type: VT_H2_H2_f
+    formula: H2(v_A_) + H2(all) => H2(v_B_) + H2(all)
     where:
-        abbr:
-            _M_: H2(all)
         vari:
-            -   _factor_: 1.0
-            -   k10: !LT [5.83e-13, -227, 529]
+            -   _k1_: !LT [40.4, -227, 529]
+            -   _xe_: 27.57e-3
+            -   _a_:  6.183746    # 17.5/(2.83+2.83)*2
+            -   _mu_: *H2_H2_reduced_mass
+            -   _Zn_: _n_ * (1 - _xe_) / (1 - _n_*_xe_)
+            -   _Lijn_: 0.32 * _dE_ * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
+            -   _Lij1_: 0.32 * 0.515594 * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
+            -   _Fn_: !F_gamma _Lijn_
+            -   _F1_: !F_gamma _Lij1_
 
 - &H2_VT_with_H2_backward
-    <<: *_H2_VT_with_M_backward
-    where:
-        abbr:
-            _M_: H2(all)
-        vari:
-            -   _factor_: 1.0
-            -   k10: !LT [5.83e-13, -227, 529]
+    <<: *H2_VT_with_H2_forward
+    type: VT_H2_H2_b
+    formula: H2(v_B_) + H2(all) => H2(v_A_) + H2(all)
+    kstr: _k1_ * _Zn_ * _Fn_ / _F1_ * exp(-_dE_ * _eV2K_ / Tgas)
 
+# ---------------------------------------------------------------------------- #
+#   H2(v) + H2O => H2(v-1) + H2O
+# ---------------------------------------------------------------------------- #
+# - &H2_VT_with_H2O_forward
+#     <<: *H2_VT_with_CO2_forward
+#     type: VT_H2_H2O_f
+#     formula: H2(v_A_) + H2O(all) => H2(v_B_) + H2O(all)
+#     where:
+#         vari:
+#             -   _k1_: !LT [13.0, -11.6, 0.0, 0.23]
+#             -   _xe_: 27.57e-3
+#             -   _a_:  6.398537    # 17.5/(2.83+2.64)*2
+#             -   _mu_: *H2_H2O_reduced_mass
+#             -   _Zn_: _n_ * (1 - _xe_) / (1 - _n_*_xe_)
+#             -   _Lijn_: 0.32 * _dE_ * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
+#             -   _Lij1_: 0.32 * 0.515594 * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
+#             -   _Fn_: !F_gamma _Lijn_
+#             -   _F1_: !F_gamma _Lij1_
+
+
+# - &H2_VT_with_H2O_backward
+#     <<: *H2_VT_with_H2O_forward
+#     type: VT_H2_H2O_b
+#     formula: H2(v_B_) + H2O(all) => H2(v_A_) + H2O(all)
+#     kstr: _k1_ * _Zn_ * _Fn_ / _F1_ * exp(-_dE_ * _eV2K_ / Tgas)
+
+# ---------------------------------------------------------------------------- #
+#   H2(v) + H => H2(v-1) + H
+# ---------------------------------------------------------------------------- #
+- &H2_VT_with_H_forward
+    type: VT_H2_H_f
+    formula_kstr:
+        - H2(v1)  + H => H2      + H        , 3.71e-11 * exp(-2140 / Tgas)
+        - H2(v2)  + H => H2(v1)  + H        , 6.07e-11 * exp(-1657 / Tgas)
+        - H2(v3)  + H => H2(v2)  + H        , 5.39e-11 * exp(-1067 / Tgas)
+        - H2(v4)  + H => H2(v3)  + H        , 4.78e-11 * exp( -734 / Tgas)
+        - H2(v5)  + H => H2(v4)  + H        , 2.82e-11 * exp( -648 / Tgas)
+        - H2(v6)  + H => H2(v5)  + H        , 3.17e-11 * exp( -333 / Tgas)
+        - H2(v7)  + H => H2(v6)  + H        , 4.02e-11 * exp( -423 / Tgas)
+        - H2(v8)  + H => H2(v7)  + H        , 2.35e-11 * exp( -177 / Tgas)
+        - H2(v9)  + H => H2(v8)  + H        , 2.29e-11 * exp( -173 / Tgas)
+        - H2(v10) + H => H2(v9)  + H        , 2.29e-11 * exp( -173 / Tgas)
+        - H2(v11) + H => H2(v10) + H        , 2.29e-11 * exp( -173 / Tgas)
+        - H2(v12) + H => H2(v11) + H        , 2.29e-11 * exp( -173 / Tgas)
+        - H2(v13) + H => H2(v12) + H        , 2.29e-11 * exp( -173 / Tgas)
+        - H2(v14) + H => H2(v13) + H        , 2.29e-11 * exp( -173 / Tgas)
+
+- &H2_VT_with_H_backward
+    type: VT_H2_H_b
+    formula_kstr:
+        - H2      + H => H2(v1)  + H        , 3.71e-11 * exp(-2140 / Tgas) * exp(-5983.2 / Tgas)
+        - H2(v1)  + H => H2(v2)  + H        , 6.07e-11 * exp(-1657 / Tgas) * exp(-5634.1 / Tgas)
+        - H2(v2)  + H => H2(v3)  + H        , 5.39e-11 * exp(-1067 / Tgas) * exp(-5285.0 / Tgas)
+        - H2(v3)  + H => H2(v4)  + H        , 4.78e-11 * exp( -734 / Tgas) * exp(-4935.8 / Tgas)
+        - H2(v4)  + H => H2(v5)  + H        , 2.82e-11 * exp( -648 / Tgas) * exp(-4586.7 / Tgas)
+        - H2(v5)  + H => H2(v6)  + H        , 3.17e-11 * exp( -333 / Tgas) * exp(-4237.6 / Tgas)
+        - H2(v6)  + H => H2(v7)  + H        , 4.02e-11 * exp( -423 / Tgas) * exp(-3888.4 / Tgas)
+        - H2(v7)  + H => H2(v8)  + H        , 2.35e-11 * exp( -177 / Tgas) * exp(-3539.3 / Tgas)
+        - H2(v8)  + H => H2(v9)  + H        , 2.29e-11 * exp( -173 / Tgas) * exp(-3190.2 / Tgas)
+        - H2(v9)  + H => H2(v10) + H        , 2.29e-11 * exp( -173 / Tgas) * exp(-2841.0 / Tgas)
+        - H2(v10) + H => H2(v11) + H        , 2.29e-11 * exp( -173 / Tgas) * exp(-2491.9 / Tgas)
+        - H2(v11) + H => H2(v12) + H        , 2.29e-11 * exp( -173 / Tgas) * exp(-2142.8 / Tgas)
+        - H2(v12) + H => H2(v13) + H        , 2.29e-11 * exp( -173 / Tgas) * exp(-1793.6 / Tgas)
+        - H2(v13) + H => H2(v14) + H        , 2.29e-11 * exp( -173 / Tgas) * exp(-1444.5 / Tgas)
+
+# ---------------------------------------------------------------------------- #
+#   H2(v) + H2O => H2(v-1) + H2O
+# ---------------------------------------------------------------------------- #
 - &H2_VT_with_H2O_forward
-    <<: *_H2_VT_with_M_forward
-    where:
-        abbr:
-            _M_: H2O(all)
-        vari:
-            -   _factor_: 0.23
-            -   k10: !LT [7.35e-25, -11.6, 0]
+    type: VT_H2_H2O_f
+    formula_kstr:
+        - H2(v1)  + H2O => H2      + H2O        , 0.23 * 3.71e-11 * exp(-2140 / Tgas)
+        - H2(v2)  + H2O => H2(v1)  + H2O        , 0.23 * 6.07e-11 * exp(-1657 / Tgas)
+        - H2(v3)  + H2O => H2(v2)  + H2O        , 0.23 * 5.39e-11 * exp(-1067 / Tgas)
+        - H2(v4)  + H2O => H2(v3)  + H2O        , 0.23 * 4.78e-11 * exp( -734 / Tgas)
+        - H2(v5)  + H2O => H2(v4)  + H2O        , 0.23 * 2.82e-11 * exp( -648 / Tgas)
+        - H2(v6)  + H2O => H2(v5)  + H2O        , 0.23 * 3.17e-11 * exp( -333 / Tgas)
+        - H2(v7)  + H2O => H2(v6)  + H2O        , 0.23 * 4.02e-11 * exp( -423 / Tgas)
+        - H2(v8)  + H2O => H2(v7)  + H2O        , 0.23 * 2.35e-11 * exp( -177 / Tgas)
+        - H2(v9)  + H2O => H2(v8)  + H2O        , 0.23 * 2.29e-11 * exp( -173 / Tgas)
+        - H2(v10) + H2O => H2(v9)  + H2O        , 0.23 * 2.29e-11 * exp( -173 / Tgas)
+        - H2(v11) + H2O => H2(v10) + H2O        , 0.23 * 2.29e-11 * exp( -173 / Tgas)
+        - H2(v12) + H2O => H2(v11) + H2O        , 0.23 * 2.29e-11 * exp( -173 / Tgas)
+        - H2(v13) + H2O => H2(v12) + H2O        , 0.23 * 2.29e-11 * exp( -173 / Tgas)
+        - H2(v14) + H2O => H2(v13) + H2O        , 0.23 * 2.29e-11 * exp( -173 / Tgas)
 
 - &H2_VT_with_H2O_backward
-    <<: *_H2_VT_with_M_backward
-    where:
-        abbr:
-            _M_: H2O(all)
-        vari:
-            -   _factor_: 0.23
-            -   k10: !LT [7.35e-25, -11.6, 0]
+    type: VT_H2_H2O_b
+    formula_kstr:
+        - H2      + H2O => H2(v1)  + H2O        , 0.23 * 3.71e-11 * exp(-2140 / Tgas) * exp(-5983.2 / Tgas)
+        - H2(v1)  + H2O => H2(v2)  + H2O        , 0.23 * 6.07e-11 * exp(-1657 / Tgas) * exp(-5634.1 / Tgas)
+        - H2(v2)  + H2O => H2(v3)  + H2O        , 0.23 * 5.39e-11 * exp(-1067 / Tgas) * exp(-5285.0 / Tgas)
+        - H2(v3)  + H2O => H2(v4)  + H2O        , 0.23 * 4.78e-11 * exp( -734 / Tgas) * exp(-4935.8 / Tgas)
+        - H2(v4)  + H2O => H2(v5)  + H2O        , 0.23 * 2.82e-11 * exp( -648 / Tgas) * exp(-4586.7 / Tgas)
+        - H2(v5)  + H2O => H2(v6)  + H2O        , 0.23 * 3.17e-11 * exp( -333 / Tgas) * exp(-4237.6 / Tgas)
+        - H2(v6)  + H2O => H2(v7)  + H2O        , 0.23 * 4.02e-11 * exp( -423 / Tgas) * exp(-3888.4 / Tgas)
+        - H2(v7)  + H2O => H2(v8)  + H2O        , 0.23 * 2.35e-11 * exp( -177 / Tgas) * exp(-3539.3 / Tgas)
+        - H2(v8)  + H2O => H2(v9)  + H2O        , 0.23 * 2.29e-11 * exp( -173 / Tgas) * exp(-3190.2 / Tgas)
+        - H2(v9)  + H2O => H2(v10) + H2O        , 0.23 * 2.29e-11 * exp( -173 / Tgas) * exp(-2841.0 / Tgas)
+        - H2(v10) + H2O => H2(v11) + H2O        , 0.23 * 2.29e-11 * exp( -173 / Tgas) * exp(-2491.9 / Tgas)
+        - H2(v11) + H2O => H2(v12) + H2O        , 0.23 * 2.29e-11 * exp( -173 / Tgas) * exp(-2142.8 / Tgas)
+        - H2(v12) + H2O => H2(v13) + H2O        , 0.23 * 2.29e-11 * exp( -173 / Tgas) * exp(-1793.6 / Tgas)
+        - H2(v13) + H2O => H2(v14) + H2O        , 0.23 * 2.29e-11 * exp( -173 / Tgas) * exp(-1444.5 / Tgas)
 
+# ---------------------------------------------------------------------------- #
+#   H2(v) + CO => H2(v-1) + CO
+# ---------------------------------------------------------------------------- #
 - &H2_VT_with_CO_forward
-    <<: *_H2_VT_with_M_forward
+    <<: *H2_VT_with_CO2_forward
+    type: VT_H2_CO_f
+    formula: H2(v_A_) + CO(all) => H2(v_B_) + CO(all)
     where:
-        abbr:
-            _M_: CO(all)
         vari:
-            -   _factor_: 0.08
-            -   k10: !LT [5.83e-13, -227, 529]
+            -   _k1_: !LT [40.4, -227, 529, 0.08]
+            -   _xe_: 27.57e-3
+            -   _a_:  5.368098    # 17.5/(2.83+3.69)*2
+            -   _mu_: *H2_CO_reduced_mass
+            -   _Zn_: _n_ * (1 - _xe_) / (1 - _n_*_xe_)
+            -   _Lijn_: 0.32 *     _dE_ * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
+            -   _Lij1_: 0.32 * 0.515594 * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
+            -   _Fn_: !F_gamma _Lijn_
+            -   _F1_: !F_gamma _Lij1_
 
 - &H2_VT_with_CO_backward
-    <<: *_H2_VT_with_M_backward
-    where:
-        abbr:
-            _M_: CO(all)
-        vari:
-            -   _factor_: 0.08
-            -   k10: !LT [5.83e-13, -227, 529]
+    <<: *H2_VT_with_CO_forward
+    type: VT_H2_CO_b
+    formula: H2(v_B_) + CO(all) => H2(v_A_) + CO(all)
+    kstr: _k1_ * _Zn_ * _Fn_ / _F1_ * exp(-_dE_ * _eV2K_ / Tgas)
 
+# ---------------------------------------------------------------------------- #
+#   H2(v) + O2 => H2(v-1) + O2
+# ---------------------------------------------------------------------------- #
 - &H2_VT_with_O2_forward
-    <<: *_H2_VT_with_M_forward
+    <<: *H2_VT_with_CO2_forward
+    type: VT_H2_O2_f
+    formula: H2(v_A_) + O2 => H2(v_B_) + O2
     where:
-        abbr:
-            _M_: O2(all)
         vari:
-            -   _factor_: 0.08
-            -   k10: !LT [5.83e-13, -227, 529]
+            -   _k1_: !LT [40.4, -227, 529, 0.08]
+            -   _xe_: 27.57e-3
+            -   _a_:  5.555556    # 17.5/(2.83+3.47)*2
+            -   _mu_: *H2_O2_reduced_mass
+            -   _Zn_: _n_ * (1 - _xe_) / (1 - _n_*_xe_)
+            -   _Lijn_: 0.32 * _dE_ * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
+            -   _Lij1_: 0.32 * 0.515594 * _eV2K_ / _a_ * sqrt(_mu_/Tgas)
+            -   _Fn_: !F_gamma _Lijn_
+            -   _F1_: !F_gamma _Lij1_
 
 - &H2_VT_with_O2_backward
-    <<: *_H2_VT_with_M_backward
-    where:
-        abbr:
-            _M_: O2(all)
-        vari:
-            -   _factor_: 0.08
-            -   k10: !LT [5.83e-13, -227, 529]
+    <<: *H2_VT_with_O2_forward
+    type: VT_H2_O2_b
+    formula: H2(v_B_) + O2 => H2(v_A_) + O2
+    kstr: _k1_ * _Zn_ * _Fn_ / _F1_ * exp(-_dE_ * _eV2K_ / Tgas)
 
 # ============================================================================ #
-# ==== H2O_VT
+# ==== H2O VT with CO2 H2 H2O CO O2
 # ============================================================================ #
 - &H2O_VT_with_CO2
     formula: H2O(v1) + CO2(all) => H2O + CO2(all)
@@ -1414,12 +1595,13 @@
 
 # ---------------------------------------------------------------------------- #
 - &CO_O2_to_CO2_O
-    type: CR
+    type: BI_CO_O2
     formula: CO + O2 => CO2 + O
     kstr: "4.2e-12*exp(-24000/Tgas)"
 
 - &CO2_O_to_CO_O2
     <<: *CO2_vib_chemical_reaction
+    type: BI_CO2_O
     formula: CO2(v_A_) + O => CO + O2
     where:
         vari:
@@ -1442,6 +1624,7 @@
 # ---------------------------------------------------------------------------- #
 - &CO2_H_to_CO_OH
     <<: *CO2_vib_chemical_reaction
+    type: BI_CO2_H
     formula: CO2(v_A_) + H => CO + OH
     where:
         vari:
@@ -1451,7 +1634,7 @@
             -   k_v0: "2.5e-10*exp(-13300/Tgas)"
 
 - &CO_OH_to_CO2_H
-    type: CR
+    type: BI_CO_OH
     formula: CO + OH => CO2 + H
     kstr: "1.12e-13*exp(0.000907*Tgas)"
 
@@ -1459,7 +1642,7 @@
 # ---- CO2 + C
 # ---------------------------------------------------------------------------- #
 - &CO2_C_to_CO_CO
-    type: CR
+    type: BI_CO2_C
     formula: CO2(v_A_) + C => CO + CO
     kstr: 1.0e-21 * _factor_
     iterator:
@@ -1502,6 +1685,7 @@
 # ---------------------------------------------------------------------------- #
 - &H2_O_to_H_OH
     <<: *H2_vib_chemical_reaction
+    type: BI_H2_O
     formula: H2(v_A_) + O => H + OH
     where:
         vari:
@@ -1511,7 +1695,7 @@
             -   k_v0: "1.8e-20*Tgas**2.8*exp(-2980/Tgas)"
 
 - &H_OH_to_H2_O
-    type: CR
+    type: BI_H_OH
     formula: H + OH => H2 + O
     kstr: "8.1e-21*Tgas**2.8*exp(-1950/Tgas)"
 
@@ -1529,6 +1713,7 @@
 # ---------------------------------------------------------------------------- #
 - &H2_OH_to_H_H2O
     <<: *H2_vib_chemical_reaction
+    type: BI_H2_OH
     formula: H2(v_A_) + OH => H + H2O
     where:
         vari:
@@ -1538,7 +1723,7 @@
             -   k_v0: "1.06e-17*Tgas**2.0*exp(-1490/Tgas)"
 
 - &H_H2O_to_H2_OH
-    type: CR
+    type: BI_H_H2O
     formula: H + H2O => H2 + OH
     kstr: "1.03e-16*Tgas**1.9*exp(-9265/Tgas)"
 
@@ -1560,21 +1745,20 @@
 
 # ---------------------------------------------------------------------------- #
 - &O2_H_to_O_OH
-    type: CR
+    type: BI_O2_H
     formula: O2 + H => O + OH
     kstr: "2.77e-7*Tgas**(-0.9)*exp(-8750/Tgas)"
 
 - &O_OH_to_O2_H
-    type: CR
+    type: BI_O_OH
     formula: O + OH => O2 + H
     kstr: "7.50e-10*Tgas**(-0.5)*exp(-30/Tgas)"
-
 
 # ---------------------------------------------------------------------------- #
 # ---- O2 + C
 # ---------------------------------------------------------------------------- #
 - &O2_C_to_CO_O
-    type: CR
+    type: BI_O2_C
     formula: O2 + C => CO + O
     kstr: 3.0e-11*1e-6
 
@@ -1595,21 +1779,14 @@
 #         -6.51   -2.74   -1.48   -0.87   -0.51   -0.27     # HSC
 # ---------------------------------------------------------------------------- #
 - &H2O_O_to_OH_OH
-    type: CR
+    type: BI_H2O_O
     formula: O + H2O => OH + OH
     kstr: "7.60e-15*Tgas**1.3*exp(-8650/Tgas)"
 
 - &OH_OH_to_H2O_O
-    type: CR
+    type: BI_OH_OH
     formula: OH + OH => O + H2O
     kstr: "3.50e-16*Tgas**1.4*exp(200/Tgas)"
-
-
-
-
-
-
-# ============================================================================ #
 
 # ============================================================================ #
 # ==== Three body reactions
@@ -1619,6 +1796,7 @@
 # ---------------------------------------------------------------------------- #
 - &CO2_CO2_to_CO_O_CO2
     <<: *CO2_vib_chemical_reaction
+    type: DE_CO2_CO2
     formula: CO2(v_A_) + CO2(all) => CO + O + CO2(all)
     where:
         vari:
@@ -1628,12 +1806,13 @@
             -   k_v0: !StandardArr [3.91e-16, 0.00, 49430] # Annimie
 
 - &CO_O_CO2_to_CO2_CO2
-    type: CR
+    type: RE_CO_O_CO2
     formula: CO + O + CO2(all) => CO2 + CO2(all)
     kstr: !StandardArr [8.2e-46, 0.00, 1510] ## ?? TODO
 
 - &CO2_H2_to_CO_O_H2
     <<: *CO2_vib_chemical_reaction
+    type: DE_CO2_H2
     formula: CO2(v_A_) + H2(all) => CO + O + H2(all)
     where:
         vari:
@@ -1643,12 +1822,13 @@
             -   k_v0: !StandardArr [3.91e-16, 0.00, 49430] # Annimie
 
 - &CO_O_H2_to_CO2_H2
-    type: CR
+    type: RE_CO_O_H2
     formula: CO + O + H2(all) => CO2 + H2(all)
     kstr: !StandardArr [8.2e-46 * 0.56, 0.00, 1510]
 
 - &CO2_CO_to_CO_O_CO
     <<: *CO2_vib_chemical_reaction
+    type: DE_CO2_CO
     formula: CO2(v_A_) + CO(all) => CO + O + CO(all)
     where:
         vari:
@@ -1658,12 +1838,13 @@
             -   k_v0: !StandardArr [3.91e-16, 0.00, 49430] # Annimie
 
 - &CO_O_CO_to_CO2_CO
-    type: CR
+    type: RE_CO_O_CO
     formula: CO + O + CO(all) => CO2 + CO(all)
     kstr: !StandardArr [8.2e-46 * 0.49, 0.00, 1510]
 
 - &CO2_H2O_to_CO_O_H2O
     <<: *CO2_vib_chemical_reaction
+    type: DE_CO2_CO
     formula: CO2(v_A_) + H2O(all) => CO + O + H2O(all)
     where:
         vari:
@@ -1673,7 +1854,7 @@
             -   k_v0: !StandardArr [3.91e-16, 0.00, 49430] # Annimie
 
 - &CO_O_H2O_to_CO2_H2O
-    type: CR
+    type: RE_CO_O_H2O
     formula: CO + O + H2O(all) => CO2 + H2O(all)
     kstr: !StandardArr [8.2e-46 * 3.33, 0.00, 1510]
 
@@ -1695,7 +1876,7 @@
 #           -45.876 -19.609 -10.785 -6.350  -3.679  -1.893  -0.615  0.345   # HSC
 # ---------------------------------------------------------------------------- #
 - &O2_M_to_O_O_M
-    type: CR
+    type: DE_O2_M
     formula: O2 + _M_ => O + O + _M_
     kstr: k_0 * _factor_
     where:
@@ -1711,7 +1892,7 @@
                 _Sp_: "['CO2(all)', 'H2(all)',  'CO(all)',  'H2O(all)', 'O2(all)']"
 
 - &O_O_M_to_O2_M
-    type: CR
+    type: RE_O_O_M
     formula: O + O + _M_ => O2 + _M_
     kstr: k_0 * _factor_
     where:
@@ -1744,7 +1925,7 @@
 #           -46.328 -19.946 -11.056 -6.581  -3.886  -2.085  -0.798  0.167  # HSC
 # ---------------------------------------------------------------------------- #
 - &H2O_M_to_OH_H_M
-    type: CR
+    type: DE_H2O_M
     formula: H2O + _M_ => OH + H + _M_
     kstr: k_0 * _factor_
     where:
@@ -1762,7 +1943,7 @@
                 _Sp_: "['CO2(all)', 'H2(all)', 'CO(all)', 'H2O(all)']"
 
 - &OH_H_M_to_H2O_M
-    type: CR
+    type: RE_OH_H_M
     formula: OH + H + _M_ => H2O + _M_
     kstr: k_0 * _factor_
     where:
@@ -1796,6 +1977,7 @@
 # ---------------------------------------------------------------------------- #
 - &H2_H2_to_H_H_H2
     <<: *H2_vib_chemical_reaction
+    type: DE_H2_H2
     formula: H2(v_A_) + H2(all) => H + H + H2(all)
     where:
         vari:
@@ -1805,13 +1987,14 @@
             -   k_v0: "7.60e-5*Tgas**(-1.4)*exp(-52530/Tgas)"
 
 - &H_H_H2_to_H2_H2
-    type: CR
+    type: RE_H_H_H2
     formula: H + H + H2(all) => H2 + H2(all)
     kstr: "2.5*1.5e-29*Tgas**(-1.3)"
 
 # ---------------------------------------------------------------------------- #
 - &H2_CO2_to_H_H_CO2
     <<: *H2_vib_chemical_reaction
+    type: DE_H2_CO2
     formula: H2(v_A_) + CO2(all) => H + H + CO2(all)
     where:
         vari:
@@ -1821,13 +2004,14 @@
             -   k_v0: "7.60e-5*Tgas**(-1.4)*exp(-52530/Tgas)"
 
 - &H_H_CO2_to_H2_CO2
-    type: CR
+    type: RE_H_H_CO2
     formula: H + H + CO2(all) => H2 + CO2(all)
     kstr: "3.8*1.5e-29*Tgas**(-1.3)"
 
 # ---------------------------------------------------------------------------- #
 - &H2_H2O_to_H_H_H2O
     <<: *H2_vib_chemical_reaction
+    type: DE_H2_H2O
     formula: H2(v_A_) + H2O => H + H + H2O
     where:
         vari:
@@ -1837,13 +2021,14 @@
             -   k_v0: "7.60e-5*Tgas**(-1.4)*exp(-52530/Tgas)"
 
 - &H_H_H2O_to_H2_H2O
-    type: CR
+    type: RE_H_H_H2O
     formula: H + H + H2O(all) => H2 + H2O(all)
     kstr: "12*1.5e-29*Tgas**(-1.3)"
 
 # ---------------------------------------------------------------------------- #
 - &H2_CO_to_H_H_CO
     <<: *H2_vib_chemical_reaction
+    type: DE_H2_CO2
     formula: H2(v_A_) + CO(all) => H + H + CO(all)
     where:
         vari:
@@ -1853,7 +2038,7 @@
             -   k_v0: "7.60e-5*Tgas**(-1.4)*exp(-52530/Tgas)"
 
 - &H_H_CO_to_H2_CO
-    type: CR
+    type: RE_H_H_CO
     formula: H + H + CO(all) => H2 + CO(all)
     kstr: "1.9*1.5e-29*Tgas**(-1.3)"
 
@@ -1875,7 +2060,7 @@
 #           -39.815 -17.208 -9.572  -5.714  -3.381  -1.816  -0.692  0.155  # HSC
 # ---------------------------------------------------------------------------- #
 - &OH_M_to_O_H_M
-    type: CR
+    type: DE_OH_M
     formula: OH + _M_ => O + H + _M_
     kstr: k_0 * _factor_
     where:
@@ -1893,7 +2078,7 @@
                 _Sp_: "['H2(all)', 'H2O(all)', 'CO(all)', 'CO2(all)', 'O2(all)']"
 
 - &O_H_M_to_OH_M
-    type: CR
+    type: RE_O_H_M
     formula: H + O + _M_ => OH + _M_
     kstr: k_0 * _factor_
     where:
@@ -2090,6 +2275,8 @@
     CO2_VT_with_H2_backward: *CO2_VT_with_H2_backward
     CO2_VT_with_H2O_forward: *CO2_VT_with_H2O_forward
     CO2_VT_with_H2O_backward: *CO2_VT_with_H2O_backward
+    CO2_VT_with_H_forward: *CO2_VT_with_H_forward
+    CO2_VT_with_H_backward: *CO2_VT_with_H_backward
 
 - &H2_VT_kinetic
     H2_VT_with_CO2_forward: *H2_VT_with_CO2_forward
@@ -2102,6 +2289,8 @@
     H2_VT_with_CO_backward: *H2_VT_with_CO_backward
     H2_VT_with_O2_forward: *H2_VT_with_O2_forward
     H2_VT_with_O2_backward: *H2_VT_with_O2_backward
+    H2_VT_with_H_forward: *H2_VT_with_H_forward
+    H2_VT_with_H_backward: *H2_VT_with_H_backward
 
 - &CO2_VV_kinetic
     CO2_VV_inner_forward_0: *CO2_VV_inner_forward_0
@@ -2181,6 +2370,7 @@
             # VV
             <<: *CO2_VV_kinetic
             H2_VV_with_H2_forward: *H2_VV_with_H2_forward
+            H2_VV_with_H2_backward: *H2_VV_with_H2_backward
 
         chemical reactions:
             # H OH O reactions

@@ -105,14 +105,14 @@ def __read_rcnt_prdt_dH_kStr(reaction_str):
     assert reaction_str.count('_eV') <= 1
     # ------------------------------------------------------------------------- #
     rctn_regexp = re.compile(
-        r"\s*{rcnt}{sep}{prdt}\s*(?:[!]\s*{k_str})?\s*".format(
-            rcnt=r"(?P<reactant>.*?)",
-            sep=r"\s*\<?\=\>\s*",
-            prdt=r"(?P<product>.*?)",
-            k_str=r"(?P<k_str>.*?)"))
+            r"\s*{rcnt}{sep}{prdt}\s*(?:[!]\s*{k_str})?\s*".format(
+                    rcnt=r"(?P<reactant>.*?)",
+                    sep=r"\s*\<?\=\>\s*",
+                    prdt=r"(?P<product>.*?)",
+                    k_str=r"(?P<k_str>.*?)"))
     rcnt_str, prdt_str, k_str = [
-        rctn_regexp.fullmatch(reaction_str).groupdict()[_]
-        for _ in ('reactant', 'product', 'k_str')]
+            rctn_regexp.fullmatch(reaction_str).groupdict()[_]
+            for _ in ('reactant', 'product', 'k_str')]
 
     # ------------------------------------------------------------------------------------------- #
 
@@ -198,18 +198,18 @@ def __read_reactionlist_block(line, replc_input):
             has_condition = True
             _temp = re.split(r":", replc_input[-1], maxsplit=1)[1].strip()
             _condition = _temp.replace(substi_sign_0, '_sign_0').replace(
-                substi_sign_1, '_sign_1')
+                    substi_sign_1, '_sign_1')
         reaction_lines = []
         for _sign_0 in substi_list_0:
             for _sign_1 in substi_list_1:
                 if has_condition:
-                    print(_sign_0, end=' ')
-                    print(_sign_1)
+                    # print(_sign_0, end=' ')
+                    # print(_sign_1)
                     if not eval(_condition):
                         continue
                 reaction_lines.append(line.replace(substi_sign_0,
                                                    _sign_0).replace(
-                    substi_sign_1, _sign_1))
+                        substi_sign_1, _sign_1))
 
     elif re.findall('@[A-Z]', line):
         # --------------------------------------------------------------------------------------- #
@@ -277,7 +277,8 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
     assert end_line > start_line
 
     # ------------------------------------------------------------------------------------------- #
-    rcntM, prdtM, dHM, k_strM = pd.Series(), pd.Series(), pd.Series(), pd.Series()
+    rcntM, prdtM, dHM, k_strM = pd.Series(), pd.Series(), pd.Series(), \
+                                pd.Series()
     pre_exec_list = []
     envir_vars = dict()
 
@@ -309,10 +310,12 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
         #   e.g.
         #       %CS_PATH% = \
         #           { D:/Coding/Python_code/cs_data
-        #             /home/liujinbao/Documents/CODE/PlasmaChemistry/CrossSectionFile/H2
+        #             /home/liujinbao/Documents/CODE/PlasmaChemistry
+        #             /CrossSectionFile/H2
         #           }
         #       %H2_vib% = \
-        #           {   H2      H2(v1)  H2(v2)  H2(v3)  H2(v4)  H2(v5) H2(v6) H2(v7) H2(v8) H2(v9)
+        #           {   H2      H2(v1)  H2(v2)  H2(v3)  H2(v4)  H2(v5) H2(v6)
+        #           H2(v7) H2(v8) H2(v9)
         #               H2(v10) H2(v11) H2(v12) H2(v13) H2(v14)
         #           }
         # --------------------------------------------------------------------------------------- #
@@ -324,7 +327,8 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                     i_line += 1
                 i_line -= 1
             temp = re.match(
-                r"(?P<key>%\S+%)\s+=\s+(\\\s+)?{(?P<abbr>[^}]+)}\s*", abbr_str)
+                    r"(?P<key>%\S+%)\s+=\s+(\\\s+)?{(?P<abbr>[^}]+)}\s*",
+                    abbr_str)
             assert temp, abbr_str
             key = temp.groupdict()['key']
             abbr = temp.groupdict()['abbr']
@@ -338,7 +342,7 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                     abbr = abbr.strip().split()[1]
                 else:
                     raise Exception("The {s} is not supported.".format(
-                        s=platform.platform()))
+                            s=platform.platform()))
 
             assert key not in envir_vars
             envir_vars[key] = abbr.strip()
@@ -360,7 +364,7 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                 #   read line
                 # ------------------------------------------------------------------------------- #
                 rcnt, prdt, dH, k_str = __read_rcnt_prdt_dH_kStr(
-                    replace_envir_vars(line))
+                        replace_envir_vars(line))
                 rcntM, prdtM, dHM, k_strM = (lamb_series_append(x, xM) for
                                              x, xM in
                                              zip([rcnt, prdt, dH, k_str],
@@ -375,14 +379,14 @@ def read_reactionFile(file_path, start_line=-math.inf, end_line=math.inf):
                 if re.match(r"@(WHERE|LAMBDA)", rctn_list[i_line + 1]):
                     while not rctn_list[i_line + 1].startswith("@END"):
                         replc_input.append(
-                            replace_envir_vars(rctn_list[i_line + 1]))
+                                replace_envir_vars(rctn_list[i_line + 1]))
                         i_line += 1
                     i_line -= 1
                 elif re.match(r"@([A-Z]@?|CONDITION)", rctn_list[i_line + 1]):
                     while re.match(r"@([A-Z]@?|CONDITION).*",
                                    rctn_list[i_line + 1]):
                         replc_input.append(
-                            replace_envir_vars(rctn_list[i_line + 1]))
+                                replace_envir_vars(rctn_list[i_line + 1]))
                         i_line += 1
                     i_line -= 1
                 assert len(replc_input) >= len(replc_strM), replc_input
@@ -433,7 +437,8 @@ def read_reactionList(reaction_list):
 
     """
     assert isinstance(reaction_list, list)
-    rcntM, prdtM, dHM, k_strM = pd.Series(), pd.Series(), pd.Series(), pd.Series()
+    rcntM, prdtM, dHM, k_strM = pd.Series(), pd.Series(), pd.Series(), \
+                                pd.Series()
     lamb_series_append = lambda x, _series: _series.append(pd.Series(x),
                                                            ignore_index=True)
     for line in reaction_list:
@@ -608,25 +613,25 @@ class Reaction_block(object):
     @staticmethod
     def repl_func(x, _repl, _iter):
         _str_expr = f"'{x}'." + '.'.join(
-            [f"replace('{k}', str({v}))" for k, v in _repl.items()])
+                [f"replace('{k}', str({v}))" for k, v in _repl.items()])
         # product loop
         _iter_loop = _iter['loop']
         if 'product' in _iter_loop:
-            print("zip")
+            # print("zip")
             _loop_dict = _iter_loop['product']
-            print(_loop_dict)
+            # print(_loop_dict)
             _loop_expr = ' '.join([f'for {key} in {value}'
                                    for key, value in _loop_dict.items()])
-            print(_loop_expr)
+            # print(_loop_expr)
         # zip loop
         elif 'zip' in _iter_loop:
-            print("zip")
+            # print("zip")
             _loop_dict = _iter_loop['zip']
-            print(_loop_dict)
+            # print(_loop_dict)
             _loop_expr = 'for {key} in zip({value})'.format(
-                key=', '.join(_loop_dict.keys()),
-                value=', '.join(_loop_dict.values()))
-            print(_loop_expr)
+                    key=', '.join(_loop_dict.keys()),
+                    value=', '.join(_loop_dict.values()))
+            # print(_loop_expr)
         # else
         else:
             raise Exception(f"product or zip is not in loop. {_iter}")
@@ -635,7 +640,7 @@ class Reaction_block(object):
             _expr = f"[{_str_expr} {_loop_expr} if {_iter['condition']}]"
         else:
             _expr = f"[{_str_expr} {_loop_expr}]"
-        print(_expr)
+        # print(_expr)
         return _expr
 
 
@@ -651,7 +656,6 @@ class Cros_Reaction_block(Reaction_block):
             self._set_threshold_list()
         else:
             self._threshold_list = self._threshold
-
 
     # def __add__(self, other):
     #     result = Cros_Reaction_block()
@@ -675,12 +679,16 @@ class Cros_Reaction_block(Reaction_block):
     def generate_crostn_dataframe(self, *, factor=1):
         _df = dict()
         _df["formula"] = self._formula_list
+        _df["reactant"] = [re.split(r"\s*=>\s*", _)[0] for _ in
+                           self._formula_list]
+        _df["product"] = [re.split(r"\s*=>\s*", _)[1] for _ in
+                          self._formula_list]
         _df["type"] = self._type_list
         _df["threshold_eV"] = self._threshold_list
         _df["cross_section"] = [
-            np.vstack((np.loadtxt(_path, comments="#")[:, 0],
-                       np.loadtxt(_path, comments="#")[:, 1] * factor))
-            for _path in self._kstr_list]
+                np.vstack((np.loadtxt(_path, comments="#")[:, 0],
+                           np.loadtxt(_path, comments="#")[:, 1] * factor))
+                for _path in self._kstr_list]
         _df = pd.DataFrame(data=_df, index=range(self.size))
         _df = _df.astype({'threshold_eV': np.float})
         return _df

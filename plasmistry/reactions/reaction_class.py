@@ -827,7 +827,7 @@ class CrosReactions(Reactions):
         _rate_const_matrix = np.empty(
             (crostn_dataframe.shape[0], electron_energy_grid.size))
         for i_rctn, cs_key in enumerate(self.formula):
-            print(cs_key)
+            # print(cs_key)
             if cs_key not in crostn_dataframe['formula'].tolist():
                 raise ReactionClassError(
                     '"{}" is not in the cs_frame.'.format(cs_key))
