@@ -876,7 +876,6 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
 
     def dndt_cros(self, t, density_without_e, _electron_density,
                   normalized_eedf):
-        # _instance = self.rctn_instances["cros"]
         self.rctn_instances["cros"].set_rate_const(
                 eedf_normalized=normalized_eedf)
         self.rctn_instances["cros"].set_rate(density=np.hstack([
@@ -885,7 +884,6 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
         return self.rctn_instances["cros"].get_dn()
 
     def dndt_coef(self, t, density_without_e, _electron_density, Tgas_K):
-        # _instance = self.rctn_instances["coef"]
         self.rctn_instances["coef"].set_rate_const(Tgas_K=Tgas_K)
         self.rctn_instances["coef"].set_rate(density=np.hstack([
                 _electron_density,
@@ -898,6 +896,9 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
         dydt = self.dndt_cros(t, y, _e_density, normalized_eedf) + \
                self.dndt_coef(t, y, _e_density, _Tgas_K)
         return dydt[1:]
+
+    def dndt_global(self, t, y):
+        d
 
     def _solve(self):
         self._PARAS = self._paras.value()
