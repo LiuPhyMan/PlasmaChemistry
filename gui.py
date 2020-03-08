@@ -58,10 +58,11 @@ for _key in constructor_dict:
                          Loader=yaml.FullLoader)
 
 # ---------------------------------------------------------------------------- #
-_DEFAULT_MENUBAR_FONT = QFont("Arial", 10)
+_DEFAULT_MENUBAR_FONT = QFont("Microsoft YaHei UI", 12, QFont.Bold)
 _DEFAULT_TOOLBAR_FONT = QFont("Arial", 10)
 _DEFAULT_TABBAR_FONT = QFont("Arial", 10)
 _DEFAULT_TEXT_FONT = QFont("Arial", 10)
+_DEFAULT_LIST_FONT = QFont("Consolas", 14)
 _EVEN_LINE_COLOR = QColor(235, 235, 235)
 
 _VARI_DICT = {"H2_vib_energy_in_eV" : H2_vib_energy_in_eV,
@@ -344,6 +345,100 @@ class CoefRctnDfView(RctnDfView):
                 self._rctn_list.item(_i).setBackground(_EVEN_LINE_COLOR)
 
 
+class DensitySetting(QW.QWidget):
+    _SPECIES = ("E", "H2", "CO2", "CO", "H2O", "O2", "N2")
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._set_children()
+        self._set_specie_list()
+        self._set_density_list()
+        self._set_density_value()
+        self._set_connect()
+        self._set_layout()
+
+    def _set_children(self):
+        self._specie_list = QW.QListWidget()
+        self._density_value = QW.QTextEdit()
+        self._import_btn = BetterQPushButton("=>")
+        self._delete_btn = BetterQPushButton("<=")
+        self._density_list = QW.QListWidget()
+
+    def _set_specie_list(self):
+        self._specie_list.addItems(self._SPECIES)
+        self._specie_list.setFixedWidth(150)
+        self._specie_list.setFixedHeight(300)
+        self._specie_list.setFont(_DEFAULT_LIST_FONT)
+
+    def _set_density_list(self):
+        self._density_list.setFixedWidth(150)
+        self._density_list.setFixedHeight(300)
+        self._density_list.setFont(_DEFAULT_LIST_FONT)
+
+    def _set_density_value(self):
+        self._density_value.setFixedWidth(100)
+        self._density_value.setFixedHeight(50)
+        self._density_value.setFont(_DEFAULT_LIST_FONT)
+        self._density_value.setText("1e12")
+
+    def _densities_dict(self):
+        _data_dict = dict()
+        for _row in range(self._density_list.count()):
+            _specie, _value = self._density_list.item(_row).text().split()
+            _specie, _value = _specie.strip(), float(_value.strip())
+            _data_dict[_specie] = _value
+        return _data_dict
+
+    def _set_layout(self):
+        _parent_layout = QW.QGridLayout()
+        _parent_layout.addWidget(BetterQLabel("species"), 0, 0)
+        _parent_layout.addWidget(BetterQLabel("density"), 0, 1)
+        _parent_layout.addWidget(BetterQLabel(""), 0, 2)
+        _parent_layout.addWidget(BetterQLabel("densities data"), 0, 3)
+        _parent_layout.addWidget(self._specie_list, 1, 0,
+                                 Qt.AlignLeft | Qt.AlignTop)
+        _parent_layout.addWidget(self._density_value, 1, 1,
+                                 Qt.AlignLeft | Qt.AlignTop)
+
+        _layout_btn = QW.QVBoxLayout()
+        _layout_btn.addWidget(self._import_btn)
+        _layout_btn.addWidget(self._delete_btn)
+        _layout_btn.addStretch(1)
+
+        _parent_layout.addLayout(_layout_btn, 1, 2,
+                                 Qt.AlignLeft | Qt.AlignTop)
+        _parent_layout.addWidget(self._density_list, 1, 3,
+                                 Qt.AlignLeft | Qt.AlignTop)
+        _parent_layout.setColumnStretch(4, 1)
+        self.setLayout(_parent_layout)
+
+    def _import_selected_specie(self):
+        _index = self._specie_list.currentRow()
+        if _index == -1:
+            pass
+        else:
+            _data = self._density_value.toPlainText()
+            _str = f"{self._SPECIES[_index]:<8}" + _data
+            try:
+                float(self._density_value.toPlainText())
+            except:
+                QMessageBox.warning(self, "Warn", f"{_data} is not a number!",
+                                    QMessageBox.Ok)
+            else:
+                self._density_list.addItem(_str)
+
+    def _delete_selected_density(self):
+        _index = self._density_list.currentRow()
+        if _index == -1:
+            pass
+        else:
+            self._density_list.takeItem(_index)
+
+    def _set_connect(self):
+        self._import_btn.clicked.connect(self._import_selected_specie)
+        self._delete_btn.clicked.connect(self._delete_selected_density)
+
+
 # ---------------------------------------------------------------------------- #
 class ThePlot(QPlot):
 
@@ -565,6 +660,7 @@ class _PlasmistryGui(QW.QMainWindow):
         self._paras = EvolveParas()
         self._output = QW.QTextEdit()
         self._evolution_plot = TheDensitiesPlot()
+        self._densities = DensitySetting()
         self._buttons = dict()
         self._menubar = dict()
         self._actions = dict()
@@ -640,12 +736,23 @@ class _PlasmistryGui(QW.QMainWindow):
             self._toolbar.addSeparator()
 
     def _set_tab_widget(self):
-        self._tab_widget.addTab(self._rctn_dict_view, "Rctn Dict")
-        self._tab_widget.addTab(self._cros_rctn_df_view, "Cros rctn-list")
-        self._tab_widget.addTab(self._coef_rctn_df_view, "Coef rctn-list")
+        self._tab_widget.addTab(self._rctn_dict_view, "Rctn_Dict")
+        self._tab_widget.addTab(self._cros_rctn_df_view, "Rctn_Df cros")
+        self._tab_widget.addTab(self._coef_rctn_df_view, "Rctn_Df coef")
         # self._tab_widget.addTab(self._plasma_paras, "Plasma Paras")
-        self._tab_widget.addTab(self._paras, "EvolveParas")
-        self._tab_widget.addTab(self._output, "Output")
+        # self._tab_widget.addTab(self._paras, "Run Paras")
+        # self._tab_widget.addTab(self._output, "Output")
+        # self._tab_widget.addTab(self._densities, "Set densities")
+
+        #
+        _widget = QW.QWidget()
+        _layout = QW.QHBoxLayout()
+        _layout.addWidget(self._paras)
+        _layout.addWidget(self._densities)
+        # _layout.addStretch(1)
+        _widget.setLayout(_layout)
+        self._tab_widget.addTab(_widget, "Run Paras")
+        #
         self._tab_widget.setStyleSheet("QTabBar::tab {width:150px;}")
         self._tab_widget.setFont(_DEFAULT_TOOLBAR_FONT)
         self._tab_widget.setTabShape(QW.QTabWidget.Triangular)
@@ -897,24 +1004,18 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
                self.dndt_coef(t, y, _e_density, _Tgas_K)
         return dydt[1:]
 
-    def dndt_global(self, t, y):
-        d
-
     def _solve(self):
         self._PARAS = self._paras.value()
+        _densities_dict = self._densities._densities_dict()
         density_0 = self.rctn_instances["coef"].get_initial_density(
-                density_dict={"CO2"     : 1.2e24,
-                              "H2"      : 1.2e24,
-                              "E"       : 1e20,
-                              "CO2(all)": 1.2e24,
-                              "H2(all)" : 1.2e24})
+                density_dict=_densities_dict)
         density_without_e_0 = density_0[1:]
         self._init_cros_reactions()
         ####
         eedf = EEDF(max_energy_eV=self._PARAS["electron_max_energy_eV"],
                     grid_number=self._PARAS["eedf_grid_number"])
         normalized_eedf = get_maxwell_eedf(eedf.energy_point,
-                                           Te_eV=self._PARAS["Te"])
+                                           Te_eV=1.0)
 
         def dndt(t, y):
             print(f"time: {t:.6e} s")
@@ -938,3 +1039,5 @@ if __name__ == "__main__":
     window = ThePlasmistryGui()
     window.show()
     # sys.exit(app.exec_())
+    from scipy import sparse
+
