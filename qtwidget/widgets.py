@@ -8,52 +8,80 @@ Created on 7:40 2018/3/30
 @project:   PlasmaChemistry
 @IDE:       PyCharm
 """
-import math
-import numpy as np
-from matplotlib.figure import Figure
-from matplotlib.ticker import FormatStrFormatter
 from PyQt5 import QtWidgets as QW
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtGui import QCursor
-from matplotlib import pyplot as plt
+from PyQt5.QtCore import QSize, Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as \
+    NavigationToolbar
+from matplotlib.figure import Figure
 
 
-class LogScaleSlier(QW.QSlider):
+# class LogScaleSlier(QW.QSlider):
+#
+#     def __init__(self, parent):
+#         super().__init__(parent)
+#         self.setMaximum(500)
+#         self.setMinimum(0)
+#         self.setTickInterval(100)
+#         self.setTickPosition(QW.QSlider.TicksAbove)
+#         self.setSingleStep(1)
+#         self.setPageStep(1)
+#         self.setOrientation(Qt.Horizontal)
+#         self.setCursor(QCursor(Qt.PointingHandCursor))
+#
+#     def set_range(self, time_seq):
+#         log_t1 = math.log10(time_seq[1])
+#         log_tn = math.log10(time_seq[-2])
+#         self.value_seq = np.hstack((time_seq[0],
+#                                     np.logspace(log_t1, log_tn, num=499),
+#                                     time_seq[-1]))
+#
+#     def value(self):
+#         index = QW.QSlider.value(self)
+#         return self.value_seq[index]
+#
+#
+class Canvas(FigureCanvas):
 
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.setMaximum(500)
-        self.setMinimum(0)
-        self.setTickInterval(100)
-        self.setTickPosition(QW.QSlider.TicksAbove)
-        self.setSingleStep(1)
-        self.setPageStep(1)
-        self.setOrientation(Qt.Horizontal)
-        self.setCursor(QCursor(Qt.PointingHandCursor))
-
-    def set_range(self, time_seq):
-        log_t1 = math.log10(time_seq[1])
-        log_tn = math.log10(time_seq[-2])
-        self.value_seq = np.hstack((time_seq[0],
-                                    np.logspace(log_t1, log_tn, num=499),
-                                    time_seq[-1]))
-
-    def value(self):
-        index = QW.QSlider.value(self)
-        return self.value_seq[index]
+    def __init__(self, parent=None, figsize=(4, 3), dpi=100):
+        self.figure = Figure(figsize=figsize, dpi=dpi, tight_layout=True,
+                             linewidth=5, edgecolor="gray")
+        self.axes = self.figure.add_subplot(111)
+        super(Canvas, self).__init__(self.figure)
 
 
-class PlotCanvas(FigureCanvas):
+class FigureWithToolbar(QW.QWidget):
 
-    def __init__(self, parent, _figure):
-        FigureCanvas.__init__(self, _figure)
-        self.setParent(parent)
-        FigureCanvas.setSizePolicy(self, QW.QSizePolicy.Expanding, QW.QSizePolicy.Expanding)
-        FigureCanvas.updateGeometry(self)
+    def __init__(self, parent=None, figsize=(4, 3), dpi=100):
+        super(FigureWithToolbar, self).__init__(parent)
+        self.canvas = Canvas(self, figsize=figsize, dpi=dpi)
+        self.figure = self.canvas.figure
+        self.axes = self.canvas.axes
+        self._set_toolbar()
+        self._set_layout()
+        _plot_ref = self.axes.plot([], [])
+        self.plot_ref = _plot_ref[0]
+
+    def plot(self, *, xdata, ydata):
+        self.plot_ref.set_xdata(xdata)
+        self.plot_ref.set_ydata(ydata)
+        self.axes.relim()
+        self.axes.autoscale(enable=True)
+        self.canvas.draw()
+
+    def _set_toolbar(self):
+        self.toolbar = NavigationToolbar(self.canvas, self, coordinates=False)
+        self.toolbar.setIconSize(QSize(16, 16))
+        self.toolbar.setOrientation(Qt.Vertical)
+
+    def _set_layout(self):
+        _layout = QW.QHBoxLayout()
+        _layout.addWidget(self.toolbar)
+        _layout.addWidget(self.canvas)
+        self.setLayout(_layout)
 
 
+r"""
 class QPlot(QW.QWidget):
     def __init__(self, parent=None, figsize=(5, 4), dpi=100):
         super().__init__(parent)
@@ -61,7 +89,8 @@ class QPlot(QW.QWidget):
         self.canvas = PlotCanvas(parent, self.figure)
         self.canvas.setFixedSize(500, 400)
         layout = QW.QHBoxLayout(parent)
-        toolbar = NavigationToolbar(self.canvas, parent=parent, coordinates=False)
+        toolbar = NavigationToolbar(self.canvas, parent=parent, 
+        coordinates=False)
         toolbar.setIconSize(QSize(16, 16))
         toolbar.setOrientation(Qt.Vertical)
         toolbar.update()
@@ -129,10 +158,12 @@ class EEDFQPlot(QW.QWidget):
 
     def plot(self, *, xdata, ydata, time_labels):
         self.clear_plot()
-        assert ydata.ndim == 2, 'The ndim of ydata should not be {}.'.format(ydata.ndim)
+        assert ydata.ndim == 2, 'The ndim of ydata should not be {}.'.format(
+        ydata.ndim)
         labels = ['t:{:.2e} s'.format(_) for _ in time_labels]
         for _y, _label in zip(ydata, labels):
-            self.axes.plot(xdata, _y, linewidth=1, marker='.', markersize=2, label=_label)
+            self.axes.plot(xdata, _y, linewidth=1, marker='.', markersize=2, 
+            label=_label)
         self.axes.legend(fontsize='x-small')
         self.canvas_draw()
 
@@ -145,7 +176,8 @@ class DensityPlot(QW.QWidget):
         self.axes = self.qplot.figure.add_subplot(111)
         self.specie_list = QW.QListWidget(parent)
         self.specie_list.setFixedWidth(90)
-        self.specie_list.setSelectionMode(QW.QAbstractItemView.ExtendedSelection)
+        self.specie_list.setSelectionMode(
+        QW.QAbstractItemView.ExtendedSelection)
         self.data_plot = dict()
         layout = QW.QHBoxLayout()
         layout.addWidget(self.qplot)
@@ -165,7 +197,8 @@ class DensityPlot(QW.QWidget):
         self.vertical_line.set_xdata(-np.inf)
 
     def specie_list_selected_index(self):
-        return [_.row() for _ in self.specie_list.selectionModel().selectedRows()]
+        return [_.row() for _ in self.specie_list.selectionModel(
+        ).selectedRows()]
 
     def canvas_draw(self):
         self.qplot.canvas.draw()
@@ -197,7 +230,8 @@ class DensityPlot(QW.QWidget):
         self.clear_plot()
         assert ydata.ndim == 2
         for _y, _label in zip(ydata, density_labels):
-            self.axes.plot(xdata, _y, linewidth=.5, marker='.', markersize=2, label=_label)
+            self.axes.plot(xdata, _y, linewidth=.5, marker='.', markersize=2, 
+            label=_label)
         self.axes.legend(fontsize='x-small')
         self.canvas_draw()
 
@@ -251,12 +285,15 @@ class NeTeQPlot(QW.QWidget):
         self.canvas_draw()
 
     def plot(self, *, time_seq, ne_seq, Te_seq):
-        self.axes_Te.plot(time_seq, Te_seq, linewidth=.5, color='r', marker=',', markersize=2)
+        self.axes_Te.plot(time_seq, Te_seq, linewidth=.5, color='r', 
+        marker=',', markersize=2)
         self.axes_ne.set_ylim(10 ** (np.floor(np.log10(ne_seq.min())) - 0.1),
                               10 ** (np.ceil(np.log10(ne_seq.max())) + 0.1))
-        self.axes_ne.plot(time_seq, ne_seq, linewidth=0.5, color='b', marker='.', markersize=2)
+        self.axes_ne.plot(time_seq, ne_seq, linewidth=0.5, color='b', 
+        marker='.', markersize=2)
         self.canvas_draw()
 
     def plot_vline(self, *, x):
         self.vertical_line.set_xdata(x)
         self.canvas_draw()
+"""

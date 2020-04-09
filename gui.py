@@ -12,6 +12,10 @@ import sys
 import math
 import numpy as np
 from scipy.integrate import solve_ivp
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import \
+    NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
 import pandas as pd
 import xlwings as xw
 import yaml
@@ -19,26 +23,36 @@ from matplotlib import pyplot as plt
 from PyQt5 import QtWidgets as QW
 from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon, QCursor, QFont, QColor, QClipboard
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import QApplication, QAction, QDesktopWidget, QMessageBox
-from BetterQWidgets import (QPlot, BetterQPushButton,
-                            BetterQLabel,
-                            )
+from BetterQWidgets import (
+    QPlot,
+    BetterQPushButton,
+    BetterQLabel,
+)
+from qtwidget import FigureWithToolbar
 # ---------------------------------------------------------------------------- #
 from plasmistry import constants as const
 from plasmistry.molecule import (H2_vib_group, CO_vib_group, CO2_vib_group)
-from plasmistry.molecule import (H2_vib_energy_in_eV,
-                                 H2_vib_energy_in_K,
-                                 CO2_vib_energy_in_eV, CO2_vib_energy_in_K,
-                                 CO_vib_energy_in_eV, CO_vib_energy_in_K,
-                                 )
-from plasmistry.io import (LT_ln_constructor, standard_Arr_constructor,
-                           chemkin_Arr_2_rcnts_constructor,
-                           chemkin_Arr_3_rcnts_constructor,
-                           reversed_reaction_constructor, alpha_constructor,
-                           F_gamma_constructor,
-                           Cros_Reaction_block, Coef_Reaction_block,
-                           )
+from plasmistry.molecule import (
+    H2_vib_energy_in_eV,
+    H2_vib_energy_in_K,
+    CO2_vib_energy_in_eV,
+    CO2_vib_energy_in_K,
+    CO_vib_energy_in_eV,
+    CO_vib_energy_in_K,
+)
+from plasmistry.io import (
+    LT_ln_constructor,
+    standard_Arr_constructor,
+    chemkin_Arr_2_rcnts_constructor,
+    chemkin_Arr_3_rcnts_constructor,
+    reversed_reaction_constructor,
+    alpha_constructor,
+    F_gamma_constructor,
+    Cros_Reaction_block,
+    Coef_Reaction_block,
+)
 from plasmistry.reactions import (CrosReactions, CoefReactions)
 from plasmistry.electron import EEDF
 from plasmistry.electron import (get_maxwell_eedf, get_rate_const_from_crostn)
@@ -46,16 +60,17 @@ from plasmistry.electron import (get_maxwell_eedf, get_rate_const_from_crostn)
 # ---------------------------------------------------------------------------- #
 #   Set yaml constructor
 # ---------------------------------------------------------------------------- #
-constructor_dict = {"!StandardArr"      : standard_Arr_constructor,
-                    "!ChemKinArr_2_rcnt": chemkin_Arr_2_rcnts_constructor,
-                    "!ChemKinArr_3_rcnt": chemkin_Arr_3_rcnts_constructor,
-                    "!rev"              : reversed_reaction_constructor,
-                    "!LT"               : LT_ln_constructor,
-                    "!alpha"            : alpha_constructor,
-                    "!F_gamma"          : F_gamma_constructor}
+constructor_dict = {
+    "!StandardArr": standard_Arr_constructor,
+    "!ChemKinArr_2_rcnt": chemkin_Arr_2_rcnts_constructor,
+    "!ChemKinArr_3_rcnt": chemkin_Arr_3_rcnts_constructor,
+    "!rev": reversed_reaction_constructor,
+    "!LT": LT_ln_constructor,
+    "!alpha": alpha_constructor,
+    "!F_gamma": F_gamma_constructor
+}
 for _key in constructor_dict:
-    yaml.add_constructor(_key, constructor_dict[_key],
-                         Loader=yaml.FullLoader)
+    yaml.add_constructor(_key, constructor_dict[_key], Loader=yaml.FullLoader)
 
 # ---------------------------------------------------------------------------- #
 _DEFAULT_MENUBAR_FONT = QFont("Microsoft YaHei UI", 12, QFont.Bold)
@@ -65,12 +80,14 @@ _DEFAULT_TEXT_FONT = QFont("Arial", 10)
 _DEFAULT_LIST_FONT = QFont("Consolas", 14)
 _EVEN_LINE_COLOR = QColor(235, 235, 235)
 
-_VARI_DICT = {"H2_vib_energy_in_eV" : H2_vib_energy_in_eV,
-              "H2_vib_energy_in_K"  : H2_vib_energy_in_K,
-              "CO_vib_energy_in_eV" : CO_vib_energy_in_eV,
-              "CO_vib_energy_in_K"  : CO_vib_energy_in_K,
-              "CO2_vib_energy_in_eV": CO2_vib_energy_in_eV,
-              "CO2_vib_energy_in_K" : CO2_vib_energy_in_K}
+_VARI_DICT = {
+    "H2_vib_energy_in_eV": H2_vib_energy_in_eV,
+    "H2_vib_energy_in_K": H2_vib_energy_in_K,
+    "CO_vib_energy_in_eV": CO_vib_energy_in_eV,
+    "CO_vib_energy_in_K": CO_vib_energy_in_K,
+    "CO2_vib_energy_in_eV": CO2_vib_energy_in_eV,
+    "CO2_vib_energy_in_K": CO2_vib_energy_in_K
+}
 
 
 # ---------------------------------------------------------------------------- #
@@ -81,8 +98,8 @@ class RctnDictView(QW.QWidget):
     | rctn_list | rctn_list | rctn_list |  rctn_list  | rctn_list  |
     |-----------|-----------|-----------|-------------|------------|
     """
-    _LIST_NAME = ("species",
-                  "electron", "chemical", "decom_recom", "relaxation")
+    _LIST_NAME = ("species", "electron", "chemical", "decom_recom",
+                  "relaxation")
     _CHECKBOX_FONT = QFont("Arial", 12)
     _LIST_FONT = QFont("Consolas", 11)
     _LIST_HEIGHT = 800
@@ -108,7 +125,7 @@ class RctnDictView(QW.QWidget):
         for _ in self._LIST_NAME:
             self._rctn_list[_] = QW.QListWidget()
             self._rctn_list[_].setSelectionMode(
-                    QW.QAbstractItemView.ExtendedSelection)
+                QW.QAbstractItemView.ExtendedSelection)
             self._rctn_list[_].setFixedHeight(self._LIST_HEIGHT)
             self._rctn_list[_].setFixedWidth(self._LIST_WIDTH)
             self._rctn_list[_].setFont(self._LIST_FONT)
@@ -138,22 +155,23 @@ class RctnDictView(QW.QWidget):
             self._rctn_list[_].clearSelection()
 
     def _set_connect(self):
+
         def selectAll(_key):
             if self._checkboxes[_key].isChecked():
                 self._rctn_list[_key].selectAll()
             else:
                 self._rctn_list[_key].clearSelection()
 
-        self._checkboxes["species"].stateChanged.connect(lambda: selectAll(
-                "species"))
-        self._checkboxes["electron"].stateChanged.connect(lambda: selectAll(
-                "electron"))
-        self._checkboxes["chemical"].stateChanged.connect(lambda: selectAll(
-                "chemical"))
-        self._checkboxes["decom_recom"].stateChanged.connect(lambda: selectAll(
-                "decom_recom"))
-        self._checkboxes["relaxation"].stateChanged.connect(lambda: selectAll(
-                "relaxation"))
+        self._checkboxes["species"].stateChanged.connect(
+            lambda: selectAll("species"))
+        self._checkboxes["electron"].stateChanged.connect(
+            lambda: selectAll("electron"))
+        self._checkboxes["chemical"].stateChanged.connect(
+            lambda: selectAll("chemical"))
+        self._checkboxes["decom_recom"].stateChanged.connect(
+            lambda: selectAll("decom_recom"))
+        self._checkboxes["relaxation"].stateChanged.connect(
+            lambda: selectAll("relaxation"))
 
     def _set_layout(self):
         _list_layout = QW.QGridLayout()
@@ -235,8 +253,8 @@ class CrosRctnDfView(RctnDfView):
             if divmod(_i, 2)[1] == 0:
                 self._kstr.item(_i).setBackground(_EVEN_LINE_COLOR)
         _output_list = []
-        Te_seq = (0.1, 0.2, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0,
-                  5.0, 7.0, 10.0, 20.0, 50.0, 100.0)
+        Te_seq = (0.1, 0.2, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 5.0, 7.0, 10.0, 20.0,
+                  50.0, 100.0)
         self._copy_text = ""
         for i_row, _Te in enumerate(Te_seq):
             _Te_str = f"{_Te:.1f}"
@@ -261,8 +279,7 @@ class CrosRctnDfView(RctnDfView):
         _cros_df_to_show = []
         for _index in self._rctn_df["cros"].index:
             _type = self._rctn_df["cros"].loc[_index, "type"]
-            _threshold = self._rctn_df["cros"].loc[_index,
-                                                   "threshold_eV"]
+            _threshold = self._rctn_df["cros"].loc[_index, "threshold_eV"]
             _reactant = self._rctn_df["cros"].loc[_index, "reactant"]
             _product = self._rctn_df["cros"].loc[_index, "product"]
             _formula = self._rctn_df["cros"].loc[_index, "formula"]
@@ -310,10 +327,12 @@ class CoefRctnDfView(RctnDfView):
         _k_list = []
         self._copy_text = ""
         for i_row, _Tgas in enumerate(_energy_list):
-            _k = eval(_kstr, None, {"Tgas": _Tgas,
-                                    "exp" : math.exp,
-                                    "log" : math.log,
-                                    "sqrt": math.sqrt})
+            _k = eval(_kstr, None, {
+                "Tgas": _Tgas,
+                "exp": math.exp,
+                "log": math.log,
+                "sqrt": math.sqrt
+            })
             _k_list.append(_k)
             self._copy_text = self._copy_text + f"{_k:.1e}\n"
             _str = f"{_Tgas:5.0f} K  {_k:.1e}    {_k * const.N_A:.1e}"
@@ -405,8 +424,7 @@ class DensitySetting(QW.QWidget):
         _layout_btn.addWidget(self._delete_btn)
         _layout_btn.addStretch(1)
 
-        _parent_layout.addLayout(_layout_btn, 1, 2,
-                                 Qt.AlignLeft | Qt.AlignTop)
+        _parent_layout.addLayout(_layout_btn, 1, 2, Qt.AlignLeft | Qt.AlignTop)
         _parent_layout.addWidget(self._density_list, 1, 3,
                                  Qt.AlignLeft | Qt.AlignTop)
         _parent_layout.setColumnStretch(4, 1)
@@ -439,88 +457,52 @@ class DensitySetting(QW.QWidget):
         self._delete_btn.clicked.connect(self._delete_selected_density)
 
 
-# ---------------------------------------------------------------------------- #
-class ThePlot(QPlot):
-
-    def __init__(self, parent=None, figsize=(5, 4)):
-        super().__init__(parent, figsize=figsize)
-        self.axes = self.figure.add_subplot(111)
-        self.figure.subplots_adjust(0.15, 0.15, 0.95, 0.95)
-
-    def canvas_draw(self):
-        self.canvas.draw()
-
-    def clear_plot(self):
-        while len(self.axes.lines):
-            self.axes.lines.pop(0)
-        self.canvas_draw()
-
-
-class TheCrostnPlot(ThePlot):
+class TheCrostnPlot(FigureWithToolbar):
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.initialize()
 
     def initialize(self):
-        self.axes.clear()
         self.axes.grid()
         self.axes.set_xscale("log")
         self.axes.set_xlabel("Energy (eV)")
         self.axes.set_ylabel("Cross section (m2)")
 
-    def plot(self, *, xdata, ydata, label=""):
-        self.clear_plot()
-        self.axes.plot(xdata, ydata, linewidth=1, marker='.',
-                       markersize=1.4, label=label)
-        self.axes.relim()
-        self.axes.autoscale()
-        self.canvas_draw()
 
-
-class TheRateConstPlot(ThePlot):
+class TheRateConstPlot(FigureWithToolbar):
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.initialize()
 
     def initialize(self):
-        self.axes.clear()
         self.axes.grid()
         self.axes.set_yscale("log")
         self.axes.set_xlabel("Tgas (K)")
         self.axes.set_ylabel("Rate constant (cm3/s)")
 
-    def plot(self, *, xdata, ydata, label=""):
-        self.clear_plot()
-        self.axes.plot(xdata, ydata, linewidth=1, marker='.',
-                       markersize=1.4, label=label)
-        self.axes.relim()
-        self.axes.autoscale()
-        self.canvas_draw()
-
 
 # ---------------------------------------------------------------------------- #
-class TheDensitiesPlot(ThePlot):
-
-    def __init__(self, parent=None):
-        super().__init__(parent, figsize=(8, 6))
-        self.initialize()
-
-    def initialize(self):
-        self.axes.clear()
-        self.axes.grid()
-
-    def plot(self, *, xdata, ydata, labels=[]):
-        self.clear_plot()
-        for _density, _label in zip(ydata, labels):
-            self.axes.plot(xdata, _density, linewidth=1, marker=".",
-                           markersize=1.4, label=_label)
-        self.axes.relim()
-        self.axes.autoscale()
-        self.figure.legend()
-        self.canvas_draw()
-
+# class TheDensitiesPlot(FigureWithToolbar):
+#
+#     def __init__(self, parent=None):
+#         super().__init__(parent)
+#         self.initialize()
+#
+#     def initialize(self):
+#         self.axes.clear()
+#         self.axes.grid()
+#
+#     def plot(self, *, xdata, ydata, labels=[]):
+#         self.clear_plot()
+#         for _density, _label in zip(ydata, labels):
+#             self.axes.plot(xdata, _density, linewidth=1, marker=".",
+#                            markersize=1.4, label=_label)
+#         self.axes.relim()
+#         self.axes.autoscale()
+#         self.figure.legend()
+#         self.canvas_draw()
 
 # ---------------------------------------------------------------------------- #
 # class PlasmaParas(QW.QWidget):
@@ -559,11 +541,9 @@ class TheDensitiesPlot(ThePlot):
 
 # ---------------------------------------------------------------------------- #
 class EvolveParas(QW.QWidget):
-    _PARAMETERS = ("ne",
-                   "Tgas_arc", "Tgas_cold",
-                   "atol", "rtol",
-                   "electron_max_energy_eV", "eedf_grid_number",
-                   "time_span", "time_escape_plasma", "time_cold")
+    _PARAMETERS = ("ne", "Tgas_arc", "Tgas_cold", "atol", "rtol",
+                   "electron_max_energy_eV", "eedf_grid_number", "time_span",
+                   "time_escape_plasma", "time_cold")
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -592,19 +572,17 @@ class EvolveParas(QW.QWidget):
         for _ in self._PARAMETERS:
             if _ == "time_span":
                 _str = self._parameters[_].text()
-                _value_dict[_] = (eval(_str.split()[0]),
-                                  eval(_str.split()[1]))
+                _value_dict[_] = (eval(_str.split()[0]), eval(_str.split()[1]))
             else:
                 _value_dict[_] = eval(self._parameters[_].text())
         return _value_dict
 
     def _set_layout(self):
         _layout = QW.QGridLayout()
-        for i, _ in enumerate(("ne", "",
-                               "Tgas_arc", "Tgas_cold", "",
-                               "atol", "rtol", "",
-                               "electron_max_energy_eV", "eedf_grid_number", "",
-                               "time_span", "time_escape_plasma", "time_cold")):
+        for i, _ in enumerate(
+            ("ne", "", "Tgas_arc", "Tgas_cold", "", "atol", "rtol", "",
+             "electron_max_energy_eV", "eedf_grid_number", "", "time_span",
+             "time_escape_plasma", "time_cold")):
             _label = BetterQLabel(_)
             _label.setFont(QFont("Consolas", 15))
             _layout.addWidget(_label, i, 0, Qt.AlignRight)
@@ -618,6 +596,37 @@ class EvolveParas(QW.QWidget):
 
 
 # ---------------------------------------------------------------------------- #
+class ResultPlot(QW.QWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._ne_plot = FigureWithToolbar()
+        self._Tgas_plot = FigureWithToolbar()
+        self._density_plot = FigureWithToolbar()
+        self._eedf_plot = FigureWithToolbar()
+        self._set_layout()
+        self._ne_plot.axes.set_xlabel("Time [s]")
+        self._ne_plot.axes.set_title("ne vs. t")
+        self._ne_plot.axes.set_ylabel("Ne [cm-3]")
+        self._Tgas_plot.axes.set_xlabel("Time [s]")
+        self._Tgas_plot.axes.set_title("Tgas vs. t")
+        self._Tgas_plot.axes.set_ylabel("Tgas [K]")
+        self._density_plot.axes.set_xlabel("Time [s]")
+        self._density_plot.axes.set_title("Density vs. t")
+        self._density_plot.axes.set_ylabel("Density [cm3]")
+        self._eedf_plot.axes.set_xlabel("Energy [eV]")
+        self._eedf_plot.axes.set_title("eedf vs. energy")
+        self._eedf_plot.axes.set_ylabel("eedf [eV-3/2]")
+
+    def _set_layout(self):
+        layout = QW.QGridLayout()
+        layout.addWidget(self._ne_plot, 0, 0)
+        layout.addWidget(self._Tgas_plot, 0, 1)
+        layout.addWidget(self._density_plot, 1, 0)
+        layout.addWidget(self._eedf_plot, 1, 1)
+        self.setLayout(layout)
+
+
 class _PlasmistryGui(QW.QMainWindow):
     _help_str = ""
     _NAME = "Plasmistry"
@@ -639,16 +648,15 @@ class _PlasmistryGui(QW.QMainWindow):
         # -------------------------------------------------------------------- #
         #   Data
         # -------------------------------------------------------------------- #
-        self.rctn_dict = {"species"              : "",
-                          "electron reactions"   : "",
-                          "relaxation reactions" : "",
-                          "chemical reactions"   : "",
-                          "decom_recom reactions": ""}
-        self.rctn_df = {"species": "",
-                        "cros"   : "",
-                        "coef"   : ""}
-        self.rctn_instances = {"cros": "",
-                               "coef": ""}
+        self.rctn_dict = {
+            "species": "",
+            "electron reactions": "",
+            "relaxation reactions": "",
+            "chemical reactions": "",
+            "decom_recom reactions": ""
+        }
+        self.rctn_df = {"species": "", "cros": "", "coef": ""}
+        self.rctn_instances = {"cros": "", "coef": ""}
 
         # -------------------------------------------------------------------- #
         #   Child widgets
@@ -659,8 +667,9 @@ class _PlasmistryGui(QW.QMainWindow):
         # self._plasma_paras = PlasmaParas()
         self._paras = EvolveParas()
         self._output = QW.QTextEdit()
-        self._evolution_plot = TheDensitiesPlot()
+        self._evolution_plot = QW.QWidget()
         self._densities = DensitySetting()
+        self._result_show = ResultPlot()
         self._buttons = dict()
         self._menubar = dict()
         self._actions = dict()
@@ -693,8 +702,7 @@ class _PlasmistryGui(QW.QMainWindow):
         self.move(qr.topLeft())
 
     def quit(self):
-        reply = QMessageBox.question(self, "Message",
-                                     "Are you sure to quit",
+        reply = QMessageBox.question(self, "Message", "Are you sure to quit",
                                      QMessageBox.Yes | QMessageBox.No,
                                      QMessageBox.No)
         if reply == QMessageBox.Yes:
@@ -719,8 +727,8 @@ class _PlasmistryGui(QW.QMainWindow):
     def _set_menubar(self):
         for _key in ("file", "edit", "view", "navigate", "tools", "options",
                      "help"):
-            self._menubar[_key] = self.menuBar().addMenu(
-                    "&" + _key.capitalize())
+            self._menubar[_key] = self.menuBar().addMenu("&" +
+                                                         _key.capitalize())
         self._menubar["file"].addAction(self._actions["open"])
         self._menubar["file"].addAction(self._actions["quit"])
         self.menuBar().setFont(_DEFAULT_MENUBAR_FONT)
@@ -731,8 +739,8 @@ class _PlasmistryGui(QW.QMainWindow):
         for _ in ("DictToDf", "DfToInstance"):
             self._toolbar.addAction(self._actions[_])
             self._toolbar.widgetForAction(self._actions[_]).setStyleSheet(_str)
-            self._toolbar.widgetForAction(self._actions[_]).setFont(
-                    _DEFAULT_TOOLBAR_FONT)
+            self._toolbar.widgetForAction(
+                self._actions[_]).setFont(_DEFAULT_TOOLBAR_FONT)
             self._toolbar.addSeparator()
 
     def _set_tab_widget(self):
@@ -752,6 +760,8 @@ class _PlasmistryGui(QW.QMainWindow):
         # _layout.addStretch(1)
         _widget.setLayout(_layout)
         self._tab_widget.addTab(_widget, "Run Paras")
+        self._tab_widget.addTab(self._result_show, "Sim Result")
+
         #
         self._tab_widget.setStyleSheet("QTabBar::tab {width:150px;}")
         self._tab_widget.setFont(_DEFAULT_TOOLBAR_FONT)
@@ -801,18 +811,14 @@ class _PlasmistryGui(QW.QMainWindow):
                 _species.append(key)
         rctn_df = dict()
         rctn_df["species"] = pd.Series(_species)
-        rctn_df["electron"] = pd.DataFrame(columns=["formula", "type",
-                                                    "threshold_eV",
-                                                    "cross_section"])
-        rctn_df["chemical"] = pd.DataFrame(columns=["formula", "type",
-                                                    "reactant", "product",
-                                                    "kstr"])
-        rctn_df["relaxation"] = pd.DataFrame(columns=["formula", "type",
-                                                      "reactant", "product",
-                                                      "kstr"])
-        rctn_df["decom_recom"] = pd.DataFrame(columns=["formula", "type",
-                                                       "reactant", "product",
-                                                       "kstr"])
+        rctn_df["electron"] = pd.DataFrame(
+            columns=["formula", "type", "threshold_eV", "cross_section"])
+        rctn_df["chemical"] = pd.DataFrame(
+            columns=["formula", "type", "reactant", "product", "kstr"])
+        rctn_df["relaxation"] = pd.DataFrame(
+            columns=["formula", "type", "reactant", "product", "kstr"])
+        rctn_df["decom_recom"] = pd.DataFrame(
+            columns=["formula", "type", "reactant", "product", "kstr"])
         for _key_0, _key_1 in (("electron", "electron reactions"),
                                ("relaxation", "relaxation reactions"),
                                ("chemical", "chemical reactions"),
@@ -828,18 +834,19 @@ class _PlasmistryGui(QW.QMainWindow):
                     _block = Coef_Reaction_block(rctn_dict=_dict,
                                                  vari_dict=_VARI_DICT,
                                                  global_abbr=_global_abbr)
-                rctn_df[_key_0] = pd.concat([rctn_df[_key_0],
-                                             _block.generate_crostn_dataframe()],
-                                            ignore_index=True,
-                                            sort=False)
+                rctn_df[_key_0] = pd.concat(
+                    [rctn_df[_key_0],
+                     _block.generate_crostn_dataframe()],
+                    ignore_index=True,
+                    sort=False)
 
         self.rctn_df["species"] = rctn_df["species"]
         self.rctn_df["cros"] = rctn_df["electron"]
-        self.rctn_df["coef"] = pd.concat(
-                [rctn_df["chemical"], rctn_df["decom_recom"],
-                 rctn_df["relaxation"]],
-                ignore_index=True,
-                sort=False)
+        self.rctn_df["coef"] = pd.concat([
+            rctn_df["chemical"], rctn_df["decom_recom"], rctn_df["relaxation"]
+        ],
+                                         ignore_index=True,
+                                         sort=False)
         self.show_message("rctn dict => rctn df\nDone!")
 
     def show_rctn_df(self):
@@ -850,23 +857,24 @@ class _PlasmistryGui(QW.QMainWindow):
 
     def rctn_df_to_rctn_instance(self):
         #   Set cros reactions instance
-        split_df = self.rctn_df["cros"]["formula"].str.split(
-                "\s*=>\s*",
-                expand=True)
+        split_df = self.rctn_df["cros"]["formula"].str.split("\s*=>\s*",
+                                                             expand=True)
         reactant = split_df[0]
         product = split_df[1]
         self.rctn_instances["cros"] = CrosReactions(
-                species=self.rctn_df["species"],
-                reactant=reactant,
-                product=product,
-                k_str=None)
+            species=self.rctn_df["species"],
+            reactant=reactant,
+            product=product,
+            k_str=None)
         #   Set coef reactions instance
         reactant = self.rctn_df["coef"]["reactant"]
         product = self.rctn_df["coef"]["product"]
         kstr = self.rctn_df["coef"]["kstr"]
         self.rctn_instances["coef"] = CoefReactions(
-                species=self.rctn_df["species"],
-                reactant=reactant, product=product, k_str=kstr)
+            species=self.rctn_df["species"],
+            reactant=reactant,
+            product=product,
+            k_str=kstr)
         self.rctn_instances["coef"].compile_k_str()
 
     # ------------------------------------------------------------------------ #
@@ -895,6 +903,7 @@ class _PlasmistryGui(QW.QMainWindow):
     #             "_output/coef_reactions.pkl")
 
     def _set_connect(self):
+
         def LoadDict():
             self.yaml_to_rctn_dict()
             self.show_rctn_dict()
@@ -917,7 +926,7 @@ class _PlasmistryGui(QW.QMainWindow):
         self._actions["quit"].triggered.connect(self.quit)
         self._actions["DictToDf"].triggered.connect(DictToDf)
         self._actions["DfToInstance"].triggered.connect(
-                self.rctn_df_to_rctn_instance)
+            self.rctn_df_to_rctn_instance)
 
     def _set_layout(self):
         _layout = QW.QVBoxLayout()
@@ -928,8 +937,12 @@ class _PlasmistryGui(QW.QMainWindow):
     def _set_dockwidget(self):
         _default_features = QW.QDockWidget.DockWidgetClosable | \
                             QW.QDockWidget.DockWidgetFloatable
-        _list = ["View", ]
-        _widgets_to_dock = [self._evolution_plot, ]
+        _list = [
+            "View",
+        ]
+        _widgets_to_dock = [
+            self._evolution_plot,
+        ]
         _dock_dict = dict()
         for _, _widget in zip(_list, _widgets_to_dock):
             _dock_dict[_] = QW.QDockWidget(_, self)
@@ -977,24 +990,21 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
         eedf = EEDF(max_energy_eV=self._PARAS["electron_max_energy_eV"],
                     grid_number=self._PARAS["eedf_grid_number"])
         self.rctn_instances["cros"].set_rate_const_matrix(
-                crostn_dataframe=self.rctn_df["cros"],
-                electron_energy_grid=eedf.energy_point
-        )
+            crostn_dataframe=self.rctn_df["cros"],
+            electron_energy_grid=eedf.energy_point)
 
     def dndt_cros(self, t, density_without_e, _electron_density,
                   normalized_eedf):
         self.rctn_instances["cros"].set_rate_const(
-                eedf_normalized=normalized_eedf)
-        self.rctn_instances["cros"].set_rate(density=np.hstack([
-                _electron_density,
-                density_without_e]))
+            eedf_normalized=normalized_eedf)
+        self.rctn_instances["cros"].set_rate(
+            density=np.hstack([_electron_density, density_without_e]))
         return self.rctn_instances["cros"].get_dn()
 
     def dndt_coef(self, t, density_without_e, _electron_density, Tgas_K):
         self.rctn_instances["coef"].set_rate_const(Tgas_K=Tgas_K)
-        self.rctn_instances["coef"].set_rate(density=np.hstack([
-                _electron_density,
-                density_without_e]))
+        self.rctn_instances["coef"].set_rate(
+            density=np.hstack([_electron_density, density_without_e]))
         return self.rctn_instances["coef"].get_dn()
 
     def dndt_all(self, t, y, normalized_eedf):
@@ -1008,14 +1018,13 @@ class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
         self._PARAS = self._paras.value()
         _densities_dict = self._densities._densities_dict()
         density_0 = self.rctn_instances["coef"].get_initial_density(
-                density_dict=_densities_dict)
+            density_dict=_densities_dict)
         density_without_e_0 = density_0[1:]
         self._init_cros_reactions()
         ####
         eedf = EEDF(max_energy_eV=self._PARAS["electron_max_energy_eV"],
                     grid_number=self._PARAS["eedf_grid_number"])
-        normalized_eedf = get_maxwell_eedf(eedf.energy_point,
-                                           Te_eV=1.0)
+        normalized_eedf = get_maxwell_eedf(eedf.energy_point, Te_eV=1.0)
 
         def dndt(t, y):
             print(f"time: {t:.6e} s")
@@ -1040,4 +1049,3 @@ if __name__ == "__main__":
     window.show()
     # sys.exit(app.exec_())
     from scipy import sparse
-

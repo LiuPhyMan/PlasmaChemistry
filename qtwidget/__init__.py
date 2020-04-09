@@ -9,8 +9,8 @@ Created on 7:39 2018/3/30
 @IDE:       PyCharm
 """
 from __future__ import division, print_function, absolute_import
-from .widgets import *
-from .basic_widget import IterReadFileVBoxLayout, DataFrameTableWidget, DataFrameTreatWindow
+from .widgets import FigureWithToolbar
+# from .basic_widget import IterReadFileVBoxLayout, DataFrameTableWidget, DataFrameTreatWindow
 
 __all__ = [s for s in dir() if not s.startswith('_')]
 
