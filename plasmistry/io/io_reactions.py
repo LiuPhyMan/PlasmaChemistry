@@ -678,7 +678,7 @@ class Cros_Reaction_block(Reaction_block):
 
     def generate_crostn_dataframe(self, *, factor=1):
         _df = dict()
-        _df["formula"] = self._formula_list
+        _df["formula"] = [re.sub(r"\s+", " ", _) for _ in self._formula_list]
         _df["reactant"] = [re.split(r"\s*=>\s*", _)[0] for _ in
                            self._formula_list]
         _df["product"] = [re.split(r"\s*=>\s*", _)[1] for _ in

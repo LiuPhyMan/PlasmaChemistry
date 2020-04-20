@@ -89,6 +89,7 @@ class Reactions(object):
         sep=r"[ ][+][ ]")
     __slots__ = ['reaction_type',
                  'species',
+                 'species_group',
                  'reactant',
                  'product',
                  'formula',
@@ -421,6 +422,7 @@ class Reactions(object):
         -------
 
         """
+        self.species_group = group_dict
         for _group_specie in group_dict:
             assert _group_specie in self.species.values, _group_specie
             for _specie in group_dict[_group_specie]:
@@ -538,6 +540,8 @@ class Reactions(object):
             assert isinstance(density_dict[key], float) or isinstance(
                 density_dict[key], int)
             density_0[key] = density_dict[key]
+        for _specie in self.species_group:
+            density_0[_specie] = density_0[self.species_group[_specie]].sum()
         return density_0.values
 
     def __str__(self):

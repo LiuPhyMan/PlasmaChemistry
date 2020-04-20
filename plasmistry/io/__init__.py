@@ -61,8 +61,8 @@ def combine_crostn_reaction_dataframe(*, crostn_dataframe, reactn_dataframe):
                                              'k_str'}
 
     _dataframe = pd.DataFrame(
-            columns=['reaction', 'reactant', 'product', 'type',
-                     'threshold_eV', 'cs_key', 'dH_e', 'cross_section'])
+        columns=['reaction', 'reactant', 'product', 'type',
+                 'threshold_eV', 'cs_key', 'dH_e', 'cross_section'])
     for i_rctn in reactn_dataframe.index:
         _temp = dict()
         _temp['cs_key'] = reactn_dataframe.at[i_rctn,
@@ -70,7 +70,7 @@ def combine_crostn_reaction_dataframe(*, crostn_dataframe, reactn_dataframe):
             1].replace(' ', '')
         assert _temp['cs_key'] in crostn_dataframe['cs_key'].values, \
             "The '{}' is not in cross section dataframe.".format(
-                    _temp['cs_key'])
+                _temp['cs_key'])
         crostn_series = crostn_dataframe[
             crostn_dataframe['cs_key'] == _temp['cs_key']]
         crostn_series = crostn_series.reset_index(drop=True).loc[0]
@@ -84,7 +84,7 @@ def combine_crostn_reaction_dataframe(*, crostn_dataframe, reactn_dataframe):
             _temp['threshold_eV'] = 0.0
         else:
             _temp['threshold_eV'] = float(
-                    crostn_series['thres_info'].split(maxsplit=1)[0])
+                crostn_series['thres_info'].split(maxsplit=1)[0])
         _temp['cross_section'] = crostn_series['cross_section']
         _dataframe = _dataframe.append(pd.Series(_temp), ignore_index=True)
     return _dataframe
@@ -125,6 +125,30 @@ def F_gamma_constructor(loader, node):
     _str = loader.construct_scalar(node)
     assert isinstance(_str, str)
     return f"0.5*(3-exp(-2/3*({_str})))*exp(-2/3*({_str}))"
+
+
+def a_para_constructor(loader, node):
+    _list = loader.construct_sequence(node)
+    a_para_dict = {"CO": 3.690,
+                   "CO2": 3.941,
+                   "H2": 2.827,
+                   "H2O": 2.641,
+                   "O2": 3.467,
+                   "H": 0.000}
+    return f"{17.5 / (a_para_dict[_list[0]] + a_para_dict[_list[1]]) * 2:.6f}"
+
+
+def reduced_mass_constructor(loader, node):
+    _list = loader.construct_sequence(node)
+    mass_dict = {"CO2": 44.010,
+                 "CO": 28.010,
+                 "H2": 2.016,
+                 "H2O": 18.015,
+                 "O2": 31.999,
+                 "H": 1.008}
+    _mass_1 = mass_dict[_list[0]]
+    _mass_2 = mass_dict[_list[1]]
+    return f"{_mass_1 * _mass_2 / (_mass_1 + _mass_2):.3f}"
 
 
 def alpha_constructor(loader, node):
