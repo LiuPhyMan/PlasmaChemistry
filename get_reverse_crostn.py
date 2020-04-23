@@ -9,6 +9,10 @@ CO2_vib = [get_vib_energy("CO2", quantum_number=(0, 0, i),
                           minimum_is_zero=True) for i in range(22)]
 
 
+# H2O_vib = [get_vib_energy("H2O", quantum_number=(0, 0, i), minimum_is_zero=True)
+#            get_vib_energy("H2O", quantum_number=(0))for i in (0, 1)]
+
+
 def _reverse_crostn(file_path, threshold_eV):
     data = np.loadtxt(file_path, comments="#")
 
@@ -38,14 +42,19 @@ def _reverse_crostn(file_path, threshold_eV):
 #                        fmt="%.8e",
 #                        delimiter=" ")
 
-i = 0
-j = 2
-file_path = f"_cs_list/koelman2016/cs_set/reverse/CO2" \
-            f"/cs_CO2v{i}_vibexc_CO2v{j}_reverse.lut"
-data = np.loadtxt(file_path)
-plt.semilogx(data[:, 0], data[:, 1], marker=".", linestyle="")
-file_path = f"_cs_list/koelman2016/cs_set/reverse/CO2" \
-            f"/cs_CO2v{i}_vibexc_CO2v{j}_reverse_self_calc.lut"
-data = np.loadtxt(file_path)
-plt.semilogx(data[:, 0], data[:, 1])
-plt.show()
+file_path = f"_cs_list\H2O\cs_H2O_ele_diss.dat"
+_data = np.loadtxt(file_path)
+_data[:, 0] = _data[:, 0] - 0.391
+# reversed_data = _reverse_crostn(file_path, 0.459)
+np.savetxt(f"_cs_list\H2O\cs_H2Ov2_ele_diss.dat", _data)
+# i = 0
+# j = 2
+# file_path = f"_cs_list/koelman2016/cs_set/reverse/CO2" \
+#             f"/cs_CO2v{i}_vibexc_CO2v{j}_reverse.lut"
+# data = np.loadtxt(file_path)
+# plt.semilogx(data[:, 0], data[:, 1], marker=".", linestyle="")
+# file_path = f"_cs_list/koelman2016/cs_set/reverse/CO2" \
+#             f"/cs_CO2v{i}_vibexc_CO2v{j}_reverse_self_calc.lut"
+# data = np.loadtxt(file_path)
+# plt.semilogx(data[:, 0], data[:, 1])
+# plt.show()

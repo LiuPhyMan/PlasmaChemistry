@@ -12,7 +12,7 @@ import sys
 import math
 import numpy as np
 from scipy.integrate import solve_ivp
-from scipy.integrate import trapz
+from scipy.integrate import trapz, simps
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import \
     NavigationToolbar2QT as NavigationToolbar
@@ -79,8 +79,9 @@ for _key in constructor_dict:
     yaml.add_constructor(_key, constructor_dict[_key], Loader=yaml.FullLoader)
 
 # ---------------------------------------------------------------------------- #
-_DEFAULT_MENUBAR_FONT = QFont("Microsoft YaHei UI", 12, QFont.Bold)
-_DEFAULT_TOOLBAR_FONT = QFont("Arial", 10)
+_DEFAULT_MENUBAR_FONT = QFont("Microsoft YaHei UI", 12, QFont.Bold, italic=True)
+_DEFAULT_ACTION_FONT = QFont("Microsoft YaHei UI", 10, QFont.Bold)
+_DEFAULT_TOOLBAR_FONT = QFont("Microsoft YaHei UI", 11)
 _DEFAULT_TABBAR_FONT = QFont("Arial", 10)
 _DEFAULT_TEXT_FONT = QFont("Arial", 10)
 _DEFAULT_LIST_FONT = QFont("Consolas", 10)
@@ -98,6 +99,48 @@ _VARI_DICT = {
 
 
 # ---------------------------------------------------------------------------- #
+# class HandleExceptError:
+#
+#     def __init__(self, func):
+#         self.func = func
+#
+#     def __call__(self, *args, **kwargs):
+#         print(self.func.__name__)
+#         self.func(*args, **kwargs)
+
+def handle_except_error(func):
+    def onCall(*args, **kwargs):
+        # print(func.__name__)
+        # return func(*args, **kwargs)
+        try:
+            func(*args, **kwargs)
+        except:
+            print("###################\n"
+                  "### EXCEPTION ! ###\n"
+                  "###################\n"
+                  f"The '{func.__name__}' is error!\n"
+                  "###################")
+
+    return onCall
+
+
+def handle_return_except_error(func):
+    def onCall(*args, **kwargs):
+        # print(func.__name__)
+        # return func(*args, **kwargs)
+        try:
+            return func(*args, **kwargs)
+        except:
+            print("###################\n"
+                  "### EXCEPTION ! ###\n"
+                  "###################\n"
+                  f"The '{func.__name__}' is error!\n"
+                  "###################")
+
+    return onCall
+
+
+# ---------------------------------------------------------------------------- #
 class RctnDictView(QW.QWidget):
     r"""
     |  species  |  electron |  chemical | decom_recom | relaxation |
@@ -105,8 +148,8 @@ class RctnDictView(QW.QWidget):
     | rctn_list | rctn_list | rctn_list |  rctn_list  | rctn_list  |
     |-----------|-----------|-----------|-------------|------------|
     """
-    _LIST_NAME = ("species", "electron", "chemical", "decom_recom",
-                  "relaxation")
+    _LIST_NAME = ("species", "electron",
+                  "chemical", "decom_recom", "relaxation")
     _CHECKBOX_FONT = QFont("Arial", 12)
     _LIST_FONT = QFont("Consolas", 11)
     _LIST_HEIGHT = 800
@@ -138,6 +181,7 @@ class RctnDictView(QW.QWidget):
             self._rctn_list[_].setFont(self._LIST_FONT)
 
     def _set_rctn_dict(self, rctn_dict):
+        self._clear()
         for _ in rctn_dict["species"]:
             self._rctn_list["species"].addItem(_)
         for _ in rctn_dict["electron reactions"]:
@@ -190,7 +234,7 @@ class RctnDictView(QW.QWidget):
 
 
 # ---------------------------------------------------------------------------- #
-class RctnDfView(QW.QWidget):
+class _RctnDfView(QW.QWidget):
     _LIST_FONT = QFont("consolas", 12)
 
     # #######################################
@@ -238,7 +282,7 @@ class RctnDfView(QW.QWidget):
         self.setLayout(_layout)
 
 
-class CrosRctnDfView(RctnDfView):
+class CrosRctnDfView(_RctnDfView):
 
     def __init__(self):
         super().__init__()
@@ -299,7 +343,20 @@ class CrosRctnDfView(RctnDfView):
                 self._rctn_list.item(_i).setBackground(_EVEN_LINE_COLOR)
 
 
-class CoefRctnDfView(RctnDfView):
+class TheCrostnPlot(FigureWithToolbar):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.initialize()
+
+    def initialize(self):
+        self.axes.grid()
+        self.axes.set_xscale("log")
+        self.axes.set_xlabel("Energy (eV)")
+        self.axes.set_ylabel("Cross section (m2)")
+
+
+class CoefRctnDfView(_RctnDfView):
 
     def __init__(self):
         super().__init__()
@@ -371,10 +428,23 @@ class CoefRctnDfView(RctnDfView):
                 self._rctn_list.item(_i).setBackground(_EVEN_LINE_COLOR)
 
 
+class TheRateConstPlot(FigureWithToolbar):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.initialize()
+
+    def initialize(self):
+        self.axes.grid()
+        self.axes.set_yscale("log")
+        self.axes.set_xlabel("Tgas (K)")
+        self.axes.set_ylabel("Rate constant (cm3/s)")
+
+
 # ---------------------------------------------------------------------------- #
-class EvolveParas(QW.QWidget):
+class EvolveSettings(QW.QWidget):
     _PARAMETERS = ("ne", "Tgas_arc", "Tgas_cold", "atol", "rtol",
-                   "electron_max_energy_eV", "eedf_grid_number", "Te",
+                   "electron_max_energy_eV", "eedf_grid_number",
                    "time_span",
                    "time_escape_plasma", "time_cold")
 
@@ -400,7 +470,7 @@ class EvolveParas(QW.QWidget):
         self._parameters["rtol"].setText("0.01")
         self._parameters["electron_max_energy_eV"].setText("30")
         self._parameters["eedf_grid_number"].setText("300")
-        self._parameters["Te"].setText("1.0")
+        # self._parameters["Te"].setText("1.0")
         self._parameters["time_span"].setText("0 1e-1")
         self._parameters["time_escape_plasma"].setText("1e-3")
         self._parameters["time_cold"].setText("1e-3 + 1e-2")
@@ -420,12 +490,16 @@ class EvolveParas(QW.QWidget):
         for _key in self._PARAMETERS:
             _str.append(f"{_key} {self._parameters[_key].text()}")
         _str = "\n".join(_str)
-        (filename, _) = QW.QFileDialog.getSaveFileName(self)
+        (filename, _) = QW.QFileDialog.getSaveFileName(self,
+                                                       "Save evolve settings",
+                                                       "_output/")
         with open(filename, "w") as f:
             f.write(_str)
 
     def load_values_from_file(self):
-        (filename, _) = QW.QFileDialog.getOpenFileName(self)
+        (filename, _) = QW.QFileDialog.getOpenFileName(self,
+                                                       "Load evolve settings",
+                                                       "_output/")
         with open(filename, "r") as f:
             _value_list = f.readlines()
         for _value_str in _value_list:
@@ -466,7 +540,7 @@ class EvolveParas(QW.QWidget):
 
 
 class DensitySetting(QW.QWidget):
-    _SPECIES = ("E", "H2", "CO2", "CO", "H2O", "O2", "N2")
+    _SPECIES = ("E", "CO2", "H2", "CO", "H2O", "O2", "N2")
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -483,21 +557,22 @@ class DensitySetting(QW.QWidget):
         self._density_value = QW.QTextEdit()
         self._import_btn = BetterQPushButton("=>")
         self._delete_btn = BetterQPushButton("<=")
+        self._clear_btn = BetterQPushButton("clear")
         self._density_list = QW.QListWidget()
 
     def _set_specie_list(self):
         self._specie_list.addItems(self._SPECIES)
-        self._specie_list.setFixedWidth(150)
+        self._specie_list.setFixedWidth(80)
         self._specie_list.setFixedHeight(300)
         self._specie_list.setFont(_DEFAULT_LIST_FONT)
 
     def _set_density_list(self):
-        self._density_list.setFixedWidth(200)
+        self._density_list.setFixedWidth(160)
         self._density_list.setFixedHeight(300)
         self._density_list.setFont(_DEFAULT_LIST_FONT)
 
     def _set_density_value(self):
-        self._density_value.setFixedWidth(150)
+        self._density_value.setFixedWidth(80)
         self._density_value.setFixedHeight(50)
         self._density_value.setFont(_DEFAULT_LIST_FONT)
         self._density_value.setText("1.2e18")
@@ -521,7 +596,9 @@ class DensitySetting(QW.QWidget):
         return _data_dict
 
     def save_densities_to_file(self):
-        (filename, _) = QW.QFileDialog.getSaveFileName(self)
+        (filename, _) = QW.QFileDialog.getSaveFileName(self,
+                                                       "Save init densities",
+                                                       "_output/")
         with open(filename, "w") as f:
             for _row in range(self._density_list.count()):
                 f.write(self._density_list.item(_row).text())
@@ -529,7 +606,9 @@ class DensitySetting(QW.QWidget):
 
     def load_densities_to_file(self):
         self._density_list.clear()
-        (filename, _) = QW.QFileDialog.getOpenFileName(self)
+        (filename, _) = QW.QFileDialog.getOpenFileName(self,
+                                                       "Load init densities",
+                                                       "_output/")
         with open(filename, "r") as f:
             for _line in f.readlines():
                 self._density_list.addItem(_line.strip())
@@ -539,16 +618,14 @@ class DensitySetting(QW.QWidget):
         _parent_layout = QW.QGridLayout()
         _parent_layout.addWidget(BetterQLabel("species"), 0, 0)
         _parent_layout.addWidget(BetterQLabel("density"), 0, 1)
-        # _parent_layout.addWidget(BetterQLabel(""), 0, 2)
         _parent_layout.addWidget(BetterQLabel("densities data"), 0, 2)
         _parent_layout.addWidget(self._specie_list, 1, 0,
                                  Qt.AlignLeft | Qt.AlignTop)
-        # _parent_layout.addWidget(self._density_value, 1, 1,
-        #                          Qt.AlignLeft | Qt.AlignTop)
         _layout_btn = QW.QVBoxLayout()
         _layout_btn.addWidget(self._density_value)
         _layout_btn.addWidget(self._import_btn)
         _layout_btn.addWidget(self._delete_btn)
+        _layout_btn.addWidget(self._clear_btn)
         _layout_btn.addStretch(1)
 
         _parent_layout.addLayout(_layout_btn, 1, 1, Qt.AlignLeft | Qt.AlignTop)
@@ -584,9 +661,13 @@ class DensitySetting(QW.QWidget):
     def _set_connect(self):
         self._import_btn.clicked.connect(self._import_selected_specie)
         self._delete_btn.clicked.connect(self._delete_selected_density)
+        self._clear_btn.clicked.connect(self._density_list.clear)
 
 
 class EEDFSettings(QW.QWidget):
+    # Load
+    # eedf (J-1)
+    # energy (J)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -600,11 +681,15 @@ class EEDFSettings(QW.QWidget):
         self._note.setFont(_DEFAULT_NOTE_FONT)
         self._note.setFixedHeight(100)
         self._ne = BetterQLabel("ne:")
+        self._ne.setFont(QFont("Microsoft YaHei UI", 11, QFont.DemiBold))
         self._Te = BetterQLabel("Te:")
+        self._Te.setFont(QFont("Microsoft YaHei UI", 11, QFont.DemiBold))
         self._set_layout()
 
     def load_eedf_from_file(self):
-        (filename, _) = QW.QFileDialog.getOpenFileName(self)
+        (filename, _) = QW.QFileDialog.getOpenFileName(self,
+                                                       "Load eedf",
+                                                       "_output/")
         self._note.setText(filename)
         self._data = np.loadtxt(filename, comments="#")
         energy_eV = self._data[:, 0] * const.J2eV
@@ -624,36 +709,10 @@ class EEDFSettings(QW.QWidget):
         _layout = QW.QVBoxLayout()
         _layout.addWidget(self._eedf_plot)
         _layout.addWidget(self._note)
-        _layout.addWidget(self._ne)
-        _layout.addWidget(self._Te)
+        _layout.addWidget(self._ne, alignment=Qt.AlignLeft)
+        _layout.addWidget(self._Te, alignment=Qt.AlignLeft)
         _layout.addStretch(1)
         self.setLayout(_layout)
-
-
-class TheCrostnPlot(FigureWithToolbar):
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.initialize()
-
-    def initialize(self):
-        self.axes.grid()
-        self.axes.set_xscale("log")
-        self.axes.set_xlabel("Energy (eV)")
-        self.axes.set_ylabel("Cross section (m2)")
-
-
-class TheRateConstPlot(FigureWithToolbar):
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.initialize()
-
-    def initialize(self):
-        self.axes.grid()
-        self.axes.set_yscale("log")
-        self.axes.set_xlabel("Tgas (K)")
-        self.axes.set_ylabel("Rate constant (cm3/s)")
 
 
 # ---------------------------------------------------------------------------- #
@@ -724,10 +783,10 @@ class ResultDensitiesView(QW.QWidget):
         self._set_connect()
         self._species_list.setSelectionMode(
             QW.QAbstractItemView.ExtendedSelection)
-        self._plot_btn.setFixedSize(QSize(150, 100))
-        self._plot_btn.setFont(QFont("Arial", 16))
-        self._save_btn.setFixedSize(QSize(150, 100))
-        self._save_btn.setFont(QFont("Arial", 16))
+        self._plot_btn.setFixedSize(QSize(150, 50))
+        self._plot_btn.setFont(QFont("Arial", 12))
+        self._save_btn.setFixedSize(QSize(150, 50))
+        self._save_btn.setFont(QFont("Arial", 12))
 
     def set_values(self, time_seq, result_df):
         self._time_seq = time_seq
@@ -746,13 +805,16 @@ class ResultDensitiesView(QW.QWidget):
                     self._result_df.loc[_species_selected].transpose(),
                     marker=".")
         ax.legend(_species_selected)
+        ax.grid()
 
     def save_selected(self):
         _species_selected = [_.data() for _ in
                              self._species_list.selectedIndexes()]
         _data = self._result_df.loc[_species_selected].values
         _data = np.vstack((self._time_seq, _data))
-        (filename, _) = QW.QFileDialog.getSaveFileName(self)
+        (filename, _) = QW.QFileDialog.getSaveFileName(self,
+                                                       "Save densities values",
+                                                       "_output/")
         np.savetxt(filename, _data.transpose(),
                    comments="",
                    header="time " + " ".join(_species_selected))
@@ -778,19 +840,24 @@ class ResultEEDFView(QW.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._time_list = QW.QListWidget(self)
-        self._save_btn = BetterQPushButton("Save_normalized_eedf")
-        self._plot_btn = BetterQPushButton("Plot")
+        # self._save_btn = BetterQPushButton("Save")
+        self._plot_btn = BetterQPushButton("Plot ne and Te")
         self._E_input = QW.QLineEdit()
         self._Tgas_input = QW.QLineEdit()
+        self._E_input.setFont(QFont("Consolas", 10))
+        self._Tgas_input.setFont(QFont("Consolas", 10))
+        self._output = QW.QTextEdit()
+        self._output.setReadOnly(True)
+        self._output.setFixedWidth(600)
         self._set_layout()
         self._set_connect()
         self._time_list.setSelectionMode(QW.QAbstractItemView.SingleSelection)
-        self._plot_btn.setFixedSize(QSize(150, 100))
-        self._plot_btn.setFont(QFont("Arial", 13))
-        self._save_btn.setFixedSize(QSize(150, 100))
-        self._save_btn.setFont(QFont("Arial", 13))
+        self._plot_btn.setFixedSize(QSize(150, 50))
+        self._plot_btn.setFont(QFont("Arial", 12))
+        # self._save_btn.setFixedSize(QSize(150, 50))
+        # self._save_btn.setFont(QFont("Arial", 12))
 
-    def set_values(self, _eedf, time_seq, _energy_eV, _eedf_array, Te_seq):
+    def set_values(self, *, _eedf, time_seq, _energy_eV, _eedf_array, Te_seq):
         self._eedf = _eedf
         self._time_seq = time_seq
         self._energy_eV = _energy_eV
@@ -800,85 +867,80 @@ class ResultEEDFView(QW.QWidget):
         self._time_list.addItems([f"{_:.1e}" for _ in self._time_seq.tolist()])
 
     def plot_selected(self):
-        _row_selected = self._time_list.selectedIndexes()[0].row()
-        self._eedf.set_density_per_J(self._eedf_array[:, _row_selected])
-        print(self._eedf)
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.set_xlabel("Energy [eV]")
-        ax.set_ylabel("EEDF ")
-        ax.semilogy(self._energy_eV, self._eedf_array[:, _row_selected],
-                    label=f"{self._Te_seq[_row_selected]:.2f}")
-        ax.grid()
-        ax.legend()
+        try:
+            _row_selected = self._time_list.selectedIndexes()[0].row()
+            self._eedf.set_density_per_J(self._eedf_array[:, _row_selected])
+            self._output.setText(self._eedf.__str__())
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.set_xlabel("Energy [eV]")
+            ax.set_ylabel("EEDF ")
+            ax.semilogy(self._energy_eV, self._eedf_array[:, _row_selected],
+                        label=f"{self._Te_seq[_row_selected]:.2f}")
+            ax.grid()
+            ax.legend()
+        except:
+            print("Cannot plot selected EEDF!")
 
     def save_eedf_value(self):
         _row_selected = self._time_list.selectedIndexes()[0].row()
-        (filename, _) = QW.QFileDialog.getSaveFileName(self)
+        (filename, _) = QW.QFileDialog.getSaveFileName(self,
+                                                       "Save EEDF value",
+                                                       "_output/")
         self._eedf.set_density_per_J(self._eedf_array[:, _row_selected])
         _data_to_save = np.vstack((self._energy_eV * const.eV2J,
                                    self._eedf.normalized_eedf_J)).transpose()
         np.savetxt(filename, _data_to_save)
+
+    def save_settings_to_file(self):
+        init_filename = f"E_{self._E_input.text()}_Tgas_{self._Tgas_input.text()}.dat"
+        (filename, _) = QW.QFileDialog.getSaveFileName(self,
+                                                       "Save eedf settings",
+                                                       "_output/" + init_filename)
+        with open(filename, "w") as f:
+            f.write(f"E {self._E_input.text()}\nTgas {self._Tgas_input.text()}")
+
+    def load_settings_to_file(self):
+        (filename, _) = QW.QFileDialog.getOpenFileName(self,
+                                                       "Load eedf setting",
+                                                       "_output/")
+        with open(filename, "r") as f:
+            _list = f.readlines()
+        self._E_input.setText(_list[0].split()[1])
+        self._Tgas_input.setText(_list[1].split()[1])
 
     def _set_layout(self):
         _layout = QW.QHBoxLayout()
         _layout.addWidget(self._time_list)
         _btn_layout = QW.QVBoxLayout()
         _btn_layout.addWidget(self._plot_btn, alignment=Qt.AlignTop)
-        _btn_layout.addWidget(self._save_btn, alignment=Qt.AlignTop)
+        # _btn_layout.addWidget(self._save_btn, alignment=Qt.AlignTop)
         _input_layout = QW.QFormLayout()
-        _input_layout.addRow("E", self._E_input)
-        _input_layout.addRow("Tgas", self._Tgas_input)
+        _input_layout.setLabelAlignment(Qt.AlignRight)
+        _label_E = BetterQLabel("E")
+        _label_E.setFont(QFont("Arial", 10))
+        _label_Tgas = BetterQLabel("Tgas")
+        _label_Tgas.setFont(QFont("Arial", 10))
+        _input_layout.addRow(_label_E, self._E_input)
+        _input_layout.addRow(_label_Tgas, self._Tgas_input)
         _btn_layout.addLayout(_input_layout)
         _btn_layout.addStretch(1)
         _layout.addLayout(_btn_layout)
+        _layout.addWidget(self._output)
         _layout.addStretch(1)
         self.setLayout(_layout)
 
     def _set_connect(self):
-        self._plot_btn.clicked.connect(self.plot_selected)
-        self._save_btn.clicked.connect(self.save_eedf_value)
-
-
-class ResultPlot(QW.QWidget):
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._ne_plot = FigureWithToolbar()
-        self._Tgas_plot = FigureWithToolbar()
-        self._density_plot = FigureWithToolbar()
-        self._eedf_plot = FigureWithToolbar()
-        self._set_layout()
-        self._ne_plot.axes.set_xlabel("Time [s]")
-        self._ne_plot.axes.set_title("ne vs. t")
-        self._ne_plot.axes.set_ylabel("Ne [cm-3]")
-        self._Tgas_plot.axes.set_xlabel("Time [s]")
-        self._Tgas_plot.axes.set_title("Tgas vs. t")
-        self._Tgas_plot.axes.set_ylabel("Tgas [K]")
-        self._density_plot.axes.set_xlabel("Time [s]")
-        self._density_plot.axes.set_title("Density vs. t")
-        self._density_plot.axes.set_ylabel("Density [cm3]")
-        self._eedf_plot.axes.set_xlabel("Energy [eV]")
-        self._eedf_plot.axes.set_title("eedf vs. energy")
-        self._eedf_plot.axes.set_ylabel("eedf [eV-3/2]")
-
-    def _set_layout(self):
-        layout = QW.QGridLayout()
-        layout.addWidget(self._ne_plot, 0, 0)
-        layout.addWidget(self._Tgas_plot, 0, 1)
-        layout.addWidget(self._density_plot, 1, 0)
-        layout.addWidget(self._eedf_plot, 1, 1)
-        self.setLayout(layout)
+        # self._plot_btn.clicked.connect()
+        pass
+        # self._save_btn.clicked.connect(self.save_eedf_value)
 
 
 class _PlasmistryGui(QW.QMainWindow):
     _help_str = ""
     _NAME = "Plasmistry"
-    _VERSION = "1.0"
+    _VERSION = "2.0"
     _ICON = QIcon("_figure/bokeh.png")
-
-    # _ICON = QIcon(r"C:/Users/GuiErGuiEr/Documents/Code/PlasmaChemistry"
-    #               r"/_figure/plasma.jpg")
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -908,13 +970,11 @@ class _PlasmistryGui(QW.QMainWindow):
         self._rctn_dict_view = RctnDictView()
         self._cros_rctn_df_view = CrosRctnDfView()
         self._coef_rctn_df_view = CoefRctnDfView()
-        # self._plasma_paras = PlasmaParas()
-        self._paras = EvolveParas()
+        self._evolve_paras = EvolveSettings()
         self._output = QW.QTextEdit()
         self._evolution_plot = QW.QWidget()
         self._densities = DensitySetting()
         self._eedf_setting = EEDFSettings()
-        self._result_show = ResultPlot()
         self._result_densities_view = ResultDensitiesView()
         self._result_eedf_view = ResultEEDFView()
         self._buttons = dict()
@@ -922,17 +982,12 @@ class _PlasmistryGui(QW.QMainWindow):
         self._actions = dict()
         self._toolbar = self.addToolBar("")
         self._tab_widget = QW.QTabWidget()
-
-        # self._set_buttons()
         self._set_tab_widget()
-
         self._set_actions()
         self._set_menubar()
         self._set_toolbar()
-
         self._set_dockwidget()
         self._set_layout()
-        self._set_connect()
         # self._set_status_tip()
 
     def initUI(self):
@@ -965,6 +1020,14 @@ class _PlasmistryGui(QW.QMainWindow):
         else:
             pass
 
+    def show_warning(self, _str):
+        reply = QMessageBox.warning(self, "Warning", _str, QMessageBox.Ok,
+                                    QMessageBox.Ok)
+        if reply == QMessageBox.Ok:
+            pass
+        else:
+            pass
+
     def _set_actions(self):
         self._actions["quit"] = QAction("&Quit", self)
         self._actions["open"] = QAction("&Open", self)
@@ -972,10 +1035,13 @@ class _PlasmistryGui(QW.QMainWindow):
         self._actions["DfToInstance"] = QAction("&Df => Instance", self)
         self._actions["SaveSetting"] = QAction("&Save settings", self)
         self._actions["LoadSetting"] = QAction("&Load settings", self)
-        self._actions["SaveInitDensities"] = QAction("&Save Init densities",
+        self._actions["SaveInitDensities"] = QAction("&Save init densities",
                                                      self)
-        self._actions["LoadInitDensities"] = QAction("&Load Init densities",
+        self._actions["SaveEEDFSettings"] = QAction("&Save eedf settings", self)
+        self._actions["LoadInitDensities"] = QAction("&Load init densities",
                                                      self)
+        self._actions["LoadEEDFSettings"] = QAction("&Load eedf settings", self)
+        self._actions["SaveEEDF"] = QAction("&Save eedf", self)
         self._actions["Evolve"] = QAction("&Evolve", self)
         self._actions["LoadEEDF"] = QAction("&Load eedf", self)
         self._actions["resize_0"] = QAction("1920x1080", self)
@@ -988,6 +1054,8 @@ class _PlasmistryGui(QW.QMainWindow):
         self._actions["result_plot"] = QAction("result", self)
         self._actions["eedf_plot"] = QAction("eedf", self)
         self._actions["CalEEDF"] = QAction("cal eedf", self)
+        for _key in self._actions:
+            self._actions[_key].setFont(_DEFAULT_ACTION_FONT)
 
     def _set_menubar(self):
         for _key in ("file", "save", "load", "run", "view", "plot", "window",
@@ -999,8 +1067,11 @@ class _PlasmistryGui(QW.QMainWindow):
         self._menubar["file"].addAction(self._actions["quit"])
         self._menubar["save"].addAction(self._actions["SaveSetting"])
         self._menubar["save"].addAction(self._actions["SaveInitDensities"])
+        self._menubar["save"].addAction(self._actions["SaveEEDFSettings"])
+        self._menubar["save"].addAction(self._actions["SaveEEDF"])
         self._menubar["load"].addAction(self._actions["LoadSetting"])
         self._menubar["load"].addAction(self._actions["LoadInitDensities"])
+        self._menubar["load"].addAction(self._actions["LoadEEDFSettings"])
         self._menubar["load"].addAction(self._actions["LoadEEDF"])
         self._menubar["run"].addAction(self._actions["Evolve"])
         self._menubar["run"].addAction(self._actions["CalEEDF"])
@@ -1030,21 +1101,20 @@ class _PlasmistryGui(QW.QMainWindow):
         self._tab_widget.addTab(self._cros_rctn_df_view, "Rctn_Df cros")
         self._tab_widget.addTab(self._coef_rctn_df_view, "Rctn_Df coef")
         # self._tab_widget.addTab(self._plasma_paras, "Plasma Paras")
-        # self._tab_widget.addTab(self._paras, "Run Paras")
+        # self._tab_widget.addTab(self._evolve_paras, "Run Paras")
         # self._tab_widget.addTab(self._output, "Output")
         # self._tab_widget.addTab(self._densities, "Set densities")
 
         #
         _widget = QW.QWidget()
         _layout = QW.QHBoxLayout()
-        _layout.addWidget(self._paras)
+        _layout.addWidget(self._evolve_paras)
         _layout.addWidget(self._densities)
         _layout.addWidget(self._eedf_setting)
         _layout.addStretch(1)
         # _layout.addStretch(1)
         _widget.setLayout(_layout)
         self._tab_widget.addTab(_widget, "Run Paras")
-        self._tab_widget.addTab(self._result_show, "Sim Result")
         self._tab_widget.addTab(self._result_densities_view, "#result "
                                                              "Densities")
         self._tab_widget.addTab(self._result_eedf_view, "#result EEDF")
@@ -1056,6 +1126,7 @@ class _PlasmistryGui(QW.QMainWindow):
         self._tab_widget.tabBar().setCursor(Qt.PointingHandCursor)
 
     # ------------------------------------------------------------------------ #
+    # @handle_except_error
     def yaml_to_rctn_dict(self):
         r"""
         rctn_dict: dict
@@ -1067,18 +1138,25 @@ class _PlasmistryGui(QW.QMainWindow):
                  chemical reactions,
                  decom_recom reactions
         """
-        _path = QW.QFileDialog.getOpenFileName(caption="Open File",
-                                               filter="yaml file (*.yaml)")[0]
-        with open(_path) as f:
-            rctn_block = yaml.load(f, Loader=yaml.FullLoader)
-        self.rctn_dict = rctn_block[-1]["The reactions considered"]
-        self.show_message("yaml => rctn dict\nDone!")
+        (filename, _) = QW.QFileDialog.getOpenFileName(caption="Open File",
+                                                       directory="_yaml/",
+                                                       filter="yaml file (*.yaml)")
+        try:
+            with open(filename) as f:
+                rctn_block = yaml.load(f, Loader=yaml.FullLoader)
+        except:
+            self.show_warning(f"The {filename} yaml file is error.")
+        else:
+            self.rctn_dict = rctn_block[-1]["The reactions considered"]
+            self.show_message("yaml => rctn dict\nDone!")
 
+    # @handle_except_error
     def show_rctn_dict(self):
         self._rctn_dict_view._clear()
         self._rctn_dict_view._set_rctn_dict(self.rctn_dict)
         self._rctn_dict_view._select_all()
 
+    # @handle_except_error
     def rctn_dict_to_rctn_df(self):
         _global_abbr = self.rctn_dict["global_abbr"]
         _species = []
@@ -1170,30 +1248,329 @@ class _PlasmistryGui(QW.QMainWindow):
         self.rctn_instances["coef"].compile_k_str()
         self.show_message("rctn df => rctn instance\nDone!")
 
-    # ------------------------------------------------------------------------ #
-    # def _evolve_rateconst(self):
-    #     wb = xw.Book("_output/output.xlsx")
-    #     sht = wb.sheets[0]
-    #     sht.clear_contents()
-    #     self.rctn_instances["coef reactions"].set_rate_const(
-    #             Tgas_K=self._plasma_paras.value()["Tgas_K"],
-    #             Te_eV=self._plasma_paras.value()["Te_eV"],
-    #             EN_Td=self._plasma_paras.value()["EN_Td"])
-    #
-    #     _df_to_show = pd.DataFrame(columns=["formula", "type", "rate const"])
-    #     _df_to_show["formula"] = self.rctn_df["coef reactions"]["formula"]
-    #     _df_to_show["type"] = self.rctn_df["coef reactions"]["type"]
-    #     _df_to_show["rate const"] = self.rctn_instances["coef " \
-    #                                                     "reactions"].rate_const
-    #     sht.range("a1").value = _df_to_show
-    #     sht.autofit()
+    def _set_layout(self):
+        _layout = QW.QVBoxLayout()
+        _layout.addWidget(self._tab_widget)
+        _layout.addStretch(1)
+        self.cenWidget.setLayout(_layout)
 
-    # def _save_reactions(self):
-    #     self.rctn_df["species"].to_pickle("_output/species.pkl")
-    #     self.rctn_df["cros"].to_pickle(
-    #             "_output/cros_reactions.pkl")
-    #     self.rctn_df["coef"].to_pickle(
-    #             "_output/coef_reactions.pkl")
+    def _set_dockwidget(self):
+        _default_features = QW.QDockWidget.DockWidgetClosable | \
+                            QW.QDockWidget.DockWidgetFloatable
+        _list = ["View", ]
+        _widgets_to_dock = [self._evolution_plot, ]
+        _dock_dict = dict()
+        for _, _widget in zip(_list, _widgets_to_dock):
+            _dock_dict[_] = QW.QDockWidget(_, self)
+            _dock_dict[_].setWidget(_widget)
+            _dock_dict[_].setFeatures(_default_features)
+            _dock_dict[_].setVisible(False)
+            _dock_dict[_].setFloating(True)
+            _dock_dict[_].setCursor(QCursor(Qt.PointingHandCursor))
+            _action = _dock_dict[_].toggleViewAction()
+            _action.setChecked(False)
+            _action.setFont(_DEFAULT_TOOLBAR_FONT)
+            _action.setText(_)
+            self._menubar["view"].addAction(_action)
+
+
+class ThePlasmistryGui(_PlasmistryGui):
+    density_cm3_to_m3 = 1e6
+
+    def __init__(self):
+        super().__init__()
+        self._PARAS = self._evolve_paras.value()
+        self._set_connect()
+
+    def _set_eedf_engine(self):
+        _paras = self._evolve_paras.value()
+        self._eedf_engine = EEDF(max_energy_eV=_paras["electron_max_energy_eV"],
+                                 grid_number=_paras["eedf_grid_number"])
+        self._eedf_engine.initialize(rctn_with_crostn_df=self.rctn_df["cros"],
+                                     total_species=self.rctn_df[
+                                         "species"].to_list())
+
+    def _Tgas_func_slow_down(self, t):
+        if t <= self._PARAS["time_escape_plasma"]:
+            return self._PARAS["Tgas_arc"]
+        else:
+            Tg_0 = self._PARAS["Tgas_cold"]
+            DTg = self._PARAS["Tgas_arc"] - self._PARAS["Tgas_cold"]
+            t_0 = self._PARAS["time_escape_plasma"]
+            t_1 = self._PARAS["time_cold"]
+            return DTg * math.exp(-(t - t_0) ** 2 / 2 / (t_1 - t_0) ** 2) + Tg_0
+
+    def _deriv_Tgas_func_slow_down(self, t):
+        if t <= self._PARAS["time_escape_plasma"]:
+            return 0.0
+        else:
+            Tg_0 = self._PARAS["Tgas_cold"]
+            DTg = self._PARAS["Tgas_arc"] - self._PARAS["Tgas_cold"]
+            t_0 = self._PARAS["time_escape_plasma"]
+            t_1 = self._PARAS["time_cold"]
+            dT = DTg * math.exp(-(t - t_0) ** 2 / 2 / (t_1 - t_0) ** 2)
+            return dT * (-(t - t_0) / (t_1 - t_0) ** 2)
+
+    def _electron_density_func(self, t):
+        if t > self._PARAS["time_escape_plasma"]:
+            return 0.0
+        else:
+            return self._PARAS["ne"]
+
+    def _init_cros_reactions(self):
+        self.rctn_instances["cros"].set_rate_const_matrix(
+            crostn_dataframe=self.rctn_df["cros"],
+            electron_energy_grid=self._eedf_engine.energy_point)
+
+    def dndt_cros(self, t, density_without_e, _electron_density,
+                  normalized_eedf, unit_factor=1):
+        # m3/s => 1e6 * cm3/s    unit_factor: 1e6
+        self.rctn_instances["cros"].set_rate_const(
+            eedf_normalized=normalized_eedf)
+        self.rctn_instances["cros"].set_rate(
+            density=np.hstack([_electron_density, density_without_e]))
+        return self.rctn_instances["cros"].get_dn() * unit_factor
+
+    def dndt_coef(self, t, density_without_e, _electron_density, Tgas_K):
+        self.rctn_instances["coef"].set_rate_const(Tgas_K=Tgas_K)
+        self.rctn_instances["coef"].set_rate(
+            density=np.hstack([_electron_density, density_without_e]))
+        return self.rctn_instances["coef"].get_dn()
+
+    def dndt_all(self, t, y, normalized_eedf):
+        # y: density_without_e
+        _e_density = self._electron_density_func(t)
+        _Tgas_K = self._Tgas_func_slow_down(t)
+        dydt = self.dndt_cros(t, y, _e_density, normalized_eedf,
+                              unit_factor=1e6) + \
+               self.dndt_coef(t, y, _e_density, _Tgas_K)
+        return dydt[1:]
+
+    def dndt_all_const_pressure(self, t, y, normalized_eedf):
+        _Tgas_K = self._Tgas_func_slow_down(t)
+        _pressure_term = -y / _Tgas_K * self._deriv_Tgas_func_slow_down(t)
+        return self.dndt_all(t, y, normalized_eedf) + _pressure_term
+
+    # @handle_except_error
+    def _solve(self):
+        self._PARAS = self._evolve_paras.value()
+        self._set_eedf_engine()
+        _densities_dict = self._densities._densities_dict()
+        for _key in _densities_dict:
+            _densities_dict[_key] = _densities_dict[_key] * 300 / \
+                                    self._PARAS["Tgas_arc"]
+        density_0 = self.rctn_instances["coef"].get_initial_density(
+            density_dict=_densities_dict)
+        density_without_e_0 = density_0[1:]
+        self._init_cros_reactions()
+        normalized_eedf = np.interp(self._eedf_engine.energy_point,
+                                    self._eedf_setting.eedf_value()[:, 0],
+                                    self._eedf_setting.eedf_value()[:, 1])
+
+        def dndt(t, y):
+            print(f"time: {t:.6e} s")
+            # return self.dndt_all(t, y, normalized_eedf)
+            return self.dndt_all_const_pressure(t, y, normalized_eedf)
+
+        self.sol = solve_ivp(dndt,
+                             self._PARAS["time_span"],
+                             density_without_e_0,
+                             method="BDF",
+                             atol=self._PARAS["atol"],
+                             rtol=self._PARAS["rtol"])
+        _Tgas_seq = [self._Tgas_func_slow_down(_) for _ in self.sol.t]
+        self._density_df = pd.DataFrame(data=self.sol.y * _Tgas_seq / 300,
+                                        index=self.rctn_df["species"][1:])
+        self._result_densities_view.set_values(self.sol.t, self._density_df)
+
+    def _solve_global_model(self):
+        self._set_eedf_engine()
+        E = float(self._result_eedf_view._E_input.text())
+        Tgas_K = float(self._result_eedf_view._Tgas_input.text())
+        N = get_ideal_gas_density(p_Pa=101325, Tgas_K=Tgas_K)       # m-3
+        self._eedf_engine.set_parameters(E=E, Tgas=Tgas_K, N=N)
+        self._PARAS = self._evolve_paras.value()
+        # -------------------------------------------------------------------- #
+        _densities_dict = self._densities._densities_dict()
+        init_density = self.rctn_instances["coef"].get_initial_density(
+            density_dict=_densities_dict) * 300 / self._PARAS["Tgas_arc"]
+        init_density_without_e = init_density[1:]                   # cm-3
+        # -------------------------------------------------------------------- #
+        self._init_cros_reactions()
+        init_eedf = np.interp(self._eedf_engine.energy_point,
+                              self._eedf_setting.eedf_value()[:, 0],
+                              self._eedf_setting.eedf_value()[:, 1])
+
+        def dydt_global(t, y):
+            print(f"time: {t:.6e} s")
+            _y_eedf = y[:self._eedf_engine.grid_number]
+            _y_density_without_e = y[self._eedf_engine.grid_number:]
+            self._eedf_engine.set_density_per_J(_y_eedf)
+            self._eedf_engine.set_flux(
+                total_species_density=np.hstack((0,
+                                                 _y_density_without_e))*self.density_cm3_to_m3)
+            deedf_dt = self._eedf_engine.get_deriv_total(
+                total_species_density=np.hstack((0,
+                                                 _y_density_without_e))*self.density_cm3_to_m3)
+            normalized_eedf = self._eedf_engine.normalized_eedf_J
+            dndt = self.dndt_all_const_pressure(t, _y_density_without_e,
+                                                normalized_eedf)
+            return np.hstack((deedf_dt, dndt))
+
+        init_y = np.hstack((init_eedf, init_density_without_e))
+        self.sol = solve_ivp(dydt_global,
+                             self._PARAS["time_span"],
+                             init_y,
+                             method="BDF",
+                             atol=self._PARAS["atol"],
+                             rtol=self._PARAS["rtol"])
+        _Tgas_seq = [self._Tgas_func_slow_down(_) for _ in self.sol.t]
+        self._density_df = pd.DataFrame(data=self.sol.y[
+                                             self._eedf_engine.grid_number:, :],
+                                        index=self.rctn_df["species"][1:])
+        self._result_densities_view.set_values(self.sol.t, self._density_df)
+
+    # @handle_except_error
+    def _solve_eedf(self):
+        self._set_eedf_engine()
+        E = float(self._result_eedf_view._E_input.text())
+        Tgas_K = float(self._result_eedf_view._Tgas_input.text())
+        N = get_ideal_gas_density(p_Pa=101325, Tgas_K=Tgas_K)
+        self._eedf_engine.set_parameters(E=E, Tgas=Tgas_K, N=N)
+        total_species_density = self.rctn_instances[
+                                    "cros"].get_initial_density(
+            density_dict=self._densities._densities_dict()) * 300 / Tgas_K
+        total_species_density = total_species_density * self.density_cm3_to_m3
+
+        def dndt_all(t, _density_per_J):
+            print(f"EEDF cal: time {t:.2e}")
+            self._eedf_engine.set_density_per_J(_density_per_J)
+            self._eedf_engine.set_flux(
+                total_species_density=total_species_density)
+            return self._eedf_engine.get_deriv_total(
+                total_species_density=total_species_density)
+
+        y0 = get_maxwell_eedf(self._eedf_engine.energy_point,
+                              Te_eV=0.8) * self._evolve_paras.value()[
+                 "ne"] * self.density_cm3_to_m3
+        time_span = (0, 1e3)
+        self._eedf_sol = solve_ivp(dndt_all, time_span, y0, method="BDF",
+                                   rtol=1e-3)
+        Te_seq = []
+        for _array in self._eedf_sol.y.transpose():
+            self._eedf_engine.set_density_per_J(_array)
+            Te_seq.append(self._eedf_engine.electron_temperature_in_eV)
+        self._result_eedf_view.set_values(_eedf=self._eedf_engine,
+                                          time_seq=self._eedf_sol.t,
+                                          _energy_eV=self._eedf_engine.energy_point_eV,
+                                          _eedf_array=self._eedf_sol.y,
+                                          Te_seq=Te_seq)
+        self._result_eedf_view._time_list.setCurrentRow(-1)
+
+    # @handle_except_error
+    def _eedf_sol_plot(self):
+        Te_seq = []
+        ne_seq = []
+        for _array in self._eedf_sol.y.transpose():
+            self._eedf_engine.set_density_per_J(_array)
+            Te_seq.append(self._eedf_engine.electron_temperature_in_eV)
+            ne_seq.append(self._eedf_engine.electron_density)
+        fig = plt.figure()
+        ax_Te = fig.add_subplot(1, 2, 1)
+        ax_Te.semilogx(self._eedf_sol.t, Te_seq, marker=".")
+        ax_Te.set_title("Te vs. t")
+        ax_Te.set_xlabel("Time [s]")
+        ax_Te.set_ylabel("Te")
+
+        ax_ne = fig.add_subplot(1, 2, 2)
+        ax_ne.semilogx(self._eedf_sol.t, ne_seq, marker=".")
+        ax_ne.set_title("ne vs. t")
+        ax_ne.set_xlabel("Time [s]")
+        ax_ne.set_ylabel("ne")
+
+    # def treat_sol_result(self, _species_list):
+    #     _density_df = pd.DataFrame(data=self.sol.y, index=self.rctn_df[
+    #                                                           "species"][1:])
+    #     for _ in _species_list:
+    #         assert _ in _density_df.index
+    #     fig = plt.figure()
+    #     ax = fig.add_subplot(111)
+    #     ax.semilogx(self.sol.t,
+    #                 _density_df.loc[_species_list].values.transpose())
+    #     ax.legend(labels=_species_list)
+    #     return _density_df.loc[_species_list]
+    #
+    def treat_sol_result_energy(self):
+        # _rate_df = self.rctn_df["cros"]
+        _energy_rate_data = []
+        eedf = EEDF(max_energy_eV=self._PARAS["electron_max_energy_eV"],
+                    grid_number=self._PARAS["eedf_grid_number"])
+        # normalized_eedf = get_maxwell_eedf(eedf.energy_point,
+        #                                    Te_eV=self._PARAS["Te"])
+        energy_to_cal = eedf.energy_point
+        normalized_eedf = np.interp(eedf.energy_point,
+                                    self._eedf_setting.eedf_value()[:, 0],
+                                    self._eedf_setting.eedf_value()[:, 1])
+        for _i, t in enumerate(self.sol.t):
+            _e_density = self._electron_density_func(t)
+            _Tgas_K = self._Tgas_func_slow_down(t)
+            self.rctn_instances["cros"].set_rate_const(
+                eedf_normalized=normalized_eedf)
+            self.rctn_instances["cros"].set_rate(
+                density=np.hstack((_e_density, self.sol.y[:, _i])))
+            _energy_rate_data.append(self.rctn_instances[
+                                         "cros"].rate * self.rctn_df[
+                                         "cros"]["threshold_eV"].values * 1e6)
+        _energy_rate_df = pd.DataFrame(index=self.rctn_df["cros"]["formula"],
+                                       data=np.array(
+                                           _energy_rate_data).transpose())
+        _energy_rate_df.loc["H2_vib"] = _energy_rate_df.iloc[0:210].sum()
+        _energy_rate_df.loc["H2_dis"] = _energy_rate_df.iloc[210:224].sum()
+        _energy_rate_df.loc["CO2_vib"] = _energy_rate_df.iloc[224:872].sum()
+        _energy_rate_df.loc["CO2_dis"] = _energy_rate_df.iloc[872:898].sum()
+        _energy_rate_df.loc["CO_vib"] = _energy_rate_df.iloc[898:918].sum()
+        _energy_rate_df.loc["CO_dis"] = _energy_rate_df.iloc[918:929].sum()
+        _energy_rate_df.loc["O2_vib"] = _energy_rate_df.iloc[929:935].sum()
+        _energy_rate_df.loc["O2_dis"] = _energy_rate_df.iloc[935:939].sum()
+        _energy_rate_df.loc["H2O_vib"] = _energy_rate_df.iloc[939:943].sum()
+        _energy_rate_df.loc["H2O_dis"] = _energy_rate_df.iloc[943:947].sum()
+        _energy_rate_df.loc["total"] = _energy_rate_df.iloc[947:].sum()
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.semilogx(self.sol.t,
+                    _energy_rate_df.loc["total"].values * const.eV2J)
+        ax.set_xlabel("Time [s]")
+        ax.set_ylabel("W cm-3")
+        _energy_channels = ["H2_vib", "H2_dis",
+                            "CO2_vib", "CO2_dis",
+                            "CO_vib", "CO_dis",
+                            "O2_vib", "O2_dis",
+                            "H2O_vib", "H2O_dis"]
+        fig_1 = plt.figure()
+        ax_1 = fig_1.add_subplot(111)
+        ax_1.semilogx(self.sol.t,
+                      _energy_rate_df.loc[_energy_channels].values.transpose() *
+                      const.eV2J)
+        ax_1.set_xlabel("Time [s]")
+        ax_1.set_ylabel("W cm-3")
+        ax_1.legend(_energy_channels)
+        print(
+            simps(_energy_rate_df.loc["total"].values, self.sol.t) * const.eV2J)
+        print(
+            trapz(_energy_rate_df.loc["total"].values, self.sol.t) * const.eV2J)
+        return _energy_rate_df
+
+    def plot_Tgas_func(self):
+        _Tgas_seq = [self._Tgas_func_slow_down(_) for _ in self.sol.t]
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.semilogx(self.sol.t, _Tgas_seq, marker=".")
+
+    def plot_electron_density(self):
+        _e_density_seq = [self._electron_density_func(_) for _ in self.sol.t]
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.semilogx(self.sol.t, _e_density_seq, marker=".")
 
     def _set_connect(self):
 
@@ -1221,13 +1598,15 @@ class _PlasmistryGui(QW.QMainWindow):
         self._actions["DfToInstance"].triggered.connect(
             self.rctn_df_to_rctn_instance)
         self._actions["SaveSetting"].triggered.connect(
-            self._paras.save_values_to_file)
+            self._evolve_paras.save_values_to_file)
         self._actions["LoadSetting"].triggered.connect(
-            self._paras.load_values_from_file)
+            self._evolve_paras.load_values_from_file)
         self._actions["SaveInitDensities"].triggered.connect(
             self._densities.save_densities_to_file)
         self._actions["LoadInitDensities"].triggered.connect(
             self._densities.load_densities_to_file)
+        self._actions["SaveEEDF"].triggered.connect(
+            self._result_eedf_view.save_eedf_value)
         self._actions["LoadEEDF"].triggered.connect(
             self._eedf_setting.load_eedf_from_file)
         self._actions["resize_0"].triggered.connect(lambda: self.resize(
@@ -1244,267 +1623,17 @@ class _PlasmistryGui(QW.QMainWindow):
             QSize(1280, 720)))
         self._actions["resize_6"].triggered.connect(lambda: self.resize(
             QSize(1176, 664)))
-
-    def _set_layout(self):
-        _layout = QW.QVBoxLayout()
-        _layout.addWidget(self._tab_widget)
-        _layout.addStretch(1)
-        self.cenWidget.setLayout(_layout)
-
-    def _set_dockwidget(self):
-        _default_features = QW.QDockWidget.DockWidgetClosable | \
-                            QW.QDockWidget.DockWidgetFloatable
-        _list = [
-            "View",
-        ]
-        _widgets_to_dock = [
-            self._evolution_plot,
-        ]
-        _dock_dict = dict()
-        for _, _widget in zip(_list, _widgets_to_dock):
-            _dock_dict[_] = QW.QDockWidget(_, self)
-            _dock_dict[_].setWidget(_widget)
-            _dock_dict[_].setFeatures(_default_features)
-            _dock_dict[_].setVisible(False)
-            _dock_dict[_].setFloating(True)
-            _dock_dict[_].setCursor(QCursor(Qt.PointingHandCursor))
-            _action = _dock_dict[_].toggleViewAction()
-            _action.setChecked(False)
-            _action.setFont(_DEFAULT_TOOLBAR_FONT)
-            _action.setText(_)
-            self._menubar["view"].addAction(_action)
-
-
-class _PlasmistryLogic(object):
-    _PARAS = dict()
-
-    def __init__(self):
-        super().__init__()
-
-    def _Tgas_func_slow_down(self, t):
-        if t <= self._PARAS["time_escape_plasma"]:
-            return self._PARAS["Tgas_arc"]
-        else:
-            Tg_0 = self._PARAS["Tgas_cold"]
-            DTg = self._PARAS["Tgas_arc"] - self._PARAS["Tgas_cold"]
-            t_0 = self._PARAS["time_escape_plasma"]
-            t_1 = self._PARAS["time_cold"]
-            return DTg * math.exp(-(t - t_0) ** 2 / 2 / (t_1 - t_0) ** 2) + Tg_0
-
-    def _deriv_Tgas_func_slow_down(self, t):
-        if t <= self._PARAS["time_escape_plasma"]:
-            return 0.0
-        else:
-            Tg_0 = self._PARAS["Tgas_cold"]
-            DTg = self._PARAS["Tgas_arc"] - self._PARAS["Tgas_cold"]
-            t_0 = self._PARAS["time_escape_plasma"]
-            t_1 = self._PARAS["time_cold"]
-            return DTg * math.exp(
-                -(t - t_0) ** 2 / 2 / (t_1 - t_0) ** 2) * (-2) * (t -
-                                                                  t_0) / 2 / (
-                           t_1 - t_0) ** 2
-
-    def _electron_density_func(self, t):
-        if t > self._PARAS["time_escape_plasma"]:
-            return 0.0
-        else:
-            return self._PARAS["ne"]
-
-
-class ThePlasmistryGui(_PlasmistryGui, _PlasmistryLogic):
-
-    def __init__(self):
-        super().__init__()
-        self._PARAS = self._paras.value()
         self._actions["Evolve"].triggered.connect(self._solve)
         # self._actions["result_plot"].triggered.connect(
         #     self._result_densities_view.plot_selected)
-        self._actions["eedf_plot"].triggered.connect(self._eedf_sol_plot)
+        self._actions["eedf_plot"].triggered.connect(
+            self._result_eedf_view.plot_selected)
         self._actions["CalEEDF"].triggered.connect(self._solve_eedf)
-
-    def _init_cros_reactions(self):
-        eedf = EEDF(max_energy_eV=self._PARAS["electron_max_energy_eV"],
-                    grid_number=self._PARAS["eedf_grid_number"])
-        self.rctn_instances["cros"].set_rate_const_matrix(
-            crostn_dataframe=self.rctn_df["cros"],
-            electron_energy_grid=eedf.energy_point)
-
-    def dndt_cros(self, t, density_without_e, _electron_density,
-                  normalized_eedf, unit_factor=1):
-        self.rctn_instances["cros"].set_rate_const(
-            eedf_normalized=normalized_eedf)
-        self.rctn_instances["cros"].set_rate(
-            density=np.hstack([_electron_density, density_without_e]))
-        return self.rctn_instances["cros"].get_dn() * unit_factor
-
-    def dndt_coef(self, t, density_without_e, _electron_density, Tgas_K):
-        self.rctn_instances["coef"].set_rate_const(Tgas_K=Tgas_K)
-        self.rctn_instances["coef"].set_rate(
-            density=np.hstack([_electron_density, density_without_e]))
-        return self.rctn_instances["coef"].get_dn()
-
-    def dndt_all(self, t, y, normalized_eedf):
-        _e_density = self._electron_density_func(t)
-        _Tgas_K = self._Tgas_func_slow_down(t)
-        dydt = self.dndt_cros(t, y, _e_density, normalized_eedf,
-                              unit_factor=1e6) + \
-               self.dndt_coef(t, y, _e_density, _Tgas_K)
-        return dydt[1:]
-
-    def dndt_all_const_pressure(self, t, y, normalized_eedf):
-        _Tgas_K = self._Tgas_func_slow_down(t)
-        _pressure_term = -y / _Tgas_K * self._deriv_Tgas_func_slow_down(t)
-        return self.dndt_all(t, y, normalized_eedf) + _pressure_term
-
-    def _solve(self):
-        self._PARAS = self._paras.value()
-        _densities_dict = self._densities._densities_dict()
-        density_0 = self.rctn_instances["coef"].get_initial_density(
-            density_dict=_densities_dict)
-        density_without_e_0 = density_0[1:]
-        self._init_cros_reactions()
-        ####
-        eedf = EEDF(max_energy_eV=self._PARAS["electron_max_energy_eV"],
-                    grid_number=self._PARAS["eedf_grid_number"])
-        normalized_eedf = get_maxwell_eedf(eedf.energy_point,
-                                           Te_eV=self._PARAS["Te"])
-
-        def dndt(t, y):
-            print(f"time: {t:.6e} s")
-            # return self.dndt_all(t, y, normalized_eedf)
-            return self.dndt_all_const_pressure(t, y, normalized_eedf)
-
-        self.sol = solve_ivp(dndt,
-                             self._PARAS["time_span"],
-                             density_without_e_0,
-                             method="BDF",
-                             atol=self._PARAS["atol"],
-                             rtol=self._PARAS["rtol"])
-        _Tgas_seq = [self._Tgas_func_slow_down(_) for _ in self.sol.t]
-        _density_df = pd.DataFrame(data=self.sol.y * _Tgas_seq / 300,
-                                   index=self.rctn_df["species"][1:])
-        self._result_densities_view.set_values(self.sol.t, _density_df)
-
-    def _solve_eedf(self):
-        E = float(self._result_eedf_view._E_input.text())
-        Tgas_K = float(self._result_eedf_view._Tgas_input.text())
-        self._cal_eedf = EEDF(max_energy_eV=self._paras.value()[
-            "electron_max_energy_eV"],
-                              grid_number=self._paras.value()[
-                                  "eedf_grid_number"])
-        self._cal_eedf.initialize(rctn_with_crostn_df=self.rctn_df["cros"],
-                                  total_species=self.rctn_df[
-                                      "species"].to_list())
-        N = get_ideal_gas_density(p_Pa=101325, Tgas_K=Tgas_K)
-        self._cal_eedf.set_parameters(E=E, Tgas=Tgas_K, N=N)
-        total_species_density = self.rctn_instances[
-            "cros"].get_initial_density(
-            density_dict=self._densities._densities_dict())
-        total_species_density = total_species_density * 1e6
-
-        def dndt_all(t, y):
-            print(t)
-            self._cal_eedf.set_density_per_J(y)
-            self._cal_eedf.set_flux(total_species_density=total_species_density)
-            return self._cal_eedf.get_deriv_total(
-                total_species_density=total_species_density)
-
-        y0 = get_maxwell_eedf(self._cal_eedf.energy_point,
-                              Te_eV=0.8) * self._paras.value()["ne"] * 1e6
-        time_span = (0, 1e3)
-        self._eedf_sol = solve_ivp(dndt_all, time_span, y0, method="BDF",
-                                   rtol=2e-2)
-        Te_seq = []
-        for _array in self._eedf_sol.y.transpose():
-            self._cal_eedf.set_density_per_J(_array)
-            Te_seq.append(self._cal_eedf.electron_temperature_in_eV)
-        self._result_eedf_view.set_values(self._cal_eedf,
-                                          self._eedf_sol.t,
-                                          self._cal_eedf.energy_point_eV,
-                                          self._eedf_sol.y,
-                                          Te_seq)
-
-    def _eedf_sol_plot(self):
-        Te_seq = []
-        ne_seq = []
-        for _array in self._eedf_sol.y.transpose():
-            self._cal_eedf.set_density_per_J(_array)
-            Te_seq.append(self._cal_eedf.electron_temperature_in_eV)
-            ne_seq.append(self._cal_eedf.electron_density)
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.semilogx(self._eedf_sol.t, Te_seq, marker=".")
-        ax.set_title("Te vs. t")
-        ax.set_xlabel("Time [s]")
-        ax.set_ylabel("Te")
-
-        fig_1 = plt.figure()
-        ax_1 = fig_1.add_subplot(111)
-        ax_1.semilogx(self._eedf_sol.t, ne_seq, marker=".")
-        ax_1.set_title("ne vs. t")
-        ax_1.set_xlabel("Time [s]")
-        ax_1.set_ylabel("ne")
-
-    def treat_sol_result(self, _species_list):
-        _density_df = pd.DataFrame(data=self.sol.y, index=self.rctn_df[
-                                                              "species"][1:])
-        for _ in _species_list:
-            assert _ in _density_df.index
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.semilogx(self.sol.t,
-                    _density_df.loc[_species_list].values.transpose())
-        ax.legend(labels=_species_list)
-        return _density_df.loc[_species_list]
-
-    def treat_sol_result_energy(self):
-        # _rate_df = self.rctn_df["cros"]
-        _energy_rate_data = []
-        eedf = EEDF(max_energy_eV=self._PARAS["electron_max_energy_eV"],
-                    grid_number=self._PARAS["eedf_grid_number"])
-        normalized_eedf = get_maxwell_eedf(eedf.energy_point,
-                                           Te_eV=self._PARAS["Te"])
-        for _i, t in enumerate(self.sol.t):
-            _e_density = self._electron_density_func(t)
-            _Tgas_K = self._Tgas_func_slow_down(t)
-            self.rctn_instances["cros"].set_rate_const(
-                eedf_normalized=normalized_eedf)
-            self.rctn_instances["cros"].set_rate(
-                density=np.hstack((_e_density, self.sol.y[:, _i])))
-            _energy_rate_data.append(self.rctn_instances[
-                                         "cros"].rate * self.rctn_df[
-                                         "cros"]["threshold_eV"].values * 1e6)
-        _energy_rate_df = pd.DataFrame(index=self.rctn_df["cros"]["formula"],
-                                       data=np.array(
-                                           _energy_rate_data).transpose())
-        _energy_rate_df.loc["H2_vib"] = _energy_rate_df.iloc[0:210].sum()
-        _energy_rate_df.loc["H2_dis"] = _energy_rate_df.iloc[210:224].sum()
-        _energy_rate_df.loc["CO2_vib"] = _energy_rate_df.iloc[224:872].sum()
-        _energy_rate_df.loc["CO2_dis"] = _energy_rate_df.iloc[872:898].sum()
-        _energy_rate_df.loc["CO_vib"] = _energy_rate_df.iloc[898:918].sum()
-        _energy_rate_df.loc["CO_dis"] = _energy_rate_df.iloc[918:929].sum()
-        _energy_rate_df.loc["O2_vib"] = _energy_rate_df.iloc[929:935].sum()
-        _energy_rate_df.loc["O2_dis"] = _energy_rate_df.iloc[935:939].sum()
-        _energy_rate_df.loc["total"] = _energy_rate_df.iloc[939:].sum()
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.semilogx(self.sol.t,
-                    _energy_rate_df.loc["total"].values * const.eV2J)
-        ax.set_xlabel("Time [s]")
-        ax.set_ylabel("W cm-3")
-        return _energy_rate_df
-
-    def plot_Tgas_func(self):
-        _Tgas_seq = [self._Tgas_func_slow_down(_) for _ in self.sol.t]
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.semilogx(self.sol.t, _Tgas_seq, marker=".")
-
-    def plot_electron_density(self):
-        _e_density_seq = [self._electron_density_func(_) for _ in self.sol.t]
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.semilogx(self.sol.t, _e_density_seq, marker=".")
+        self._actions["SaveEEDFSettings"].triggered.connect(
+            self._result_eedf_view.save_settings_to_file)
+        self._actions["LoadEEDFSettings"].triggered.connect(
+            self._result_eedf_view.load_settings_to_file)
+        self._result_eedf_view._plot_btn.clicked.connect(self._eedf_sol_plot)
 
 
 # ---------------------------------------------------------------------------- #
@@ -1513,7 +1642,7 @@ if __name__ == "__main__":
         app = QW.QApplication(sys.argv)
     else:
         app = QW.QApplication.instance()
-    app.setStyle(QW.QStyleFactory.create("Fusion"))
-    window = ThePlasmistryGui()
-    window.show()
+    app.setStyle(QW.QStyleFactory.create("Windows"))
+    w = ThePlasmistryGui()
+    w.show()
     # sys.exit(app.exec_())
