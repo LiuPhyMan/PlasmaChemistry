@@ -221,15 +221,15 @@ class EEDF(object):
     #   public functions
     # ------------------------------------------------------------------------ #
     def initialize(self, *, rctn_with_crostn_df: DataFrame_type,
-                   total_species: np.ndarray):
+                   species_list: np.ndarray):
         r"""
         Set elastic/inelastic cross section for species.
         index of background molecule
         """
-        self._set_crostn_elastic(total_species=total_species)
+        self._set_crostn_elastic(species_list=species_list)
         self._set_crostn_inelastic(
             inelas_reaction_dataframe=rctn_with_crostn_df)
-        self._set_index_bg_molecule(total_species=total_species)
+        self._set_index_bg_molecule(species_list=species_list)
 
     def set_density_per_J(self, value: np.ndarray):
         assert isinstance(value, np.ndarray)
@@ -263,13 +263,13 @@ class EEDF(object):
     # ------------------------------------------------------------------------ #
     #   private functions
     # ------------------------------------------------------------------------ #
-    def _set_crostn_elastic(self, *, total_species: list):
+    def _set_crostn_elastic(self, *, species_list: list):
         r"""
         Set elastic collision cross sections at energy_nodes.
 
         Parameters
         ----------
-        total_species : list
+        species_list : list
 
         Notes
         -----
@@ -279,12 +279,12 @@ class EEDF(object):
                 .crostn_elas
 
         """
-        assert isinstance(total_species, list)
+        assert isinstance(species_list, list)
         # total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O', 'H2', 'CH4', 'H', 'N2', 'He'}
         total_elas_molecules = {'CO2', 'CO', 'O2', 'H2O',
                                 'H2', 'CH4', 'N2', 'Ar'}
         #   bg_molecules are the total species in total_elas_moleucles
-        self.bg_molecule_elas = [_ for _ in total_species if
+        self.bg_molecule_elas = [_ for _ in species_list if
                                  _ in total_elas_molecules]
         self.bg_molecule_mass_elas = np.array(
             [species_thermal_data.loc[_, 'absolute_mass']
@@ -553,7 +553,7 @@ class EEDF(object):
                                                 - negative_term[
                                                   1:]) * self.energy_intvl
 
-    def _set_index_bg_molecule(self, *, total_species: list):
+    def _set_index_bg_molecule(self, *, species_list: list):
         r"""
         Set _index_bg_molecule_elas.
             _index_bg_molecule_inelas.
@@ -568,24 +568,24 @@ class EEDF(object):
                       A * n                    = m
 
         """
-        assert isinstance(total_species, list)
+        assert isinstance(species_list, list)
 
-        def set_index(_bg_molecule, total_species):
-            assert set(_bg_molecule) <= set(total_species)
-            _series = pd.Series(data=range(len(total_species)),
-                                index=total_species)
-            _index = np.zeros((len(_bg_molecule), len(total_species)))
+        def set_index(_bg_molecule, species_list):
+            assert set(_bg_molecule) <= set(species_list)
+            _series = pd.Series(data=range(len(species_list)),
+                                index=species_list)
+            _index = np.zeros((len(_bg_molecule), len(species_list)))
             for i_molecule in range(len(_bg_molecule)):
                 _index[i_molecule, _series[_bg_molecule[i_molecule]]] = 1
             return sprs.csr_matrix(_index, shape=_index.shape)
 
         self._index_bg_molecule_elas = set_index(self.bg_molecule_elas,
-                                                 total_species)
+                                                 species_list)
         self._index_bg_molecule_inelas = set_index(self.bg_molecule_inelas,
-                                                   total_species)
+                                                   species_list)
         self._index_bg_molecule_inelas_in_order = set_index(
             self.bg_molecule_inelas_in_order,
-            total_species)
+            species_list)
 
     def _set_rate_const_matrix_e_inelas_electron(self):
         r"""
