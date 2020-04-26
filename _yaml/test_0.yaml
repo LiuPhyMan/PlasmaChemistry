@@ -115,6 +115,15 @@
     CO2(v21),
 ]
 
+- &CO2_all [
+    CO2,      CO2(va),  CO2(vb),  CO2(vc),  CO2(vd),
+    CO2(v1),  CO2(v2),  CO2(v3),  CO2(v4),  CO2(v5),
+    CO2(v6),  CO2(v7),  CO2(v8),  CO2(v9),  CO2(v10),
+    CO2(v11), CO2(v12), CO2(v13), CO2(v14), CO2(v15),
+    CO2(v16), CO2(v17), CO2(v18), CO2(v19), CO2(v20),
+    CO2(v21), CO2(E2)
+]
+
 - &CO2_mass 44.010
 - &CO_mass  28.010
 - &H2_mass  2.016
@@ -146,7 +155,7 @@
         _O2disCsPath_: _cs_list/O2_dis
 
 - &species_group
-    CO2(all): *CO2_vib_all
+    CO2(all): *CO2_all
     H2(all): *H2_vib_all
     CO(all): *CO_vib_all
     H2O(all): [H2O, H2O(v1), H2O(v2), H2O(v3)]
@@ -156,6 +165,7 @@
   [E,
    H2(v0-14),
    CO2(va-d), CO2(v0-21),
+   CO2(E2),
    CO(v0-10),
    O2, 
    O2(v1),
@@ -430,7 +440,7 @@
 # ===
 # === CO2 ele_dis
 # ===
-- &CO2_ele_diss_via_7_eV # through 7 eV channel
+- &CO2_ele_diss_Phelps_7_eV # through 7 eV channel
     type: EXCITATION
     formula_kstr:
         - E + CO2 => E + CO + O,        _CO2disCsPath_/CO2v0_ele_diss_7_eV.dat
@@ -467,6 +477,44 @@
         1.53
       ]
 
+
+- &CO2_ele_diss_Polak_7_eV # through 7.5 eV channel
+    type: EXCITATION
+    formula_kstr:
+        - E + CO2 => E + CO + O,        _CO2disCsPath_/CO2v0_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(va) => E + CO + O,    _CO2disCsPath_/CO2va_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(vb) => E + CO + O,    _CO2disCsPath_/CO2vb_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(vc) => E + CO + O,    _CO2disCsPath_/CO2vc_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(vd) => E + CO + O,    _CO2disCsPath_/CO2vd_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v1) => E + CO + O,    _CO2disCsPath_/CO2v1_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v2) => E + CO + O,    _CO2disCsPath_/CO2v2_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v3) => E + CO + O,    _CO2disCsPath_/CO2v3_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v4) => E + CO + O,    _CO2disCsPath_/CO2v4_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v5) => E + CO + O,    _CO2disCsPath_/CO2v5_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v6) => E + CO + O,    _CO2disCsPath_/CO2v6_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v7) => E + CO + O,    _CO2disCsPath_/CO2v7_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v8) => E + CO + O,    _CO2disCsPath_/CO2v8_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v9) => E + CO + O,    _CO2disCsPath_/CO2v9_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v10) => E + CO + O,   _CO2disCsPath_/CO2v10_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v11) => E + CO + O,   _CO2disCsPath_/CO2v11_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v12) => E + CO + O,   _CO2disCsPath_/CO2v12_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v13) => E + CO + O,   _CO2disCsPath_/CO2v13_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v14) => E + CO + O,   _CO2disCsPath_/CO2v14_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v15) => E + CO + O,   _CO2disCsPath_/CO2v15_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v16) => E + CO + O,   _CO2disCsPath_/CO2v16_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v17) => E + CO + O,   _CO2disCsPath_/CO2v17_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v18) => E + CO + O,   _CO2disCsPath_/CO2v18_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v19) => E + CO + O,   _CO2disCsPath_/CO2v19_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v20) => E + CO + O,   _CO2disCsPath_/CO2v20_ele_diss_Polak_7.5_eV.dat
+        - E + CO2(v21) => E + CO + O,   _CO2disCsPath_/CO2v21_ele_diss_Polak_7.5_eV.dat
+    threshold: # 0, a-d, 1-21
+        [ 7.50, 
+        7.42, 7.33, 7.25, 7.17,
+        7.21, 6.92, 6.63, 6.35, 6.07,
+        5.8, 5.52, 5.25, 4.99, 4.72,
+        4.46, 4.21, 3.95, 3.7, 3.45,
+        3.21, 2.97, 2.73, 2.49, 2.26,
+        2.03]
 
 # ====
 # ==== CO2 electron attachment
@@ -587,6 +635,54 @@
         loop:
             product:
                 _v_: range(11)
+
+# ===
+# === CO2 ele-exc
+# ===
+- &CO2_ele_exc_forward
+    type: EXCITATION
+    formula_kstr:
+        - E + CO2 => E + CO2(E2),           _bolsigdbPath_/[excitation][CO2_to_CO2(E2)].dat
+        - E + CO2(va) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(Va)_to_CO2(E2)].dat
+        - E + CO2(vb) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(Vb)_to_CO2(E2)].dat
+        - E + CO2(vc) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(Vc)_to_CO2(E2)].dat
+        - E + CO2(vd) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(Vd)_to_CO2(E2)].dat
+        - E + CO2(v1) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(V1)_to_CO2(E2)].dat
+        - E + CO2(v2) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(V2)_to_CO2(E2)].dat
+        - E + CO2(v3) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(V3)_to_CO2(E2)].dat
+        - E + CO2(v4) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(V4)_to_CO2(E2)].dat
+        - E + CO2(v5) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(V5)_to_CO2(E2)].dat
+        - E + CO2(v6) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(V6)_to_CO2(E2)].dat
+        - E + CO2(v7) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(V7)_to_CO2(E2)].dat
+        - E + CO2(v8) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(V8)_to_CO2(E2)].dat
+        - E + CO2(v9) => E + CO2(E2),       _bolsigdbPath_/[excitation][CO2(V9)_to_CO2(E2)].dat
+        - E + CO2(v10) => E + CO2(E2),      _bolsigdbPath_/[excitation][CO2(V10)_to_CO2(E2)].dat
+        # - E + CO2(v11) => E + CO2(E2),      _bolsigdbPath_/[excitation][CO2(V11)_to_CO2(E2)].dat
+        # - E + CO2(v12) => E + CO2(E2),      _bolsigdbPath_/[excitation][CO2(V12)_to_CO2(E2)].dat
+        # - E + CO2(v13) => E + CO2(E2),      _bolsigdbPath_/[excitation][CO2(V13)_to_CO2(E2)].dat
+        # - E + CO2(v14) => E + CO2(E2),      _bolsigdbPath_/[excitation][CO2(V14)_to_CO2(E2)].dat
+        # - E + CO2(v15) => E + CO2(E2),      _bolsigdbPath_/[excitation][CO2(V15)_to_CO2(E2)].dat
+        # - E + CO2(v16) => E + CO2(E2),      _bolsigdbPath_/[excitation][CO2(V16)_to_CO2(E2)].dat
+        # - E + CO2(v17) => E + CO2(E2),      _bolsigdbPath_/[excitation][CO2(V17)_to_CO2(E2)].dat
+        # - E + CO2(v18) => E + CO2(E2),      _bolsigdbPath_/[excitation][CO2(V18)_to_CO2(E2)].dat
+        # - E + CO2(v19) => E + CO2(E2),      _bolsigdbPath_/[excitation][CO2(V19)_to_CO2(E2)].dat
+        # - E + CO2(v20) => E + CO2(E2),      _bolsigdbPath_/[excitation][CO2(V20)_to_CO2(E2)].dat
+        # - E + CO2(v21) => E + CO2(E2),      _bolsigdbPath_/[excitation][CO2(V21)_to_CO2(E2)].dat
+    threshold:
+        [10.50, 
+        10.42, 10.33, 10.25, 10.17, 
+        10.21, 9.92, 9.63, 9.35, 9.07,
+        8.80, 8.52, 8.25, 7.99, 7.72]
+        # 7.46, 7.21, 6.95, 6.70, 6.45,
+        # 6.21, 5.97, 5.73, 5.49, 5.26,
+        # 5.03]
+
+- &CO2_ele_exc_backward
+    type: DEEXCITATION
+    formula_kstr:
+        - E + CO2(E2) => E + CO2,           _CsPath_/cs_set/reverse/cs_CO2_elecexc_CO2e2_reverse.lut
+    threshold:
+        [-10.5]
 
 # ============================================================================ #
 #   O2 kinetic
@@ -2624,7 +2720,11 @@
     CO2_ele_vib_c_backward: *CO2_ele_vib_c_backward
     CO2_ele_vib_d_forward: *CO2_ele_vib_d_forward
     CO2_ele_vib_d_backward: *CO2_ele_vib_d_backward
-    CO2_ele_diss_via_7_eV: *CO2_ele_diss_via_7_eV
+    # CO2_ele_diss_via_7_eV: *CO2_ele_diss_via_7_eV
+    # CO2_ele_diss_Phelps_7_eV: *CO2_ele_diss_Phelps_7_eV
+    CO2_ele_diss_Polak_7_eV: *CO2_ele_diss_Polak_7_eV
+    CO2_ele_exc_forward : *CO2_ele_exc_forward
+    CO2_ele_exc_backward : *CO2_ele_exc_backward
     # CO2_ele_diss_via_10_eV: *CO2_ele_diss_via_10_eV
 
 - &CO_ele_kinetic

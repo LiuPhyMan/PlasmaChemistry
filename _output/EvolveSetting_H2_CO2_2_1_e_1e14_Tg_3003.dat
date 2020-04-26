@@ -1,0 +1,11 @@
+ne 1e14
+Tgas_arc 3003
+Tgas_cold 300
+E 1.296e5
+atol 1e8
+rtol 0.002
+electron_max_energy_eV 30
+eedf_grid_number 300
+time_span 0 1e-1
+time_escape_plasma 0.423e-3
+time_cold 0.423e-3 + 1e-2
