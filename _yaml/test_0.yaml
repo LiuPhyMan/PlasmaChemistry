@@ -178,6 +178,63 @@
    H2(all), CO2(all), CO(all), H2O(all), O2(all),
    H, O, C, OH]
 
+- &species_vib_energy
+    CO2(va): 0.082770
+    CO2(vb): 0.165595
+    CO2(vc): 0.248474
+    CO2(vd): 0.331407
+    CO2(v1): 0.291257
+    CO2(v2): 0.579423
+    CO2(v3): 0.864496
+    CO2(v4): 1.146477
+    CO2(v5): 1.425366
+    CO2(v6): 1.701162
+    CO2(v7): 1.973867
+    CO2(v8): 2.243479
+    CO2(v9): 2.509999
+    CO2(v10): 2.773427
+    CO2(v11): 3.033763
+    CO2(v12): 3.291007
+    CO2(v13): 3.545158
+    CO2(v14): 3.796218
+    CO2(v15): 4.044185 
+    CO2(v16): 4.289060
+    CO2(v17): 4.530843
+    CO2(v18): 4.769533
+    CO2(v19): 5.005132
+    CO2(v20): 5.237638
+    CO2(v21): 5.467052
+    H2(v1): 0.515594 
+    H2(v2): 1.001103 
+    H2(v3): 1.456525 
+    H2(v4): 1.881862 
+    H2(v5): 2.277112 
+    H2(v6): 2.642277 
+    H2(v7): 2.977355 
+    H2(v8): 3.282348 
+    H2(v9): 3.557254 
+    H2(v10): 3.802075
+    H2(v11): 4.016809
+    H2(v12): 4.201457
+    H2(v13): 4.356020
+    H2(v14): 4.480496
+    CO(v0): 0.000000
+    CO(v1): 0.265728
+    CO(v2): 0.528160
+    CO(v3): 0.787297
+    CO(v4): 1.043140
+    CO(v5): 1.295687
+    CO(v6): 1.544939
+    CO(v7): 1.790896
+    CO(v8): 2.033558
+    CO(v9): 2.272925
+    CO(v10): 2.508997
+    O2(v1): 0.192967
+    O2(v2): 0.383016
+    O2(v3): 0.570183
+    H2O(v1): 0.197755
+    H2O(v2): 0.390724
+    H2O(v3): 0.459206
 
 # ====
 # ====  Notes
@@ -1923,7 +1980,7 @@
 #   H2(v2): H2(020)
 #   H2(v3): H2(001) + H2(100)
 - &H2O_VT_with_M
-    type: H2O_VT_M
+    type: VT_H2O_M
     formula_kstr:
         # 010 => 000
         - H2O(v1) + CO2(all) => H2O + CO2(all),         _k10CO2_
@@ -2231,6 +2288,20 @@
 # ============================================================================ #
 # ---------------------------------------------------------------------------- #
 # ---- CO2
+#   Ref.    W. Tsang and R. F. Hampson, J. Phys. Chem. Ref. Data 15 (3), 1087-1279 (1986).
+#   CO2 + M => CO + O + M       4.05e-3*T^(-1.2618)*exp(-66075/T) 300-3500 K   f.                                   f. 
+#   CO + O + M => CO2 + M       8.3e-34*exp(-1510/T)              300-3500 K  b.
+#   Kp = 6.6433e8*T^(-0.2618)*exp(-64565/T)
+#   Kc = 4.876e30*T^(-1.2618)*exp(-64565/T)
+#   dH_298K = 532 kJ/mol = 64001 K
+#   factor
+#       H2 4.0, H2O 26, CO 3.0, CO2 7.0, O2 12.0
+#   Tg      500    1000    1500    2000    2500    3000    3500    4000
+#       6.5E-64	1.3E-35	2.9E-26	1.2E-21	6.9E-19	4.5E-17	8.6E-16	7.7E-15
+#       4.1E-35	1.8E-34	3.0E-34	3.9E-34	4.5E-34	5.0E-34	5.4E-34	5.7E-34
+#   Log(Kp)
+#           -47.964 -20.003 -10.702 -6.062  -3.283  -1.434  -0.117  0.870   # log(Kp)
+#           -47.959	-20.020	-10.704	-6.055	-3.274	-1.427	-0.112	0.870   # HSC
 # ---------------------------------------------------------------------------- #
 - &CO2_CO2_to_CO_O_CO2
     <<: *CO2_vib_chemical_reaction
@@ -2239,14 +2310,14 @@
     where:
         vari:
             -   _factor_: 7.0
-            -   _a_: !alpha [49430, 1510]
-            -   Ea: 49430
-            -   k_v0: !StandardArr [3.91e-10, 0.00, 49430] # Annimie
+            -   _a_: 0.8
+            -   Ea: 64000
+            -   k_v0: "4.05e-3*Tgas**(-1.2618)*exp(-66075/Tgas)"
 
 - &CO_O_CO2_to_CO2_CO2
     type: RE_CO_O_CO2
     formula: CO + O + CO2(all) => CO2 + CO2(all)
-    kstr: !StandardArr [8.2e-34*7.0, 0.00, 1510] ## ?? TODO
+    kstr: "7.0*8.3e-34*exp(-1510/Tgas)"
 
 - &CO2_H2_to_CO_O_H2
     <<: *CO2_vib_chemical_reaction
@@ -2255,14 +2326,14 @@
     where:
         vari:
             -   _factor_: 4.0
-            -   _a_: !alpha [49430, 1510]
-            -   Ea: 49430
-            -   k_v0: !StandardArr [3.91e-10, 0.00, 49430] # Annimie
+            -   _a_: 0.8
+            -   Ea: 64000
+            -   k_v0: "4.05e-3*Tgas**(-1.2618)*exp(-66075/Tgas)"
 
 - &CO_O_H2_to_CO2_H2
     type: RE_CO_O_H2
     formula: CO + O + H2(all) => CO2 + H2(all)
-    kstr: !StandardArr [8.2e-34 * 4.0, 0.00, 1510]
+    kstr: "4.0*8.3e-34*exp(-1510/Tgas)"
 
 - &CO2_CO_to_CO_O_CO
     <<: *CO2_vib_chemical_reaction
@@ -2271,14 +2342,14 @@
     where:
         vari:
             -   _factor_: 3.0
-            -   _a_: !alpha [49430, 1510]
-            -   Ea: 49430
-            -   k_v0: !StandardArr [3.91e-10, 0.00, 49430] # Annimie
+            -   _a_: 0.8
+            -   Ea: 64000
+            -   k_v0: "4.05e-3*Tgas**(-1.2618)*exp(-66075/Tgas)"
 
 - &CO_O_CO_to_CO2_CO
     type: RE_CO_O_CO
     formula: CO + O + CO(all) => CO2 + CO(all)
-    kstr: !StandardArr [8.2e-34 * 3.0, 0.00, 1510]
+    kstr: "3.0*8.3e-34*exp(-1510/Tgas)"
 
 - &CO2_H2O_to_CO_O_H2O
     <<: *CO2_vib_chemical_reaction
@@ -2287,14 +2358,14 @@
     where:
         vari:
             -   _factor_: 26
-            -   _a_: !alpha [49430, 1510]
-            -   Ea: 49430
-            -   k_v0: !StandardArr [3.91e-10, 0.00, 49430] # Annimie
+            -   _a_: 0.8
+            -   Ea: 64000
+            -   k_v0: "4.05e-3*Tgas**(-1.2618)*exp(-66075/Tgas)"
 
 - &CO_O_H2O_to_CO2_H2O
     type: RE_CO_O_H2O
     formula: CO + O + H2O(all) => CO2 + H2O(all)
-    kstr: !StandardArr [8.2e-34 * 26, 0.00, 1510]
+    kstr: "26.0*8.3e-34*exp(-1510/Tgas)"
 
 - &CO2_O2_to_CO_O_O2
     <<: *CO2_vib_chemical_reaction
@@ -2303,14 +2374,14 @@
     where:
         vari:
             -   _factor_: 12
-            -   _a_: !alpha [49430, 1510]
-            -   Ea: 49430
-            -   k_v0: !StandardArr [3.91e-10, 0.00, 49430] # Annimie
+            -   _a_: 0.8
+            -   Ea: 64000
+            -   k_v0: "4.05e-3*Tgas**(-1.2618)*exp(-66075/Tgas)"
 
 - &CO_O_O2_to_CO2_O2
     type: RE_CO_O_O2
     formula: CO + O + O2(all) => CO2 + O2(all)
-    kstr: !StandardArr [8.2e-34 * 12, 0.00, 1510]
+    kstr: "12.0*8.3e-34*exp(-1510/Tgas)"
 # ---------------------------------------------------------------------------- #
 # ---- O2
 #   Ref.    W. Tsang and R. F. Hampson, J. Phys. Chem. Ref. Data 15 (3), 1087-1279 (1986).
@@ -2865,6 +2936,7 @@
     The reactions considered:
         global_abbr: *Global_abbr
         species: *species
+        species_vib_energy: *species_vib_energy
         species_group: *species_group
         electron reactions:
             <<: *H2_ele_kinetic

@@ -67,15 +67,15 @@ from plasmistry.electron import (get_maxwell_eedf, get_rate_const_from_crostn)
 #   Set yaml constructor
 # ---------------------------------------------------------------------------- #
 constructor_dict = {
-    "!StandardArr": standard_Arr_constructor,
-    "!ChemKinArr_2_rcnt": chemkin_Arr_2_rcnts_constructor,
-    "!ChemKinArr_3_rcnt": chemkin_Arr_3_rcnts_constructor,
-    "!rev": reversed_reaction_constructor,
-    "!LT": LT_ln_constructor,
-    "!alpha": alpha_constructor,
-    "!F_gamma": F_gamma_constructor,
-    "!a_para": a_para_constructor,
-    "!reduced_mass": reduced_mass_constructor
+        "!StandardArr"      : standard_Arr_constructor,
+        "!ChemKinArr_2_rcnt": chemkin_Arr_2_rcnts_constructor,
+        "!ChemKinArr_3_rcnt": chemkin_Arr_3_rcnts_constructor,
+        "!rev"              : reversed_reaction_constructor,
+        "!LT"               : LT_ln_constructor,
+        "!alpha"            : alpha_constructor,
+        "!F_gamma"          : F_gamma_constructor,
+        "!a_para"           : a_para_constructor,
+        "!reduced_mass"     : reduced_mass_constructor
 }
 for _key in constructor_dict:
     yaml.add_constructor(_key, constructor_dict[_key], Loader=yaml.FullLoader)
@@ -91,12 +91,12 @@ _DEFAULT_NOTE_FONT = QFont("Consolas", 12)
 _EVEN_LINE_COLOR = QColor(235, 235, 235)
 
 _VARI_DICT = {
-    "H2_vib_energy_in_eV": H2_vib_energy_in_eV,
-    "H2_vib_energy_in_K": H2_vib_energy_in_K,
-    "CO_vib_energy_in_eV": CO_vib_energy_in_eV,
-    "CO_vib_energy_in_K": CO_vib_energy_in_K,
-    "CO2_vib_energy_in_eV": CO2_vib_energy_in_eV,
-    "CO2_vib_energy_in_K": CO2_vib_energy_in_K
+        "H2_vib_energy_in_eV" : H2_vib_energy_in_eV,
+        "H2_vib_energy_in_K"  : H2_vib_energy_in_K,
+        "CO_vib_energy_in_eV" : CO_vib_energy_in_eV,
+        "CO_vib_energy_in_K"  : CO_vib_energy_in_K,
+        "CO2_vib_energy_in_eV": CO2_vib_energy_in_eV,
+        "CO2_vib_energy_in_K" : CO2_vib_energy_in_K
 }
 
 
@@ -177,7 +177,7 @@ class RctnDictView(QW.QWidget):
         for _ in self._LIST_NAME:
             self._rctn_list[_] = QW.QListWidget()
             self._rctn_list[_].setSelectionMode(
-                QW.QAbstractItemView.ExtendedSelection)
+                    QW.QAbstractItemView.ExtendedSelection)
             self._rctn_list[_].setFixedHeight(self._LIST_HEIGHT)
             self._rctn_list[_].setFixedWidth(self._LIST_WIDTH)
             self._rctn_list[_].setFont(self._LIST_FONT)
@@ -216,15 +216,15 @@ class RctnDictView(QW.QWidget):
                 self._rctn_list[_key].clearSelection()
 
         self._checkboxes["species"].stateChanged.connect(
-            lambda: selectAll("species"))
+                lambda: selectAll("species"))
         self._checkboxes["electron"].stateChanged.connect(
-            lambda: selectAll("electron"))
+                lambda: selectAll("electron"))
         self._checkboxes["chemical"].stateChanged.connect(
-            lambda: selectAll("chemical"))
+                lambda: selectAll("chemical"))
         self._checkboxes["decom_recom"].stateChanged.connect(
-            lambda: selectAll("decom_recom"))
+                lambda: selectAll("decom_recom"))
         self._checkboxes["relaxation"].stateChanged.connect(
-            lambda: selectAll("relaxation"))
+                lambda: selectAll("relaxation"))
 
     def _set_layout(self):
         _list_layout = QW.QGridLayout()
@@ -397,10 +397,10 @@ class CoefRctnDfView(_RctnDfView):
         self._copy_text = ""
         for i_row, _Tgas in enumerate(_energy_list):
             _k = eval(_kstr, None, {
-                "Tgas": _Tgas,
-                "exp": math.exp,
-                "log": math.log,
-                "sqrt": math.sqrt
+                    "Tgas": _Tgas,
+                    "exp" : math.exp,
+                    "log" : math.log,
+                    "sqrt": math.sqrt
             })
             _k_list.append(_k)
             self._copy_text = self._copy_text + f"{_k:.1e}\n"
@@ -423,9 +423,13 @@ class CoefRctnDfView(_RctnDfView):
         _coef_df_to_show = []
         for _index in self._rctn_df["coef"].index:
             _type = self._rctn_df["coef"].loc[_index, "type"]
+            _vib_energy_loss = self._rctn_df["coef"].loc[_index,
+                                                         "vib_energy_loss"]
             _reactant = self._rctn_df["coef"].loc[_index, "reactant"]
             _product = self._rctn_df["coef"].loc[_index, "product"]
-            _coef_df_to_show.append(f"[{_type:_>12}] {_reactant:>20} => "
+            _coef_df_to_show.append(f"[{_type:_>12}]["
+                                    f"{_vib_energy_loss:_>6.2f}]"
+                                    f" {_reactant:>20} => "
                                     f"{_product:<20}")
         for _i, _ in enumerate(_coef_df_to_show):
             self._rctn_list.addItem(f"[{_i:_>4}]{_}")
@@ -624,9 +628,10 @@ class DensitySetting(QW.QWidget):
         return _data_dict
 
     def save_densities_to_file(self):
-        (filename, _) = QW.QFileDialog.getSaveFileName(self,
-                                                       "Save init densities",
-                                                       "_output/")
+        (filename, _) = QF.getSaveFileName(self,
+                                           caption="Save init densities",
+                                           directory="_output/*.init_densities",
+                                           filter="(*.init_densities)")
         with open(filename, "w") as f:
             for _row in range(self._density_list.count()):
                 f.write(self._density_list.item(_row).text())
@@ -634,9 +639,10 @@ class DensitySetting(QW.QWidget):
 
     def load_densities_to_file(self):
         self._density_list.clear()
-        (filename, _) = QW.QFileDialog.getOpenFileName(self,
-                                                       "Load init densities",
-                                                       "_output/")
+        (filename, _) = QF.getOpenFileName(self,
+                                           caption="Load init densities",
+                                           directory="_output/",
+                                           filter="(*.init_densities)")
         with open(filename, "r") as f:
             for _line in f.readlines():
                 self._density_list.addItem(_line.strip())
@@ -715,9 +721,10 @@ class EEDFSettings(QW.QWidget):
         self._set_layout()
 
     def load_eedf_from_file(self):
-        (filename, _) = QW.QFileDialog.getOpenFileName(self,
-                                                       "Load eedf",
-                                                       "_output/")
+        (filename, _) = QF.getOpenFileName(self,
+                                           caption="Load eedf",
+                                           directory="_output/",
+                                           filter="(*.eedf)")
         self._note.setText(filename)
         self._data = np.loadtxt(filename, comments="#")
         energy_eV = self._data[:, 0] * const.J2eV
@@ -810,7 +817,7 @@ class ResultDensitiesView(QW.QWidget):
         self._set_layout()
         self._set_connect()
         self._species_list.setSelectionMode(
-            QW.QAbstractItemView.ExtendedSelection)
+                QW.QAbstractItemView.ExtendedSelection)
         self._plot_btn.setFixedSize(QSize(150, 50))
         self._plot_btn.setFont(QFont("Arial", 12))
         self._save_btn.setFixedSize(QSize(150, 50))
@@ -834,15 +841,20 @@ class ResultDensitiesView(QW.QWidget):
                     marker=".")
         ax.legend(_species_selected)
         ax.grid()
+        print(f"CO2(all): {self._result_df.loc['CO2(all)'].values[-1]:.4e}")
+        print(f"CO(all): {self._result_df.loc['CO(all)'].values[-1]:.4e}")
+        print(f"O2(all): {self._result_df.loc['O2(all)'].values[-1]:.4e}")
+        print(f"H2O(all): {self._result_df.loc['H2O(all)'].values[-1]:.4e}")
 
     def save_selected(self):
         _species_selected = [_.data() for _ in
                              self._species_list.selectedIndexes()]
         _data = self._result_df.loc[_species_selected].values
         _data = np.vstack((self._time_seq, _data))
-        (filename, _) = QW.QFileDialog.getSaveFileName(self,
-                                                       "Save densities values",
-                                                       "_output/")
+        (filename, _) = QF.getSaveFileName(self,
+                                           caption="Save densities values",
+                                           directory="_output/*.densities_seq",
+                                           filter="(*.densities_seq)")
         np.savetxt(filename, _data.transpose(),
                    comments="",
                    header="time " + " ".join(_species_selected))
@@ -861,6 +873,49 @@ class ResultDensitiesView(QW.QWidget):
         _layout.addLayout(_btn_layout)
         _layout.addStretch(1)
         self.setLayout(_layout)
+
+
+class ResultRateView(QW.QWidget):
+    _PATHWAYS = ["E + CO2(v) => E + CO + O",
+                 "CO + O2 => CO2 + O",
+                 "CO + OH => CO2 + H",
+                 "CO + O + M => CO2 + M",
+                 "CO2(v) + O => CO + O2",
+                 "CO2(v) + H => CO + OH",
+                 "CO2(v) + M => CO + O + M"]
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._pathways_list = QW.QListWidget(self)
+        self._plot_btn = BetterQPushButton("Plot")
+        self._save_btn = BetterQPushButton("Save")
+        self._set_pathways_list()
+        self._set_layout()
+        self._set_connect()
+        self._pathways_list.setSelectionMode(
+                QW.QAbstractItemView.ExtendedSelection)
+        self._plot_btn.setFixedSize(QSize(150, 50))
+        self._plot_btn.setFont(QFont("Arial", 12))
+        self._save_btn.setFixedSize(QSize(150, 50))
+        self._save_btn.setFont(QFont("Arial", 12))
+
+    def _set_pathways_list(self):
+        for _pathway in self._PATHWAYS:
+            self._pathways_list.addItem(_pathway)
+
+    def _set_layout(self):
+        _layout = QW.QHBoxLayout()
+        _layout.addWidget(self._pathways_list)
+        _btn_layout = QW.QVBoxLayout()
+        _btn_layout.addWidget(self._plot_btn, alignment=Qt.AlignTop)
+        _btn_layout.addWidget(self._save_btn, alignment=Qt.AlignTop)
+        _btn_layout.addStretch(1)
+        _layout.addLayout(_btn_layout)
+        _layout.addStretch(1)
+        self.setLayout(_layout)
+
+    def _set_connect(self):
+        pass
 
 
 class ResultEEDFView(QW.QWidget):
@@ -908,9 +963,10 @@ class ResultEEDFView(QW.QWidget):
 
     def save_eedf_value(self):
         _row_selected = self._time_list.selectedIndexes()[0].row()
-        (filename, _) = QW.QFileDialog.getSaveFileName(self,
-                                                       "Save EEDF value",
-                                                       "_output/")
+        (filename, _) = QF.getSaveFileName(self,
+                                           caption="Save EEDF value",
+                                           directory="_output/*.eedf",
+                                           filter="(*.eedf)")
         self._eedf.set_density_per_J(self._eedf_array[:, _row_selected])
         _data_to_save = np.vstack((self._energy_eV * const.eV2J,
                                    self._eedf.normalized_eedf_J)).transpose()
@@ -956,11 +1012,11 @@ class _PlasmistryGui(QW.QMainWindow):
         #   Data
         # -------------------------------------------------------------------- #
         self.rctn_dict = {
-            "species": "",
-            "electron reactions": "",
-            "relaxation reactions": "",
-            "chemical reactions": "",
-            "decom_recom reactions": ""
+                "species"              : "",
+                "electron reactions"   : "",
+                "relaxation reactions" : "",
+                "chemical reactions"   : "",
+                "decom_recom reactions": ""
         }
         self.rctn_df = {"species": "", "cros": "", "coef": ""}
         self.rctn_instances = {"cros": "", "coef": ""}
@@ -978,6 +1034,7 @@ class _PlasmistryGui(QW.QMainWindow):
         self._eedf_setting = EEDFSettings()
         self._result_densities_view = ResultDensitiesView()
         self._result_eedf_view = ResultEEDFView()
+        self._result_pathways_view = ResultRateView()
         self._buttons = dict()
         self._menubar = dict()
         self._actions = dict()
@@ -1043,15 +1100,21 @@ class _PlasmistryGui(QW.QMainWindow):
                                                      self)
         self._actions["SaveInitDensities"] = QAction("&Save init densities",
                                                      self)
-        # self._actions["SaveEEDFSettings"] = QAction("&Save eedf settings", self)
+        # self._actions["SaveEEDFSettings"] = QAction("&Save eedf settings",
+        # self)
         self._actions["LoadInitDensities"] = QAction("&Load init densities",
                                                      self)
-        # self._actions["LoadEEDFSettings"] = QAction("&Load eedf settings", self)
+        # self._actions["LoadEEDFSettings"] = QAction("&Load eedf settings",
+        # self)
         self._actions["SaveEEDF"] = QAction("&Save eedf", self)
         self._actions["SaveEnergyPathways"] = QAction("&Save energy paths",
                                                       self)
         self._actions["Evolve"] = QAction("&Evolve", self)
         self._actions["LoadEEDF"] = QAction("&Load eedf", self)
+        self._actions["CalSpeciesIntegration"] = QAction("&Species integrated",
+                                                         self)
+        self._actions["CalDensityPathways"] = QAction("&Density pathways", self)
+        self._actions["CalEnergyPathways"] = QAction("&Energy pathways", self)
         self._actions["resize_0"] = QAction("1920x1080", self)
         self._actions["resize_1"] = QAction("1768x992", self)
         self._actions["resize_2"] = QAction("1600x900", self)
@@ -1066,8 +1129,8 @@ class _PlasmistryGui(QW.QMainWindow):
             self._actions[_key].setFont(_DEFAULT_ACTION_FONT)
 
     def _set_menubar(self):
-        for _key in ("file", "save", "load", "run", "view", "plot", "window",
-                     "help"):
+        for _key in ("file", "save", "load", "run", "cal",
+                     "view", "plot", "window", "help"):
             self._menubar[_key] = self.menuBar().addMenu("&" +
                                                          _key.capitalize())
         self._menubar["resize"] = self._menubar["window"].addMenu("&Resize")
@@ -1089,6 +1152,9 @@ class _PlasmistryGui(QW.QMainWindow):
 
         self._menubar["run"].addAction(self._actions["Evolve"])
         self._menubar["run"].addAction(self._actions["CalEEDF"])
+        self._menubar["cal"].addAction(self._actions["CalSpeciesIntegration"])
+        self._menubar["cal"].addAction(self._actions["CalDensityPathways"])
+        self._menubar["cal"].addAction(self._actions["CalEnergyPathways"])
         self._menubar["resize"].addAction(self._actions["resize_0"])
         self._menubar["resize"].addAction(self._actions["resize_1"])
         self._menubar["resize"].addAction(self._actions["resize_2"])
@@ -1107,7 +1173,7 @@ class _PlasmistryGui(QW.QMainWindow):
             self._toolbar.addAction(self._actions[_])
             self._toolbar.widgetForAction(self._actions[_]).setStyleSheet(_str)
             self._toolbar.widgetForAction(
-                self._actions[_]).setFont(_DEFAULT_TOOLBAR_FONT)
+                    self._actions[_]).setFont(_DEFAULT_TOOLBAR_FONT)
             self._toolbar.addSeparator()
 
     def _set_tab_widget(self):
@@ -1129,10 +1195,12 @@ class _PlasmistryGui(QW.QMainWindow):
         # _layout.addStretch(1)
         _widget.setLayout(_layout)
         self._tab_widget.addTab(_widget, "Run Paras")
-        self._tab_widget.addTab(self._result_densities_view, "#result "
-                                                             "Densities")
-        self._tab_widget.addTab(self._result_eedf_view, "#result EEDF")
-
+        self._tab_widget.addTab(self._result_eedf_view,
+                                "#result EEDF")
+        self._tab_widget.addTab(self._result_densities_view,
+                                "#result Densities")
+        self._tab_widget.addTab(self._result_pathways_view,
+                                "result Pathways")
         #
         self._tab_widget.setStyleSheet("QTabBar::tab {width:150px;}")
         self._tab_widget.setFont(_DEFAULT_TOOLBAR_FONT)
@@ -1152,10 +1220,10 @@ class _PlasmistryGui(QW.QMainWindow):
                  chemical reactions,
                  decom_recom reactions
         """
-        (filename, _) = QW.QFileDialog.getOpenFileName(caption="Open File",
-                                                       directory="_yaml/",
-                                                       filter="yaml file ("
-                                                              "*.yaml)")
+        (filename, _) = QF.getOpenFileName(self,
+                                           caption="Open File",
+                                           directory="_yaml/",
+                                           filter="(*.yaml)")
         try:
             with open(filename) as f:
                 rctn_block = yaml.load(f, Loader=yaml.FullLoader)
@@ -1229,13 +1297,13 @@ class _PlasmistryGui(QW.QMainWindow):
         rctn_df = dict()
         rctn_df["species"] = pd.Series(_species)
         rctn_df["electron"] = pd.DataFrame(
-            columns=["formula", "type", "threshold_eV", "cross_section"])
+                columns=["formula", "type", "threshold_eV", "cross_section"])
         rctn_df["chemical"] = pd.DataFrame(
-            columns=["formula", "type", "reactant", "product", "kstr"])
+                columns=["formula", "type", "reactant", "product", "kstr"])
         rctn_df["relaxation"] = pd.DataFrame(
-            columns=["formula", "type", "reactant", "product", "kstr"])
+                columns=["formula", "type", "reactant", "product", "kstr"])
         rctn_df["decom_recom"] = pd.DataFrame(
-            columns=["formula", "type", "reactant", "product", "kstr"])
+                columns=["formula", "type", "reactant", "product", "kstr"])
         for _key_0, _key_1 in (("electron", "electron reactions"),
                                ("relaxation", "relaxation reactions"),
                                ("chemical", "chemical reactions"),
@@ -1252,19 +1320,38 @@ class _PlasmistryGui(QW.QMainWindow):
                                                  vari_dict=_VARI_DICT,
                                                  global_abbr=_global_abbr)
                 rctn_df[_key_0] = pd.concat(
-                    [rctn_df[_key_0],
-                     _block.generate_crostn_dataframe()],
-                    ignore_index=True,
-                    sort=False)
+                        [rctn_df[_key_0],
+                         _block.generate_crostn_dataframe()],
+                        ignore_index=True,
+                        sort=False)
         self.rctn_df = dict()
         self.rctn_df["species"] = rctn_df["species"]
         self.rctn_df["cros"] = rctn_df["electron"]
         self.rctn_df["coef"] = pd.concat([
-            rctn_df["chemical"], rctn_df["decom_recom"],
-            rctn_df["relaxation"]
+                rctn_df["chemical"], rctn_df["decom_recom"],
+                rctn_df["relaxation"]
         ],
-            ignore_index=True,
-            sort=False)
+                ignore_index=True,
+                sort=False)
+        #### cal vib_energy_loss
+        self.rctn_df["coef"]["vib_energy_loss"] = 0.0
+        for _irow in range(self.rctn_df["coef"].shape[0]):
+            _rcnt_list = self.rctn_df["coef"].iloc[_irow]["reactant"].split(
+                    r"+")
+            _energy_list = [self.rctn_dict["species_vib_energy"].get(_.strip(),
+                                                                     0.0) for _
+                            in _rcnt_list]
+            _rcnt_vib_energy = np.array(_energy_list).sum()
+            _prdt_list = self.rctn_df["coef"].iloc[_irow]["product"].split(
+                    r"+")
+            _energy_list = [self.rctn_dict["species_vib_energy"].get(_.strip(),
+                                                                     0.0) for _
+                            in _prdt_list]
+            _prdt_vib_energy = np.array(_energy_list).sum()
+            self.rctn_df["coef"].loc[_irow, "vib_energy_loss"] = \
+                _rcnt_vib_energy - _prdt_vib_energy
+
+        ####
         self.show_message("rctn dict => rctn df\nDone!")
 
     def show_rctn_df(self):
@@ -1280,10 +1367,10 @@ class _PlasmistryGui(QW.QMainWindow):
         reactant = split_df[0]
         product = split_df[1]
         self.rctn_instances["cros"] = CrosReactions(
-            species=self.rctn_df["species"],
-            reactant=reactant,
-            product=product,
-            k_str=None)
+                species=self.rctn_df["species"],
+                reactant=reactant,
+                product=product,
+                k_str=None)
         self.rctn_instances["cros"]._set_species_group(self.rctn_dict[
                                                            "species_group"])
         #   Set coef reactions instance
@@ -1291,10 +1378,10 @@ class _PlasmistryGui(QW.QMainWindow):
         product = self.rctn_df["coef"]["product"]
         kstr = self.rctn_df["coef"]["kstr"]
         self.rctn_instances["coef"] = CoefReactions(
-            species=self.rctn_df["species"],
-            reactant=reactant,
-            product=product,
-            k_str=kstr)
+                species=self.rctn_df["species"],
+                reactant=reactant,
+                product=product,
+                k_str=kstr)
         self.rctn_instances["coef"]._set_species_group(self.rctn_dict[
                                                            "species_group"])
         self.rctn_instances["coef"].compile_k_str()
@@ -1378,8 +1465,8 @@ class ThePlasmistryGui(_PlasmistryGui):
 
     def _init_cros_reactions(self):
         self.rctn_instances["cros"].set_rate_const_matrix(
-            crostn_dataframe=self.rctn_df["cros"],
-            electron_energy_grid=self._eedf_engine.energy_point)
+                crostn_dataframe=self.rctn_df["cros"],
+                electron_energy_grid=self._eedf_engine.energy_point)
 
     @staticmethod
     def density_convert(y, *, Tg_from, to_Tg):
@@ -1390,15 +1477,15 @@ class ThePlasmistryGui(_PlasmistryGui):
                   normalized_eedf, unit_factor=1):
         # m3/s => 1e6 * cm3/s    unit_factor: 1e6
         self.rctn_instances["cros"].set_rate_const(
-            eedf_normalized=normalized_eedf)
+                eedf_normalized=normalized_eedf)
         self.rctn_instances["cros"].set_rate(
-            density=np.hstack([_electron_density, density_without_e]))
+                density=np.hstack([_electron_density, density_without_e]))
         return self.rctn_instances["cros"].get_dn() * unit_factor
 
     def dndt_coef(self, t, density_without_e, _electron_density, Tgas_K):
         self.rctn_instances["coef"].set_rate_const(Tgas_K=Tgas_K)
         self.rctn_instances["coef"].set_rate(
-            density=np.hstack([_electron_density, density_without_e]))
+                density=np.hstack([_electron_density, density_without_e]))
         return self.rctn_instances["coef"].get_dn()
 
     def dndt_all(self, t, y, normalized_eedf):
@@ -1459,7 +1546,7 @@ class ThePlasmistryGui(_PlasmistryGui):
         # -------------------------------------------------------------------- #
         _std_densities_dict = self._densities._std_densities_dict()
         init_density = self.rctn_instances["coef"].get_initial_density(
-            density_dict=_std_densities_dict)
+                density_dict=_std_densities_dict)
         init_density = init_density * 300 / self._PARAS["Tgas_arc"]
         init_density_without_e_cm3 = init_density[1:]  # cm-3
         init_density_without_e_m3 = init_density_without_e_cm3 * \
@@ -1481,12 +1568,12 @@ class ThePlasmistryGui(_PlasmistryGui):
             print(f"Te: {self._eedf_engine.electron_temperature_in_eV:.1f} eV")
             print(f"ne: {self._eedf_engine.electron_density:.1e} m-3")
             self._eedf_engine.set_flux(
-                total_species_density=_y_density_without_e *
-                                      self.density_cm3_to_m3)
-            if t <= self._PARAS["time_escape_plasma"]:
-                deedf_dt = self._eedf_engine.get_deriv_total(
                     total_species_density=_y_density_without_e *
                                           self.density_cm3_to_m3)
+            if t <= self._PARAS["time_escape_plasma"]:
+                deedf_dt = self._eedf_engine.get_deriv_total(
+                        total_species_density=_y_density_without_e *
+                                              self.density_cm3_to_m3)
             else:
                 deedf_dt = np.zeros_like(_y_eedf)
             normalized_eedf = self._eedf_engine.normalized_eedf_J
@@ -1534,7 +1621,8 @@ class ThePlasmistryGui(_PlasmistryGui):
         self._eedf_engine.set_parameters(E=E, Tgas=Tgas_K, N=N)
         total_species_density = self.rctn_instances[
                                     "cros"].get_initial_density(
-            density_dict=self._densities._std_densities_dict())[1:] * 300 / \
+                density_dict=self._densities._std_densities_dict())[1:] * 300 \
+                                / \
                                 Tgas_K
         total_species_density = total_species_density * self.density_cm3_to_m3
 
@@ -1542,9 +1630,9 @@ class ThePlasmistryGui(_PlasmistryGui):
             print(f"EEDF cal: time {t:.2e}")
             self._eedf_engine.set_density_per_J(_density_per_J)
             self._eedf_engine.set_flux(
-                total_species_density=total_species_density)
+                    total_species_density=total_species_density)
             return self._eedf_engine.get_deriv_total(
-                total_species_density=total_species_density)
+                    total_species_density=total_species_density)
             ## TEST
             # return self._eedf_engine.get_deriv_total()
             ##
@@ -1613,7 +1701,122 @@ class ThePlasmistryGui(_PlasmistryGui):
             print(f"{_result_dict[_]:.4e}")
         return _result_dict
 
-    def cal_result_energy_pathways(self):
+    def cal_result_pathways(self):
+        normalized_eedf = np.interp(self._eedf_engine.energy_point,
+                                    self._eedf_setting.eedf_value()[:, 0],
+                                    self._eedf_setting.eedf_value()[:, 1])
+        _pathways_data = []
+        _cros_rate_data = []
+        _coef_rate_data = []
+        for _i, t in enumerate(self.sol.t):
+            _e_density = self._electron_density_func(t)
+            _Tgas_K = self._Tgas_func_slow_down(t)
+            _Tgas_factor = _Tgas_K / 300
+            ####
+            _density = np.hstack([_e_density, self.sol.y[:, _i]])
+            ####
+            self.rctn_instances["cros"].set_rate_const(
+                    eedf_normalized=normalized_eedf)
+            self.rctn_instances["cros"].set_rate(density=_density)
+            _cros_rate_data.append(
+                    self.rctn_instances["cros"].rate * 1e6 * _Tgas_factor)
+            ####
+            self.rctn_instances["coef"].set_rate_const(Tgas_K=_Tgas_K)
+            self.rctn_instances["coef"].set_rate(density=_density)
+            _coef_rate_data.append(
+                    self.rctn_instances["coef"].rate * _Tgas_factor)
+        ####
+        # _coef_rate_data = np.array(_coef_rate_data).transpose()
+        _rate_data = np.hstack((_cros_rate_data, _coef_rate_data)).transpose()
+        _rate_df_index = self.rctn_instances["cros"].formula.to_list() + \
+                         self.rctn_instances["coef"].formula.to_list()
+        self._rate_df = pd.DataFrame(_rate_data, index=_rate_df_index)
+        self._pathways_df = pd.DataFrame(columns=self._rate_df.columns)
+        _match = {"E + CO2 => E + CO + O": r"E \+ CO2\S* => E \+ CO \+ O",
+                  "CO2 + O => CO + O2"      : r"CO2\S* \+ O => CO \+ O2",
+                  "CO2 + H => CO + OH"      : r"CO2\S* \+ H => CO \+ OH",
+                  "CO2 + M => CO + O + M"   : r"CO2\S* \+ \S+ => CO \+ O \+ \S+",
+                  "CO2 + C => CO + CO"      : r"CO2\S* \+ C => CO \+ CO",
+                  "CO + O2 => CO2 + O"      : r"CO \+ O2 => CO2 \+ O",
+                  "CO + OH => CO2 + H"      : r"CO \+ OH => CO2 \+ H",
+                  "CO + O + M => CO2 + M"   : r"CO \+ O \+ \S+ => CO2 \+ \S+",
+                  "O2 + C => CO + O"        : r"O2 \+ C => CO \+ O",
+                  "E + H2 => E + H + H"     : r"E \+ H2\S* => E \+ H \+ H",
+                  "E + CO => E + C + O"     : r"E \+ CO\S* => E \+ C \+ O",
+                  "E + O2 => E + O + O"     : r"E \+ O2\S* => E \+ O \+ O",
+                  "E + H2O => E + OH + H"   : r"E \+ H2O\S* => E \+ OH \+ H",
+                  "H2 + O => H + OH"        : r"H2\S* \+ O => H \+ OH",
+                  "H + OH => H2 + O"        : r"H \+ OH => H2 \+ O",
+                  "H2 + OH => H + H2O"      : r"H2\S* \+ OH => H \+ H2O",
+                  "H + H2O => H2 + OH"      : r"H \+ H2O => H2 \+ OH",
+                  "O2 + H => O + OH"        : r"O2 \+ H => O \+ OH",
+                  "O + OH => O2 + H"        : r"O \+ OH => O2 \+ H",
+                  "O + H2O => OH + OH"      : r"O \+ H2O => OH \+ OH",
+                  "OH + OH => O + H2O"      : r"OH \+ OH => O \+ H2O",
+                  "O2 + M => O + O + M"     : r"O2 \+ \S+ => O \+ O \+ \S+",
+                  "O + O + M => O2 + M"     : r"O \+ O \+ \S+ => O2 \+ \S+",
+                  "H2O + M => OH + H + M"   : r"H2O \+ \S+ => OH \+ H \+ \S+",
+                  "OH + H + M => H2O + M"   : r"OH \+ H \+ \S+ => H2O \+ \S+",
+                  "H2 + M => H + H + M"     : r"H2\S* \+ \S+ => H \+ H \+ \S+",
+                  "H + H + M => H2 + M"     : r"H \+ H \+ \S+ => H2 \+ \S+",
+                  "OH + M => O + H + M"     : r"OH \+ \S+ => O \+ H \+ \S+",
+                  "H + O + M => OH + M"     : r"H \+ O \+ \S+ => OH \+ \S+"}
+        # self._pathways_df["CO2(v) + O => CO + O2"] = self._rate_df[
+        #     self._rate_df.index.str.match(r"CO2\S* \+ O => CO \+ O2")]
+        for _key in _match:
+            _data = self._rate_df[self._rate_df.index.str.match(_match[_key])]
+            self._pathways_df.loc[_key] = _data.sum()
+
+        self._result_pathways_view._pathways_list.clear()
+        self._result_pathways_view._pathways_list.addItems(
+                self._pathways_df.index)
+
+    def save_result_pathways(self):
+        _selected_index = self._result_pathways_view._pathways_list \
+            .selectedIndexes()
+        _selected_index = [_.row() for _ in _selected_index]
+        _selected_pathways_df = self._pathways_df.iloc[_selected_index]
+        (filename, _) = QF.getSaveFileName(self,
+                                           caption="Save pathways",
+                                           directory="_output/*.pathways",
+                                           filter="(*.pathways)")
+        _data_to_save = np.vstack((self.sol.t,
+                                   _selected_pathways_df.values)).transpose()
+        np.savetxt(filename,
+                   _data_to_save,
+                   delimiter=",",
+                   header="time," + ",".join(_selected_pathways_df.index),
+                   comments="")
+
+    def plot_result_pathways(self):
+        try:
+            _selected_index = self._result_pathways_view._pathways_list \
+                .selectedIndexes()
+            _selected_index = [_.row() for _ in _selected_index]
+            _selected_pathways_df = self._pathways_df.iloc[_selected_index]
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.loglog(self.sol.t, _selected_pathways_df.values.transpose(),
+                      marker=".")
+            ax.set_xlabel("Time [s]")
+            ax.set_ylabel("Rate [cm-3 s-1]")
+            ax.grid()
+            ax.legend(_selected_pathways_df.index)
+            _integrated_rate = simps(_selected_pathways_df.values, self.sol.t)
+            print("Integrated rate.")
+            for _formula, _data in zip(_selected_pathways_df.index,
+                                       _integrated_rate):
+                print(_formula, end="\t\t")
+                print(f"{_data:.7e}")
+            print("Sum", end=" ")
+            print(f"{_integrated_rate.sum():.4e}")
+            CO2_loss_form = simps(self._pathways_df.values, self.sol.t)
+            print("delta_CO2:", end=" ")
+            print(f"{CO2_loss_form[:6].sum() - CO2_loss_form[6:].sum():.7e}")
+        except:
+            self.show_warning("Cannot plot result pathways.")
+
+    def cal_cros_vib_energy_pathways(self):
         # _rate_df = self.rctn_df["cros"]
         _energy_rate_data = []
         # eedf = EEDF(max_energy_eV=self._PARAS["electron_max_energy_eV"],
@@ -1633,15 +1836,14 @@ class ThePlasmistryGui(_PlasmistryGui):
             _e_density = self._electron_density_func(t)
             _Tgas_K = self._Tgas_func_slow_down(t)
             self.rctn_instances["cros"].set_rate_const(
-                eedf_normalized=normalized_eedf)
+                    eedf_normalized=normalized_eedf)
             self.rctn_instances["cros"].set_rate(
-                density=np.hstack((_e_density, self.sol.y[:, _i])))
+                    density=np.hstack((_e_density, self.sol.y[:, _i])))
             _energy_rate_data.append(self.rctn_instances[
                                          "cros"].rate * self.rctn_df[
-                                         "cros"]["threshold_eV"].values * 1e6)
+                                         "cros"]["threshold_eV"].values * 1e6 * const.eV2J)
         _energy_rate_df = pd.DataFrame(index=self.rctn_df["cros"]["formula"],
-                                       data=np.array(
-                                           _energy_rate_data).transpose())
+                                       data=np.array(_energy_rate_data).transpose())
         _energy_paths_list = ["H2_vib", "H2_dis",
                               "CO2_vib", "CO2_dis", "CO2_ele",
                               "CO_vib", "CO_dis",
@@ -1666,8 +1868,7 @@ class ThePlasmistryGui(_PlasmistryGui):
         self._energy_rate_df = _energy_rate_df
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        ax.semilogx(self.sol.t,
-                    _energy_paths_df.values.transpose() * const.eV2J)
+        ax.semilogx(self.sol.t, _energy_paths_df.values.transpose())
         ax.set_xlabel("Time [s]")
         ax.set_ylabel("W cm-3")
         ax.legend(_energy_paths_df.index)
@@ -1685,17 +1886,49 @@ class ThePlasmistryGui(_PlasmistryGui):
         # ax_1.set_ylabel("W cm-3")
         # ax_1.legend(_energy_channels)
         print(
-            simps(_energy_paths_df.loc["total"].values,
-                  self.sol.t) * const.eV2J)
+                simps(_energy_paths_df.loc["total"].values,
+                      self.sol.t) * const.eV2J)
         print(
-            trapz(_energy_paths_df.loc["total"].values,
-                  self.sol.t) * const.eV2J)
+                trapz(_energy_paths_df.loc["total"].values,
+                      self.sol.t) * const.eV2J)
+
+    def cal_coef_vib_energy_pathways(self):
+        _energy_rate_data = []
+
+        for _i, t in enumerate(self.sol.t):
+            _e_density = self._electron_density_func(t)
+            _Tgas_K = self._Tgas_func_slow_down(t)
+            _density = np.hstack([_e_density, self.sol.y[:, _i]])
+            self.rctn_instances["coef"].set_rate_const(Tgas_K=_Tgas_K)
+            self.rctn_instances["coef"].set_rate(density=_density)
+            _energy_rate_data.append(self.rctn_instances[
+                                         "coef"].rate * self.rctn_df["coef"][
+                                         "vib_energy_loss"].values * const.eV2J)
+        _energy_rate_df = pd.DataFrame(index=self.rctn_df["coef"]["formula"],
+                                       data=np.array(
+                                               _energy_rate_data).transpose())
+        self._result_coef_vib_energy_loss_rate = _energy_rate_df
+        self._result_coef_vib_energy_loss_pathways = pd.DataFrame(
+                columns=self._result_coef_vib_energy_loss_rate.columns)
+        for _type in ("VT_CO2", "VT_H2", "VT_CO", "VT", "VV"):
+            self._result_coef_vib_energy_loss_pathways.loc[
+                _type] = self._result_coef_vib_energy_loss_rate.loc[
+                         self.rctn_df["coef"]["type"].str.startswith(_type).values, :].sum()
+        self._result_coef_vib_energy_loss_pathways.loc[
+            "total"] = self._result_coef_vib_energy_loss_rate.sum()
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.semilogx(self.sol.t, self._result_coef_vib_energy_loss_pathways.values.transpose())
+        ax.set_xlabel("Time (s)")
+        ax.set_ylabel("W cm-3")
+        ax.legend(self._result_coef_vib_energy_loss_pathways.index)
+        ax.grid()
 
     def save_energy_pathways(self):
         (filename, _) = QF.getSaveFileName(self,
                                            caption="Save energy pathways",
-                                           directory="_output/*.dat",
-                                           filter="dat (*.dat)")
+                                           directory="_output/*.energy_pathways",
+                                           filter="(*.energy_pathways)")
         np.savetxt(filename,
                    np.vstack((self.sol.t,
                               self._energy_paths_df.values)).transpose(),
@@ -1738,48 +1971,60 @@ class ThePlasmistryGui(_PlasmistryGui):
         self._actions["quit"].triggered.connect(self.quit)
         self._actions["DictToDf"].triggered.connect(DictToDf)
         self._actions["DfToInstance"].triggered.connect(
-            self.rctn_df_to_rctn_instance)
+                self.rctn_df_to_rctn_instance)
         self._actions["SaveRctnDict"].triggered.connect(
-            self.save_rctn_dict_to_file)
+                self.save_rctn_dict_to_file)
         self._actions["SaveRctnDF"].triggered.connect(
-            self.save_rctn_df_to_file)
+                self.save_rctn_df_to_file)
         self._actions["LoadRctnDict"].triggered.connect(
-            self.load_rctn_dict_to_file)
+                self.load_rctn_dict_to_file)
         self._actions["LoadRctnDF"].triggered.connect(
-            self.load_rctn_df_to_file)
+                self.load_rctn_df_to_file)
         self._actions["SaveEvolveSetting"].triggered.connect(
-            self._evolve_paras.save_values_to_file)
+                self._evolve_paras.save_values_to_file)
         self._actions["LoadEvolveSetting"].triggered.connect(
-            self._evolve_paras.load_values_from_file)
+                self._evolve_paras.load_values_from_file)
         self._actions["SaveInitDensities"].triggered.connect(
-            self._densities.save_densities_to_file)
+                self._densities.save_densities_to_file)
         self._actions["LoadInitDensities"].triggered.connect(
-            self._densities.load_densities_to_file)
+                self._densities.load_densities_to_file)
         self._actions["SaveEEDF"].triggered.connect(
-            self._result_eedf_view.save_eedf_value)
+                self._result_eedf_view.save_eedf_value)
         self._actions["LoadEEDF"].triggered.connect(
-            self._eedf_setting.load_eedf_from_file)
+                self._eedf_setting.load_eedf_from_file)
         self._actions["resize_0"].triggered.connect(lambda: self.resize(
-            QSize(1920, 1080)))
+                QSize(1920, 1080)))
         self._actions["resize_1"].triggered.connect(lambda: self.resize(
-            QSize(1768, 992)))
+                QSize(1768, 992)))
         self._actions["resize_2"].triggered.connect(lambda: self.resize(
-            QSize(1600, 900)))
+                QSize(1600, 900)))
         self._actions["resize_3"].triggered.connect(lambda: self.resize(
-            QSize(1366, 768)))
+                QSize(1366, 768)))
         self._actions["resize_4"].triggered.connect(lambda: self.resize(
-            QSize(1360, 768)))
+                QSize(1360, 768)))
         self._actions["resize_5"].triggered.connect(lambda: self.resize(
-            QSize(1280, 720)))
+                QSize(1280, 720)))
         self._actions["resize_6"].triggered.connect(lambda: self.resize(
-            QSize(1176, 664)))
+                QSize(1176, 664)))
         self._actions["Evolve"].triggered.connect(self._solve)
         # self._actions["result_plot"].triggered.connect(
         #     self._result_densities_view.plot_selected)
         self._actions["eedf_plot"].triggered.connect(
-            self._result_eedf_view.plot_selected)
+                self._result_eedf_view.plot_selected)
         self._actions["CalEEDF"].triggered.connect(self._solve_eedf)
+        self._actions["CalSpeciesIntegration"].triggered.connect(
+                self.cal_density_integration)
+        self._actions["CalDensityPathways"].triggered.connect(
+                self.cal_result_pathways)
+        self._actions["CalEnergyPathways"].triggered.connect(
+                self.cal_cros_vib_energy_pathways)
+        self._actions["SaveEnergyPathways"].triggered.connect(
+                self.save_energy_pathways)
         self._result_eedf_view._plot_btn.clicked.connect(self._eedf_sol_plot)
+        self._result_pathways_view._plot_btn.clicked.connect(
+                self.plot_result_pathways)
+        self._result_pathways_view._save_btn.clicked.connect(
+                self.save_result_pathways)
 
 
 # ---------------------------------------------------------------------------- #

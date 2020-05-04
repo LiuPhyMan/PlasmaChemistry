@@ -50,9 +50,9 @@ def unique_by_colums(array):
 
 
 def is_equal_xj(xj0, xj1):
-    if np.array_equal(xj0.data, xj1.data):
-        if np.array_equal(xj0.nonzero()[0], xj1.nonzero()[0]):
-            return True
+    # if np.array_equal(xj0.data, xj1.data):
+    if np.array_equal(xj0.nonzero()[0], xj1.nonzero()[0]):
+        return True
     return False
 
 
@@ -114,6 +114,8 @@ class Pathways(object):
         self.spcs_prdc_rate_deleted = np.zeros(self.n_spcs)
         self.spcs_cnsm_rate_deleted = np.zeros(self.n_spcs)
         self.spcs_net_rate_deleted = np.zeros(self.n_spcs)
+
+        self.set_spcs_rate()
 
         # species consuming/producing/net rate
         # self.set_spcs_prdc_rate()
@@ -224,6 +226,8 @@ class Pathways(object):
         xj_new = (xj_new / _gcd).astype(np.int)
         f1_new = _gcd * self.f1k[index_0] * self.f1k[index_1] / self.Di[
             self.index_crrnt_brspc]
+        # print(_gcd)
+        # print(f1_new)
         return xj_new[np.newaxis].transpose(), f1_new
 
     def distribute_net_change_into_pathways(self, _index):
@@ -252,22 +256,30 @@ class Pathways(object):
 
     # ------------------------------------------------------------------------ #
     def add_xj_f1_to_xjk_f1k(self, xjk0, f1k0, xjk, f1k):
+        #   add xjk0 to xjk
+        #   add f1k0 to f1k
+        # print("xjk0")
+        # print(xjk0)
+        # print("xjk")
+        # print(xjk)
         _xjk = xjk
         # print(xjk.toarray())
         # print("add")
         # print(xjk0.toarray())
         _f1k = f1k
         for i in range(xjk0.shape[1]):
-            xj = xjk0[:, i]
+            xj = xjk0[:, [i]]
             f1 = f1k0[i]
             _index = index_xj_in_xjk(xj, xjk)
             if _index != []:
                 _f1k[_index] += f1
             else:
-                _xjk = sprs.hstack((_xjk, xj), format="csr", dtype=np.int)
+                _xjk = np.hstack((_xjk, xj))
                 _f1k = np.hstack((_f1k, f1))
         # print(_xjk.toarray())
         # print("end")
+        # print("xjk_new")
+        # print(_xjk)
         return _xjk, _f1k
 
     def update(self, max_pathways=None):
@@ -286,42 +298,61 @@ class Pathways(object):
             for index_1 in self._indexes_pthwys_cnsm_brspc():
                 xj_new, f1_new = self.combine_two_pathways_by_brspc(index_0,
                                                                     index_1)
-                # print(xj_new.toarray())
+                # print(f"indexes: {index_0} and {index_1}")
+                # print("xj_new:")
+                # print(xj_new)
+                # print(f1_new)
+                # print(xj_new.shape)
+                # print("f1_new", end=" ")
                 # print(f1_new)
                 #   subways
-                # xj_new_splited = self.split_into_subpathways(xj_new)
-                # if xj_new_splited.shape[1] == 1:
-                #     f1_new_splited = [f1_new]
-                # else:
-                #     f1_new_splited = self.get_subpathways_f1k(xj=xj_new,
-                #                                               f1=f1_new,
-                #                                               xjk_elmnty=xj_new_splited)
-                # xjk_new, f1k_new = self.add_xj_f1_to_xjk_f1k(xj_new_splited,
-                #                                              f1_new_splited,
-                #                                              xjk_new, f1k_new)
+                xj_new_splited = self.split_into_subpathways(xj_new)
+                # print(xj_new_splited)
+                # print("xj_new_splited")
+                # print(xj_new_splited)
+                if xj_new_splited.shape[1] == 1:
+                    f1_new_splited = [f1_new]
+                else:
+                    f1_new_splited = self.get_subpathways_f1k(xj=xj_new,
+                                                              f1=f1_new,
+                                                              xjk_elmnty=xj_new_splited)
+                # print("f1_new_splited")
+                # print(f1_new_splited)
+                xjk_new, f1k_new = self.add_xj_f1_to_xjk_f1k(xj_new_splited,
+                                                             f1_new_splited,
+                                                             xjk_new, f1k_new)
+                # print(f1k_new)
+                # print(xjk_new)
+                # print(f1k_new)
+                # print("xjk_new:")
+                # print(xjk_new)
                 # print(xj_new_splited.transpose())
-                print("xjk shape", end=" ")
-                print(xjk_new.shape)
-                print("xj_new", end=" ")
-                print(xj_new.shape)
-                xjk_new = np.hstack((xjk_new, xj_new))
-                print(xjk_new)
-                f1k_new = np.hstack((f1k_new, f1_new))
+                # print("xjk shape", end=" ")
+                # print(xjk_new.shape)
+                # print("xj_new", end=" ")
+                # print(xj_new.shape)
+                # xjk_new = np.hstack((xjk_new, xj_new))
+                # print("xjk:")
+                # print(xjk_new)
+                # f1k_new = np.hstack((f1k_new, f1_new))
                 # print("end")
         if self.spcs_net_rate[self.index_crrnt_brspc] > 0:
             _indexes_to_distribute = self._indexes_pthwys_prdc_brspc()
-        else:
+        elif self.spcs_net_rate[self.index_crrnt_brspc] < 0:
             _indexes_to_distribute = self._indexes_pthwys_cnsm_brspc()
+        else:
+            _indexes_to_distribute = []
         for _index in _indexes_to_distribute:
             xj_new, f1_new = self.distribute_net_change_into_pathways(_index)
             xjk_new = np.hstack((xjk_new, xj_new))
             f1k_new = np.hstack((f1k_new, f1_new))
-            print(xjk_new)
+            # print(xjk_new)
 
         # xjk_new, f1k_new = self.merge_subways(xjk=np.array(xjk_new, dtype=np.int64),
         #                                       f1k=np.array(f1k_new, dtype=np.float64))
         self.xjk = xjk_new
         self.f1k = f1k_new
+        # print(self.f1k)
         self.update_mik_from_xjk()
         self.set_spcs_rate()
         # self.sort_by_f1k()
@@ -332,24 +363,33 @@ class Pathways(object):
         if max_pthways < self.n_pathways():
             self.xjk = self.xjk[:, :max_pthways]
             self.f1k = self.f1k[:max_pthways]
-            self.mik = self.sij.dot(self.xjk)
+            self.update_mik_from_xjk()
+            # self.mik = self.sij.dot(self.xjk)
 
     # ------------------------------------------------------------------------ #
     #   Decompose the complicated pathway into simple ones.
     # ------------------------------------------------------------------------ #
     def _combine_two_xj(self, xj0, xj1, brspc):
+        # print(xj0)
+        # print(xj1)
         mi0 = self.sij.dot(xj0)
         mi1 = self.sij.dot(xj1)
-        m0 = mi0[self._index_spc(brspc), 0]
-        m1 = mi1[self._index_spc(brspc), 0]
+        # print(mi0)
+        # print(mi1)
+        # print(brspc)
+        m0 = mi0[self._index_spc(brspc)]
+        m1 = mi1[self._index_spc(brspc)]
         # print(brspc)
         # print(mi0.toarray())
         # print(mi1.toarray())
         assert m0 * m1 < 0
         xj_new = xj0 * abs(m1) + xj1 * abs(m0)
         xj_new = xj_new.astype(np.int)
-        _gcd = int(gcd_list(xj_new.toarray()))
-        return (xj_new / _gcd).astype(np.int), _gcd
+        # print(xj_new)
+        _gcd = int(gcd_list(xj_new))
+        xj_new = (xj_new / _gcd).astype(np.int)[np.newaxis].transpose()
+        # print(xj_new)
+        return xj_new, _gcd
 
     @staticmethod
     def merge_subways(xjk, f1k):
@@ -375,9 +415,11 @@ class Pathways(object):
         #   apply the sum of the multiplicities of all reactions in a pathway as a measure of
         # "simplicity".
         #       the simpler one gets the smaller rank number.
-        sorted_index = np.array(xjk_elmnty.sum(axis=0).argsort())[0][::-1]
+        # print(xjk_elmnty)
+        # sorted_index = np.array(xjk_elmnty.sum(axis=0).argsort())[0][::-1]
+        sorted_index = np.array(xjk_elmnty.sum(axis=0).argsort())[::-1]
         c = (sorted_index + 1) ** 2
-        res = optimize.linprog(c, A_eq=xjk_elmnty.toarray(), b_eq=xj.toarray())
+        res = optimize.linprog(c, A_eq=xjk_elmnty, b_eq=xj)
         if res.success:
             return f1 * res.x
         else:
@@ -401,41 +443,59 @@ class Pathways(object):
                [0, 1],
                [0, 0]])
         """
-        assert xj.ndim == 1
+        # assert xj.ndim == 1
         _xjk = np.zeros((xj.size, len(xj.nonzero()[0])), dtype=np.int)
         for _column, _row in enumerate(xj.nonzero()[0]):
             _xjk[_row, _column] = 1
         return _xjk
 
-    def is_subpathway(self, xj0, xj1):
-        if xj1.count_nonzero() == (abs(xj0) + abs(xj1)).count_nonzero():
+    def is_subpathway(self, xj0, xj1, xj2):
+        _set0 = set(np.nonzero(xj0)[0])
+        _set1 = set(np.nonzero(xj1)[0])
+        _set2 = set(np.nonzero(xj2)[0])
+        if _set0 <= (_set1 | _set2):
+            # if xj1.count_nonzero() == (abs(xj0) + abs(xj1)).count_nonzero():
+            # if np.nonzero(xj0)[0]
             return True
         else:
             return False
 
     def split_into_subpathways(self, xj):
-        if xj.count_nonzero() == 1:
+        if np.count_nonzero(xj) == 1:
             return xj
+        ##
+        for brspc in self.brspcs_ever:
+            index_brspc = self._index_spc(brspc)
+            m1k = self.sij[index_brspc].dot(xj)
+            if m1k != 0:
+                return xj
+        ##
+
         #   step 1:  a set of pathways P in which each pathway consists of one reaction of xj.
+        # print("Start split subpathways")
         xjk_init = self.decompose_xj(xj)  # P
+        # print("xjk_init")
+        # print(xjk_init)
         #   step 2:  For all species branch species ever, the following operations are repeated.
         for brspc in self.brspcs_ever:
             #   step 2.1    Initialize a new empty set of pathways.
-            temp_pthwy = sprs.csc_matrix(
-                np.zeros(shape=(xj.shape[0], 0), dtype=np.int))
+            temp_pthwy = np.zeros(shape=(xj.shape[0], 0), dtype=np.int)
             #   step 2.2    pathway in xjk_init have zero net production of branch specie are
             #               copied to temp pathways.
             index_brspc = self._index_spc(brspc)
             m1k = self.sij[index_brspc].dot(xjk_init)
-            temp_pthwy = sprs.hstack(
-                (temp_pthwy, xjk_init[:, (m1k == 0).indices]), format="csr")
+            # temp_pthwy = sprs.hstack(
+            #         (temp_pthwy, xjk_init[:, (m1k == 0).indices]), format="csr")
+            temp_pthwy = np.hstack((temp_pthwy, xjk_init[:, m1k == 0]))
             #   step 2.3    the pathway produce brspc and the pathway consume brspc are combined.
             #               the new pathway is added to the temp pathway if if fulfils the
             #               following condition :
             #               there is no pathway P_m
-            mik_init = self.sij.dot(xjk_init)
-            index_k_prdc_brspc = (mik_init[index_brspc] > 0).indices
-            index_k_cnsm_brspc = (mik_init[index_brspc] < 0).indices
+            # mik_init = self.sij.dot(xjk_init)
+            # index_k_prdc_brspc = (mik_init[index_brspc] > 0).nonzero()[0]
+            # index_k_cnsm_brspc = (mik_init[index_brspc] < 0).nonzero()[0]
+            index_k_prdc_brspc = (m1k > 0).nonzero()[0]
+            index_k_cnsm_brspc = (m1k < 0).nonzero()[0]
             for index_0 in index_k_cnsm_brspc:
                 for index_1 in index_k_prdc_brspc:
                     temp_xj = self._combine_two_xj(xjk_init[:, index_0],
@@ -446,15 +506,20 @@ class Pathways(object):
                     for _index in range(xjk_init.shape[1]):
                         if (_index == index_0) or (_index == index_1):
                             continue
-                        if self.is_subpathway(xjk_init[:, _index],
-                                              xjk_init[:, index_0] + xjk_init[:,
-                                                                     index_1]):
+                        if self.is_subpathway(xjk_init[:, [_index]],
+                                              xjk_init[:, [index_0]],
+                                              xjk_init[:, [index_1]]):
                             is_elementary = False
                             break
                     #   add it into temp pathways if it is elementary.
                     if is_elementary:
-                        temp_pthwy = sprs.hstack((temp_pthwy, temp_xj),
-                                                 format="csr")
+                        # temp_pthwy = sprs.hstack((temp_pthwy, temp_xj),
+                        #                          format="csr")
+                        temp_pthwy = np.hstack((temp_pthwy, temp_xj))
+                    # print("temp_pthwy")
+                    # print(temp_pthwy)
+            # print("temp_pthwy")
+            # print(temp_pthwy)
             xjk_init = temp_pthwy
         return xjk_init.astype(dtype=np.int64)
 
@@ -519,7 +584,8 @@ class Pathways(object):
         if np.all(xj1 == 0):
             return print_list
         for j in np.where(xj1 != 0)[0]:
-            _str = self.si1_to_reaction_string(si1=self.sij[:, j])
+            # _str = self.si1_to_reaction_string(si1=self.sij[:, j])
+            _str = self.reactant[j] + " => " + self.product[j]
             if xj1[j] == 1:
                 _rctn_str = _str
             else:
@@ -530,17 +596,20 @@ class Pathways(object):
         return print_list
 
     # def view(self, with_null=True, regexp_rctn=None):
-    def view(self, with_null=True):
+    def view(self, with_null=True, only_show_CO2_loss=False):
         _list_to_show = []
         for k in np.arange(self.n_pathways()):
             net_rctn_str = self.si1_to_reaction_string(si1=self.mik[:, k])
             if (not with_null) and ("NULL" in net_rctn_str):
                 _list_to_show.extend([])
-            else:
-                _list_to_show.extend(self.xj1_to_pathway_list(xj1=self.xjk[:, k]))
-                _list_to_show.append("-" * 33 + "|" + "-" * 8)
-                net_rctn_str = f"NET:{net_rctn_str:>29}| {self.f1k[k]:.1e}"
-                _list_to_show.append(net_rctn_str)
+                continue
+            if only_show_CO2_loss:
+                if self.mik[self._index_spc("CO2"), k] >= 0:
+                    continue
+            _list_to_show.extend(self.xj1_to_pathway_list(xj1=self.xjk[:, k]))
+            _list_to_show.append("-" * 33 + "|" + "-" * 8)
+            net_rctn_str = f"NET:{net_rctn_str:>29}| {self.f1k[k]:.1e}"
+            _list_to_show.append(net_rctn_str)
             _list_to_show.append("=" * (34 + 8))
         return "\n".join(_list_to_show)
         # if regexp_rctn is not None:
@@ -549,9 +618,9 @@ class Pathways(object):
 
     def _info(self):
         _str = r"""{i} species, {j} reactions, {k} pathways""".format(
-            i=self.n_species(),
-            j=self.n_reactions(),
-            k=self.n_pathways())
+                i=self.n_species(),
+                j=self.n_reactions(),
+                k=self.n_pathways())
         return _str
 
     def tabulate_pathways(self):
@@ -559,9 +628,9 @@ class Pathways(object):
         for k in np.arange(self.xjk.shape[1]):
             xj = self.xjk[:, [k]]
             table.loc[k] = {
-                "pathways": self.xj1_to_list(xj1=xj),
-                "net_reaction": self.si1_to_string(si1=self.mik[:, [k]]),
-                "rate": self.f1k[k]
+                    "pathways"    : self.xj1_to_list(xj1=xj),
+                    "net_reaction": self.si1_to_string(si1=self.mik[:, [k]]),
+                    "rate"        : self.f1k[k]
             }
         return table
 
@@ -576,32 +645,43 @@ if __name__ == "__main__":
     #             "O+O=O2"]
     # rate = [3, 3, 5, 7, 9]
     #   Case 2
-    # rctn_str = ["O3=O+O2",
-    #             "O2=O+O",
-    #             "O+O2=O3",
-    #             "O+O3=O2+O2"]
-    # rate = [80, 20, 99, 1]
-    #   Case 3
-    rctn_str = ["e + CO2 = e + CO + O",
-                "CO2 + O = CO + O2",
-                "CO2 + M = CO + O + M",
-                "CO2 + H = CO + OH",
-                "e + H2 = e + H + H",
-                "CO + OH = CO2 + H",
-                "CO + O2 = CO2 + O",
-                "CO + O + M = CO2 + M",
-                "OH + H2 = H + H2O",
-                "H + H2O = OH + H2"]
-
+    rctn_str = ["O3=O+O2",
+                "O2=O+O",
+                "O+O2=O3",
+                "O+O3=O2+O2"]
     rcnt = [_.split("=")[0] for _ in rctn_str]
     prdt = [_.split("=")[1] for _ in rctn_str]
-    rctn = CoefReactions(species=pd.Series(["e", "H2", "CO2", "CO", "O2",
-                                            "H2O", "O", "H", "OH", "M"]),
+    # rate = [80, 20, 99, 1]
+    rctn = CoefReactions(species=pd.Series(["O3", "O2", "O"]),
                          reactant=rcnt,
                          product=prdt)
-    rctn.rate = np.arange(10)+1
+    rctn.rate = np.array([80, 20, 99, 1])
     p = Pathways(reactions=rctn)
-    for _spc in ("O", "OH", "H"):
+    for _spc in ("O",):
         p.set_crrnt_brspc(_spc)
         p.set_spcs_rate()
         p.update()
+    #   Case 3
+    # rctn_str = ["e + CO2 = e + CO + O",
+    #             "CO2 + O = CO + O2",
+    #             "CO2 + M = CO + O + M",
+    #             "CO2 + H = CO + OH",
+    #             "e + H2 = e + H + H",
+    #             "CO + OH = CO2 + H",
+    #             "CO + O2 = CO2 + O",
+    #             "CO + O + M = CO2 + M",
+    #             "OH + H2 = H + H2O",
+    #             "H + H2O = OH + H2"]
+    #
+    # rcnt = [_.split("=")[0] for _ in rctn_str]
+    # prdt = [_.split("=")[1] for _ in rctn_str]
+    # rctn = CoefReactions(species=pd.Series(["e", "H2", "CO2", "CO", "O2",
+    #                                         "H2O", "O", "H", "OH", "M"]),
+    #                      reactant=rcnt,
+    #                      product=prdt)
+    # rctn.rate = np.arange(10)+1
+    # p = Pathways(reactions=rctn)
+    # for _spc in ("O", "OH", "H"):
+    #     p.set_crrnt_brspc(_spc)
+    #     p.set_spcs_rate()
+    #     p.update()
