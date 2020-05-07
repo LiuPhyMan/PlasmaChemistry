@@ -607,7 +607,7 @@ class DensitySetting(QW.QWidget):
         self._density_value.setFixedWidth(80)
         self._density_value.setFixedHeight(50)
         self._density_value.setFont(_DEFAULT_LIST_FONT)
-        self._density_value.setText("2.45e19")
+        self._density_value.setText("2.69e19")
 
     def _set_note_widget(self):
         self._note = QW.QTextEdit()
@@ -993,6 +993,39 @@ class ResultEEDFView(QW.QWidget):
         # self._save_btn.clicked.connect(self.save_eedf_value)
 
 
+class ResultToCopy(QW.QWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._values_str = ""
+        self._copy_btn = BetterQPushButton("copy")
+        self._result_text = QW.QTextEdit()
+        # self._result_text.setReadOnly(True)
+        self._result_text.setFont(_DEFAULT_TEXT_FONT)
+        self._result_text.setFixedWidth(500)
+        self._set_layout()
+        self._set_connect()
+
+    def set_title_value(self, *, vari_str, values_str):
+        self._result_text.clear()
+        self._result_text.setText(vari_str + "\n" + values_str)
+        self._values_str = values_str
+
+    def _set_layout(self):
+        layout = QW.QVBoxLayout()
+        layout.addWidget(self._copy_btn)
+        layout.addWidget(self._result_text)
+        layout.addStretch(1)
+        self.setLayout(layout)
+
+    def copy_values_str(self):
+        clipboard = QApplication.clipboard()
+        clipboard.setText(self._values_str)
+
+    def _set_connect(self):
+        self._copy_btn.clicked.connect(self.copy_values_str)
+
+
 class _PlasmistryGui(QW.QMainWindow):
     _help_str = ""
     _NAME = "Plasmistry"
@@ -1029,7 +1062,7 @@ class _PlasmistryGui(QW.QMainWindow):
         self._coef_rctn_df_view = CoefRctnDfView()
         self._evolve_paras = EvolveSettings()
         self._output = QW.QTextEdit()
-        self._evolution_plot = QW.QWidget()
+        self._result_to_copy = ResultToCopy()
         self._densities = DensitySetting()
         self._eedf_setting = EEDFSettings()
         self._result_densities_view = ResultDensitiesView()
@@ -1403,17 +1436,17 @@ class _PlasmistryGui(QW.QMainWindow):
     def _set_dockwidget(self):
         _default_features = QW.QDockWidget.DockWidgetClosable | \
                             QW.QDockWidget.DockWidgetFloatable
-        _list = ["View", ]
-        _widgets_to_dock = [self._evolution_plot, ]
-        _dock_dict = dict()
+        _list = ["result_view", ]
+        _widgets_to_dock = [self._result_to_copy, ]
+        self._dock_widgets_dict = dict()
         for _, _widget in zip(_list, _widgets_to_dock):
-            _dock_dict[_] = QW.QDockWidget(_, self)
-            _dock_dict[_].setWidget(_widget)
-            _dock_dict[_].setFeatures(_default_features)
-            _dock_dict[_].setVisible(False)
-            _dock_dict[_].setFloating(True)
-            _dock_dict[_].setCursor(QCursor(Qt.PointingHandCursor))
-            _action = _dock_dict[_].toggleViewAction()
+            self._dock_widgets_dict[_] = QW.QDockWidget(_, self)
+            self._dock_widgets_dict[_].setWidget(_widget)
+            self._dock_widgets_dict[_].setFeatures(_default_features)
+            self._dock_widgets_dict[_].setVisible(False)
+            self._dock_widgets_dict[_].setFloating(True)
+            self._dock_widgets_dict[_].setCursor(QCursor(Qt.PointingHandCursor))
+            _action = self._dock_widgets_dict[_].toggleViewAction()
             _action.setChecked(False)
             _action.setFont(_DEFAULT_TOOLBAR_FONT)
             _action.setText(_)
@@ -1422,6 +1455,7 @@ class _PlasmistryGui(QW.QMainWindow):
 
 class ThePlasmistryGui(_PlasmistryGui):
     density_cm3_to_m3 = 1e6
+    _T0_K = 273.15
 
     def __init__(self):
         super().__init__()
@@ -1510,7 +1544,7 @@ class ThePlasmistryGui(_PlasmistryGui):
         _std_densities_seq_0 = self.rctn_instances[
             "coef"].get_initial_density(density_dict=_std_densities_dict)
         density_0 = self.density_convert(_std_densities_seq_0,
-                                         Tg_from=300,
+                                         Tg_from=self._T0_K,
                                          to_Tg=self._PARAS["Tgas_arc"])
         density_without_e_0 = density_0[1:]
         self._init_cros_reactions()
@@ -1530,9 +1564,18 @@ class ThePlasmistryGui(_PlasmistryGui):
                              atol=self._PARAS["atol"],
                              rtol=self._PARAS["rtol"])
         _Tgas_seq = [self._Tgas_func_slow_down(_) for _ in self.sol.t]
-        self._density_df = pd.DataFrame(data=self.sol.y * _Tgas_seq / 300,
+        self._density_df = pd.DataFrame(data=self.sol.y * _Tgas_seq / self._T0_K,
                                         index=self.rctn_df["species"][1:])
         self._result_densities_view.set_values(self.sol.t, self._density_df)
+        _species_list_to_show = ["CO(all)", "CO2(all)", "O2(all)", "H2O(all)"]
+        _values = [self._density_df.loc[_].values[-1] for _ in _species_list_to_show]
+        _values_str = "\t".join([f"{_:.4e}" for _ in _values])
+        _CO2_conversion = (self._density_df.loc["CO2(all)"].values[0] - self._density_df.loc[
+            "CO2(all)"].values[-1]) / self._density_df.loc["CO2(all)"].values[0]
+        self._result_to_copy.set_title_value(vari_str="\t".join(_species_list_to_show) + "\t" +
+                                                      "CO2_conv",
+                                             values_str=_values_str + "\t" + f"{_CO2_conversion:.4f}")
+        self._dock_widgets_dict["result_view"].show()
 
     def _solve_global_model(self):
         self._PARAS = self._evolve_paras.value()
@@ -1547,7 +1590,7 @@ class ThePlasmistryGui(_PlasmistryGui):
         _std_densities_dict = self._densities._std_densities_dict()
         init_density = self.rctn_instances["coef"].get_initial_density(
                 density_dict=_std_densities_dict)
-        init_density = init_density * 300 / self._PARAS["Tgas_arc"]
+        init_density = init_density * self._T0_K / self._PARAS["Tgas_arc"]
         init_density_without_e_cm3 = init_density[1:]  # cm-3
         init_density_without_e_m3 = init_density_without_e_cm3 * \
                                     self.density_cm3_to_m3  # m-3
@@ -1599,7 +1642,7 @@ class ThePlasmistryGui(_PlasmistryGui):
         _Tgas_seq = [self._Tgas_func_slow_down(_) for _ in self.sol.t]
         self._density_df = pd.DataFrame(data=self.sol.y[
                                              self._eedf_engine.grid_number:,
-                                             :] * _Tgas_seq / 300,
+                                             :] * _Tgas_seq / self._T0_K,
                                         index=self.rctn_df["species"][1:])
         _Te_seq = []
         for _i, _t in enumerate(self.sol.t):
@@ -1621,7 +1664,7 @@ class ThePlasmistryGui(_PlasmistryGui):
         self._eedf_engine.set_parameters(E=E, Tgas=Tgas_K, N=N)
         total_species_density = self.rctn_instances[
                                     "cros"].get_initial_density(
-                density_dict=self._densities._std_densities_dict())[1:] * 300 \
+                density_dict=self._densities._std_densities_dict())[1:] * self._T0_K \
                                 / \
                                 Tgas_K
         total_species_density = total_species_density * self.density_cm3_to_m3
@@ -1692,13 +1735,22 @@ class ThePlasmistryGui(_PlasmistryGui):
         _t0 = self._PARAS["time_escape_plasma"]
         _t = self.sol.t
         _result_dict = dict()
+        ####
+        _real_density_df = pd.DataFrame(data=self.sol.y,
+                                        index=self.rctn_df["species"][1:])
+        ####
         for _specie in _species_to_cal:
-            _y = self._result_densities_view._result_df.loc[_specie].values
+            _y = _real_density_df.loc[_specie].values
             _result_dict[_specie] = simps(_y[_t < _t0], _t[_t < _t0])
-        # print(_result_dict)
+        print(_result_dict)
         for _ in _species_to_cal:
             print(_, end=" ")
             print(f"{_result_dict[_]:.4e}")
+        vari_str = "\t".join(_species_to_cal)
+        values_str = "\t".join([f"{_result_dict[_]:.4e}" for _ in _species_to_cal])
+        self._result_to_copy.set_title_value(vari_str=vari_str,
+                                             values_str=values_str)
+        self._dock_widgets_dict["result_view"].show()
         return _result_dict
 
     def cal_result_pathways(self):
@@ -1711,7 +1763,7 @@ class ThePlasmistryGui(_PlasmistryGui):
         for _i, t in enumerate(self.sol.t):
             _e_density = self._electron_density_func(t)
             _Tgas_K = self._Tgas_func_slow_down(t)
-            _Tgas_factor = _Tgas_K / 300
+            _Tgas_factor = _Tgas_K / self._T0_K
             ####
             _density = np.hstack([_e_density, self.sol.y[:, _i]])
             ####
@@ -1733,34 +1785,34 @@ class ThePlasmistryGui(_PlasmistryGui):
         self._rate_df = pd.DataFrame(_rate_data, index=_rate_df_index)
         self._pathways_df = pd.DataFrame(columns=self._rate_df.columns)
         _match = {"E + CO2 => E + CO + O": r"E \+ CO2\S* => E \+ CO \+ O",
-                  "CO2 + O => CO + O2"      : r"CO2\S* \+ O => CO \+ O2",
-                  "CO2 + H => CO + OH"      : r"CO2\S* \+ H => CO \+ OH",
-                  "CO2 + M => CO + O + M"   : r"CO2\S* \+ \S+ => CO \+ O \+ \S+",
-                  "CO2 + C => CO + CO"      : r"CO2\S* \+ C => CO \+ CO",
-                  "CO + O2 => CO2 + O"      : r"CO \+ O2 => CO2 \+ O",
-                  "CO + OH => CO2 + H"      : r"CO \+ OH => CO2 \+ H",
-                  "CO + O + M => CO2 + M"   : r"CO \+ O \+ \S+ => CO2 \+ \S+",
-                  "O2 + C => CO + O"        : r"O2 \+ C => CO \+ O",
-                  "E + H2 => E + H + H"     : r"E \+ H2\S* => E \+ H \+ H",
-                  "E + CO => E + C + O"     : r"E \+ CO\S* => E \+ C \+ O",
-                  "E + O2 => E + O + O"     : r"E \+ O2\S* => E \+ O \+ O",
-                  "E + H2O => E + OH + H"   : r"E \+ H2O\S* => E \+ OH \+ H",
-                  "H2 + O => H + OH"        : r"H2\S* \+ O => H \+ OH",
-                  "H + OH => H2 + O"        : r"H \+ OH => H2 \+ O",
-                  "H2 + OH => H + H2O"      : r"H2\S* \+ OH => H \+ H2O",
-                  "H + H2O => H2 + OH"      : r"H \+ H2O => H2 \+ OH",
-                  "O2 + H => O + OH"        : r"O2 \+ H => O \+ OH",
-                  "O + OH => O2 + H"        : r"O \+ OH => O2 \+ H",
-                  "O + H2O => OH + OH"      : r"O \+ H2O => OH \+ OH",
-                  "OH + OH => O + H2O"      : r"OH \+ OH => O \+ H2O",
-                  "O2 + M => O + O + M"     : r"O2 \+ \S+ => O \+ O \+ \S+",
-                  "O + O + M => O2 + M"     : r"O \+ O \+ \S+ => O2 \+ \S+",
-                  "H2O + M => OH + H + M"   : r"H2O \+ \S+ => OH \+ H \+ \S+",
-                  "OH + H + M => H2O + M"   : r"OH \+ H \+ \S+ => H2O \+ \S+",
-                  "H2 + M => H + H + M"     : r"H2\S* \+ \S+ => H \+ H \+ \S+",
-                  "H + H + M => H2 + M"     : r"H \+ H \+ \S+ => H2 \+ \S+",
-                  "OH + M => O + H + M"     : r"OH \+ \S+ => O \+ H \+ \S+",
-                  "H + O + M => OH + M"     : r"H \+ O \+ \S+ => OH \+ \S+"}
+                  "CO2 + O => CO + O2"   : r"CO2\S* \+ O => CO \+ O2",
+                  "CO2 + H => CO + OH"   : r"CO2\S* \+ H => CO \+ OH",
+                  "CO2 + M => CO + O + M": r"CO2\S* \+ \S+ => CO \+ O \+ \S+",
+                  "CO2 + C => CO + CO"   : r"CO2\S* \+ C => CO \+ CO",
+                  "CO + O2 => CO2 + O"   : r"CO \+ O2 => CO2 \+ O",
+                  "CO + OH => CO2 + H"   : r"CO \+ OH => CO2 \+ H",
+                  "CO + O + M => CO2 + M": r"CO \+ O \+ \S+ => CO2 \+ \S+",
+                  "O2 + C => CO + O"     : r"O2 \+ C => CO \+ O",
+                  "E + H2 => E + H + H"  : r"E \+ H2\S* => E \+ H \+ H",
+                  "E + CO => E + C + O"  : r"E \+ CO\S* => E \+ C \+ O",
+                  "E + O2 => E + O + O"  : r"E \+ O2\S* => E \+ O \+ O",
+                  "E + H2O => E + OH + H": r"E \+ H2O\S* => E \+ OH \+ H",
+                  "H2 + O => H + OH"     : r"H2\S* \+ O => H \+ OH",
+                  "H + OH => H2 + O"     : r"H \+ OH => H2 \+ O",
+                  "H2 + OH => H + H2O"   : r"H2\S* \+ OH => H \+ H2O",
+                  "H + H2O => H2 + OH"   : r"H \+ H2O => H2 \+ OH",
+                  "O2 + H => O + OH"     : r"O2 \+ H => O \+ OH",
+                  "O + OH => O2 + H"     : r"O \+ OH => O2 \+ H",
+                  "O + H2O => OH + OH"   : r"O \+ H2O => OH \+ OH",
+                  "OH + OH => O + H2O"   : r"OH \+ OH => O \+ H2O",
+                  "O2 + M => O + O + M"  : r"O2 \+ \S+ => O \+ O \+ \S+",
+                  "O + O + M => O2 + M"  : r"O \+ O \+ \S+ => O2 \+ \S+",
+                  "H2O + M => OH + H + M": r"H2O \+ \S+ => OH \+ H \+ \S+",
+                  "OH + H + M => H2O + M": r"OH \+ H \+ \S+ => H2O \+ \S+",
+                  "H2 + M => H + H + M"  : r"H2\S* \+ \S+ => H \+ H \+ \S+",
+                  "H + H + M => H2 + M"  : r"H \+ H \+ \S+ => H2 \+ \S+",
+                  "OH + M => O + H + M"  : r"OH \+ \S+ => O \+ H \+ \S+",
+                  "H + O + M => OH + M"  : r"H \+ O \+ \S+ => OH \+ \S+"}
         # self._pathways_df["CO2(v) + O => CO + O2"] = self._rate_df[
         #     self._rate_df.index.str.match(r"CO2\S* \+ O => CO \+ O2")]
         for _key in _match:
@@ -1886,11 +1938,9 @@ class ThePlasmistryGui(_PlasmistryGui):
         # ax_1.set_ylabel("W cm-3")
         # ax_1.legend(_energy_channels)
         print(
-                simps(_energy_paths_df.loc["total"].values,
-                      self.sol.t) * const.eV2J)
+                simps(_energy_paths_df.loc["total"].values, self.sol.t))
         print(
-                trapz(_energy_paths_df.loc["total"].values,
-                      self.sol.t) * const.eV2J)
+                trapz(_energy_paths_df.loc["total"].values, self.sol.t))
 
     def cal_coef_vib_energy_pathways(self):
         _energy_rate_data = []
